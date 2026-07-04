@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Quality gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: ctype, iconv
+          coverage: none
+          tools: composer:v2, phpstan:2, php-cs-fixer:v3
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Code style (php-cs-fixer)
+        run: php-cs-fixer check --config=.php-cs-fixer.dist.php --diff
+
+      - name: Static analysis (phpstan)
+        run: phpstan analyse --no-progress --configuration=phpstan.neon
+
+      - name: Lint Twig
+        run: |
+          php bin/console lint:twig templates
+          php vendor/bin/twig-cs-fixer lint --config=.twig-cs-fixer.dist.php
+
+      - name: Tests (phpunit)
+        run: php vendor/bin/phpunit

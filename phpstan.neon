@@ -1,0 +1,18 @@
+# PHPStan configuration.
+#
+# The pure simulation core (src/Domain) is framework-free and is analysed at a
+# strict level. The framework-coupled layers (Entity / Application / Twig
+# components) are analysed too, but the Symfony/Doctrine PHPStan extensions —
+# which teach PHPStan about framework magic (reflective calls, container, ORM
+# metadata) — are added later: their download is blocked by the current sandbox
+# egress policy (see docs/tooling.md). Until then, framework bootstrap files
+# that trigger known false positives are excluded rather than suppressed inline.
+parameters:
+    level: 8
+    paths:
+        - src
+    excludePaths:
+        # Reflectively-called by Symfony's MicroKernelTrait; needs phpstan-symfony.
+        - src/Kernel.php
+    tmpDir: .phpstan.cache
+    treatPhpDocTypesAsCertain: false
