@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Weather;
 
+use App\Domain\Math\SeasonalCycle;
 use App\Domain\Time\GameDate;
-
-use const M_PI;
 
 /**
  * Deterministic weather generator for Phase 0-1 (game-design §5 layer 2 + §15).
@@ -26,8 +25,6 @@ use const M_PI;
  */
 final readonly class WeatherGenerator
 {
-    private const float DAYS_PER_YEAR = 365.25;
-
     public function __construct(
         private WeatherCalibration $calibration = new WeatherCalibration(),
     ) {
@@ -80,10 +77,7 @@ final readonly class WeatherGenerator
      */
     private function seasonalCosine(GameDate $date): float
     {
-        $coldest = $this->calibration->coldestDayOfYear()->value;
-        $phase = 2.0 * M_PI * ($date->dayOfYear() - $coldest) / self::DAYS_PER_YEAR;
-
-        return cos($phase);
+        return SeasonalCycle::cosine($date->dayOfYear(), $this->calibration->coldestDayOfYear()->value);
     }
 
     /**
