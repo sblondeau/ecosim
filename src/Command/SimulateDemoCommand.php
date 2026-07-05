@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Domain\Time\GameDate;
+use App\Domain\Weather\WeatherGenerator;
 use DateTimeImmutable;
 
 use function sprintf;
@@ -30,12 +31,14 @@ final class SimulateDemoCommand extends Command
 {
     private const string DEFAULT_EPOCH = '2025-01-01';
     private const int DEFAULT_DAYS = 14;
+    private const int DEFAULT_SEED = 2025;
 
     protected function configure(): void
     {
         $this
             ->addOption('days', 'd', InputOption::VALUE_REQUIRED, 'Number of days to simulate', (string) self::DEFAULT_DAYS)
-            ->addOption('from', 'f', InputOption::VALUE_REQUIRED, 'Epoch date (Y-m-d)', self::DEFAULT_EPOCH);
+            ->addOption('from', 'f', InputOption::VALUE_REQUIRED, 'Epoch date (Y-m-d)', self::DEFAULT_EPOCH)
+            ->addOption('seed', 's', InputOption::VALUE_REQUIRED, 'Weather seed (same seed = same weather)', (string) self::DEFAULT_SEED);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -57,22 +60,26 @@ final class SimulateDemoCommand extends Command
             return Command::INVALID;
         }
 
-        $io->title(sprintf('EcoSim — %d jours de simulation depuis %s', $days, $epochOption));
+        $seed = (int) $input->getOption('seed');
+        $weather = new WeatherGenerator();
+
+        $io->title(sprintf('EcoSim — %d jours depuis %s (graine %d)', $days, $epochOption, $seed));
 
         $rows = [];
         $date = GameDate::epoch($epoch);
         for ($tick = 0; $tick < $days; ++$tick) {
+            $today = $weather->for($seed, $date);
             $rows[] = [
                 $date->dayIndex(),
                 $date->format('Y-m-d'),
-                $date->format('D'),
-                $date->dayOfYear(),
                 $date->season()->label(),
+                sprintf('%d %%', (int) round($today->cloudCover * 100)),
+                sprintf('%.1f °C', $today->temperatureC),
             ];
             $date = $date->next();
         }
 
-        $io->table(['Jour', 'Date', 'Jour sem.', 'Jour/an', 'Saison'], $rows);
+        $io->table(['Jour', 'Date', 'Saison', 'Nébulosité', 'Température'], $rows);
         $io->success(sprintf('Simulation terminée : %d jours joués.', $days));
 
         return Command::SUCCESS;
