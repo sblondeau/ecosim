@@ -68,8 +68,12 @@ Persistance   src/Entity/ + src/Repository/  (Doctrine, entités anémiques = é
   services de domaine sans état.
 - La présentation ne voit **que** `GameView` (objet de lecture plat) → c'est ce
   qui permet de swapper l'UI (Twig → canvas/three.js) sans toucher au métier.
-- État présent : `src/Domain/Time/` (`GameDate`, `Season`) + `src/Command/`
-  (`app:simulate:demo`, démo du tick en terminal).
+- État présent : domaine `src/Domain/{Time,Weather,Energy,Math,Simulation,Calibration}`
+  (tick, météo semée, production solaire/batterie/bilan, `SimulationEngine`, registre
+  `Coefficient`) ; `src/Application/` (`GameView` + `GameViewFactory`, `SessionGameStore`,
+  `Game`) ; présentation `src/Controller/GameController` + `templates/game/dashboard.html.twig`
+  (tranche web jouable en session, sans DB ni JS) ; `app:simulate:demo` (démo terminal).
+  Persistance Doctrine (`src/Entity`) et LiveComponent `data-poll` : pas encore posés.
 
 Migration future possible vers du DDD plus strict (agrégats + mapping) sans tout
 casser, si l'échelle ville/pays l'exige — mais **pas maintenant**.
