@@ -54,16 +54,18 @@ final readonly class SessionGameStore implements GameStore
      */
     public function reset(): Game
     {
-        $epoch = new DateTimeImmutable(self::DEFAULT_EPOCH);
         $config = new GameConfig(
             seed: random_int(1, 1_000_000),
-            epoch: $epoch,
-            solarKwc: $this->calibration->defaultSolarPeakPowerKwc()->value,
-            batteryKwh: $this->calibration->defaultBatteryCapacityKwh()->value,
+            epoch: new DateTimeImmutable(self::DEFAULT_EPOCH),
             horizonDays: self::DEFAULT_HORIZON_DAYS,
         );
 
-        $game = new Game($config, GameState::start());
+        $state = GameState::start(
+            solarKwc: $this->calibration->defaultSolarPeakPowerKwc()->value,
+            batteryKwh: $this->calibration->defaultBatteryCapacityKwh()->value,
+        );
+
+        $game = new Game($config, $state);
         $this->save($game);
 
         return $game;
@@ -77,13 +79,13 @@ final readonly class SessionGameStore implements GameStore
         $config = new GameConfig(
             seed: (int) ($data['seed'] ?? 0),
             epoch: new DateTimeImmutable((string) ($data['epoch'] ?? self::DEFAULT_EPOCH)),
-            solarKwc: (float) ($data['solarKwc'] ?? 0.0),
-            batteryKwh: (float) ($data['batteryKwh'] ?? 0.0),
             horizonDays: max(1, (int) ($data['horizonDays'] ?? self::DEFAULT_HORIZON_DAYS)),
         );
 
         $state = new GameState(
             max(0, (int) ($data['currentDay'] ?? 0)),
+            (float) ($data['solarKwc'] ?? 0.0),
+            (float) ($data['batteryKwh'] ?? 0.0),
             (float) ($data['batteryLevelKwh'] ?? 0.0),
             new PeriodTotals(
                 productionKwh: (float) ($data['totalProduction'] ?? 0.0),
@@ -104,10 +106,10 @@ final readonly class SessionGameStore implements GameStore
         return [
             'seed' => $game->config->seed,
             'epoch' => $game->config->epoch->format('Y-m-d'),
-            'solarKwc' => $game->config->solarKwc,
-            'batteryKwh' => $game->config->batteryKwh,
             'horizonDays' => $game->config->horizonDays,
             'currentDay' => $game->state->currentDay,
+            'solarKwc' => $game->state->solarKwc,
+            'batteryKwh' => $game->state->batteryKwh,
             'batteryLevelKwh' => $game->state->batteryLevelKwh,
             'totalProduction' => $game->state->totals->productionKwh,
             'totalDemand' => $game->state->totals->demandKwh,

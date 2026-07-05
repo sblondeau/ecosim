@@ -68,20 +68,21 @@ final class SimulateDemoCommand extends Command
             return Command::INVALID;
         }
 
+        $solarKwc = (float) $input->getOption('solar');
+        $batteryKwh = (float) $input->getOption('battery');
+
         $config = new GameConfig(
             seed: (int) $input->getOption('seed'),
             epoch: $epoch,
-            solarKwc: (float) $input->getOption('solar'),
-            batteryKwh: (float) $input->getOption('battery'),
             horizonDays: $days,
         );
         $engine = new SimulationEngine();
 
         $io->title(sprintf('EcoSim — %d jours depuis %s', $days, $epochOption));
-        $io->text(sprintf('Graine %d · Solaire %.1f kWc · Batterie %.1f kWh', $config->seed, $config->solarKwc, $config->batteryKwh));
+        $io->text(sprintf('Graine %d · Solaire %.1f kWc · Batterie %.1f kWh', $config->seed, $solarKwc, $batteryKwh));
 
         $rows = [];
-        $state = GameState::start();
+        $state = GameState::start($solarKwc, $batteryKwh);
         while (!$engine->isFinished($config, $state)) {
             $snapshot = $engine->snapshot($config, $state);
             $balance = $snapshot->balance;

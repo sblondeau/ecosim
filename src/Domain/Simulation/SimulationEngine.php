@@ -38,9 +38,9 @@ final readonly class SimulationEngine
     {
         $date = GameDate::fromDayIndex($config->epoch, $state->currentDay);
         $weather = $this->weather->for($config->seed, $date);
-        $production = $this->solar->dailyProductionKwh($config->solarKwc, $weather, $date);
+        $production = $this->solar->dailyProductionKwh($state->solarKwc, $weather, $date);
         $demand = $this->demand->dailyDemandKwh($date);
-        $balance = $this->balancer->settle($production, $demand, $this->battery($config), $state->batteryLevelKwh);
+        $balance = $this->balancer->settle($production, $demand, $this->battery($state), $state->batteryLevelKwh);
 
         return new DailySnapshot($date, $weather, $balance);
     }
@@ -65,8 +65,8 @@ final readonly class SimulationEngine
         return $state->currentDay >= $config->horizonDays;
     }
 
-    private function battery(GameConfig $config): Battery
+    private function battery(GameState $state): Battery
     {
-        return Battery::of($config->batteryKwh, $this->calibration->batteryOneWayEfficiency());
+        return Battery::of($state->batteryKwh, $this->calibration->batteryOneWayEfficiency());
     }
 }

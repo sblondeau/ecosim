@@ -17,17 +17,20 @@ final class SimulationEngineTest extends TestCase
         return new GameConfig(
             seed: 2025,
             epoch: new DateTimeImmutable('2025-01-01'),
-            solarKwc: 3.0,
-            batteryKwh: 5.0,
             horizonDays: $horizonDays,
         );
+    }
+
+    private static function equippedState(): GameState
+    {
+        return GameState::start(solarKwc: 3.0, batteryKwh: 5.0);
     }
 
     public function testSnapshotIsDeterministic(): void
     {
         $engine = new SimulationEngine();
         $config = self::config();
-        $state = GameState::start();
+        $state = self::equippedState();
 
         $a = $engine->snapshot($config, $state);
         $b = $engine->snapshot($config, $state);
@@ -40,7 +43,7 @@ final class SimulationEngineTest extends TestCase
     {
         $engine = new SimulationEngine();
         $config = self::config();
-        $state = GameState::start();
+        $state = self::equippedState();
 
         $snapshot = $engine->snapshot($config, $state);
         $next = $engine->advance($config, $state);
@@ -51,13 +54,25 @@ final class SimulationEngineTest extends TestCase
         self::assertSame($snapshot->balance->gridImportKwh, $next->totals->importKwh);
     }
 
+    public function testAdvanceCarriesTheInstalledEquipmentForward(): void
+    {
+        $engine = new SimulationEngine();
+        $config = self::config();
+        $state = self::equippedState();
+
+        $next = $engine->advance($config, $state);
+
+        self::assertSame(3.0, $next->solarKwc);
+        self::assertSame(5.0, $next->batteryKwh);
+    }
+
     public function testWeatherAdvancesWithTheDay(): void
     {
         $engine = new SimulationEngine();
         $config = self::config();
 
-        $day0 = $engine->snapshot($config, GameState::start());
-        $day1 = $engine->snapshot($config, $engine->advance($config, GameState::start()));
+        $day0 = $engine->snapshot($config, self::equippedState());
+        $day1 = $engine->snapshot($config, $engine->advance($config, self::equippedState()));
 
         self::assertSame('2025-01-01', $day0->date->format());
         self::assertSame('2025-01-02', $day1->date->format());
@@ -67,7 +82,7 @@ final class SimulationEngineTest extends TestCase
     {
         $engine = new SimulationEngine();
         $config = self::config(3);
-        $atHorizon = new GameState(3, 0.0, new \App\Domain\Simulation\PeriodTotals());
+        $atHorizon = new GameState(3, 3.0, 5.0, 0.0, new \App\Domain\Simulation\PeriodTotals());
 
         self::assertTrue($engine->isFinished($config, $atHorizon));
         self::assertSame(3, $engine->advance($config, $atHorizon)->currentDay, 'A finished game does not advance.');
@@ -77,7 +92,7 @@ final class SimulationEngineTest extends TestCase
     {
         $engine = new SimulationEngine();
         $config = self::config(10);
-        $state = GameState::start();
+        $state = self::equippedState();
 
         while (!$engine->isFinished($config, $state)) {
             $state = $engine->advance($config, $state);
