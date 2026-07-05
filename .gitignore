@@ -25,7 +25,6 @@
 ###< friendsofphp/php-cs-fixer ###
 
 ###> ecosim quality tooling ###
-/tools/*.phar
 /.phpstan.cache/
 /.twig-cs-fixer.cache
 ###< ecosim quality tooling ###

@@ -96,15 +96,16 @@ cause**, jamais suppresser. Pas de `@phpstan-ignore`, pas de baseline, pas de
 `assert()`/`@var` pour forcer un type, pas de cast ni d'élargissement de type
 pour faire taire une erreur.
 
-### Contrainte d'environnement (proxy egress) — cf. `docs/tooling.md`
-- **PHPStan tourne en PHAR** (`tools/phpstan.phar`, non versionné) récupéré par
-  `bin/install-tools.sh` (`make tools`) : son dist GitHub Releases est bloqué par
-  la politique du bac à sable, comme jsdelivr / codeload / API zipball.
-- **Différé** (réactivable en CI où l'egress est libre) : extensions
-  `phpstan-symfony`/`phpstan-doctrine`, PHPMD. `src/Kernel.php` est exclu de
-  PHPStan (faux positif `MicroKernelTrait` sans l'extension symfony).
-- Installer un paquet Composer ici : passe par les **clones git** (source), pas
-  le dist. `composer.json` a `use-github-api: false` pour ça.
+PHPStan est installé **via Composer** (`require-dev`) avec les extensions
+`phpstan-symfony` + `phpstan-doctrine` (auto-enregistrées par
+`phpstan/extension-installer`). Setup standard, rien de spécial à installer.
+
+### Contrainte d'environnement (bac à sable Claude Code web) — cf. `docs/tooling.md`
+La politique d'egress bloque GitHub Releases / jsdelivr : dans une session web,
+`composer install` ne peut pas récupérer le dist « dist-only » de PHPStan, donc
+`make stan` n'y tourne pas (mais `cs` / `twig` / `test` oui). L'analyse statique
+est alors couverte par la **CI** (egress libre). C'est une limite du bac à sable,
+pas du projet — en local et en CI tout s'installe normalement.
 
 ## 5. Tests — règles
 

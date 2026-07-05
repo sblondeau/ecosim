@@ -4,7 +4,7 @@
 SHELL := bash
 PHP := php
 CONSOLE := $(PHP) bin/console
-PHPSTAN := $(PHP) tools/phpstan.phar
+PHPSTAN := $(PHP) vendor/bin/phpstan
 PHP_CS_FIXER := $(PHP) vendor/bin/php-cs-fixer
 TWIG_CS_FIXER := $(PHP) vendor/bin/twig-cs-fixer
 
@@ -16,13 +16,8 @@ help: ## List available targets
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: install
-install: ## Install PHP dependencies + PHAR tools
+install: ## Install PHP dependencies
 	composer install
-	bin/install-tools.sh
-
-.PHONY: tools
-tools: ## Install standalone PHAR tools (phpstan, ...)
-	bin/install-tools.sh
 
 ## ---- Quality ----------------------------------------------------------------
 
