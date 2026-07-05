@@ -18,7 +18,7 @@ use InvalidArgumentException;
  * ties those together around a fixed epoch, staying framework-free and
  * deterministic (same day index → same date, always).
  *
- * It wraps PHP's native {@see \DateTimeImmutable} (core PHP, not a framework
+ * It wraps PHP's native {@see DateTimeImmutable} (core PHP, not a framework
  * dependency) normalised to a UTC calendar day with no time component.
  */
 final readonly class GameDate

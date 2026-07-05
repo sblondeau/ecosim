@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Domain\Energy\Battery;
-use App\Domain\Energy\EnergyBalanceCalculator;
 use App\Domain\Energy\EnergyCalibration;
-use App\Domain\Energy\EnergyDemandCalculator;
-use App\Domain\Energy\SolarProductionCalculator;
-use App\Domain\Time\GameDate;
-use App\Domain\Weather\WeatherGenerator;
+use App\Domain\Simulation\GameConfig;
+use App\Domain\Simulation\GameState;
+use App\Domain\Simulation\SimulationEngine;
 use DateTimeImmutable;
 
 use function sprintf;
@@ -25,9 +22,10 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 /**
  * Demonstrates the Phase 0-1 daily loop in the terminal, with no database or UI.
  *
- * Advances the in-game calendar day by day and, for each tick, generates the
- * weather and settles the energy balance (solar production vs household demand,
- * with the battery bridging to the evening) — exercising the pure domain core.
+ * Drives the same {@see SimulationEngine} as the web dashboard
+ * ({@see \App\Controller\GameController}) — day by day, printing the weather
+ * and energy balance for each tick. Exercises the pure domain core with no
+ * other entry-point-specific logic duplicated here.
  */
 #[AsCommand(
     name: 'app:simulate:demo',
@@ -70,54 +68,37 @@ final class SimulateDemoCommand extends Command
             return Command::INVALID;
         }
 
-        $seed = (int) $input->getOption('seed');
-        $solarKwc = (float) $input->getOption('solar');
-        $batteryKwh = (float) $input->getOption('battery');
-
-        $calibration = new EnergyCalibration();
-        $weather = new WeatherGenerator();
-        $solar = new SolarProductionCalculator($calibration);
-        $demand = new EnergyDemandCalculator($calibration);
-        $balancer = new EnergyBalanceCalculator($calibration);
-        $battery = Battery::of($batteryKwh, $calibration->batteryOneWayEfficiency());
+        $config = new GameConfig(
+            seed: (int) $input->getOption('seed'),
+            epoch: $epoch,
+            solarKwc: (float) $input->getOption('solar'),
+            batteryKwh: (float) $input->getOption('battery'),
+            horizonDays: $days,
+        );
+        $engine = new SimulationEngine();
 
         $io->title(sprintf('EcoSim — %d jours depuis %s', $days, $epochOption));
-        $io->text(sprintf('Graine %d · Solaire %.1f kWc · Batterie %.1f kWh', $seed, $solarKwc, $batteryKwh));
+        $io->text(sprintf('Graine %d · Solaire %.1f kWc · Batterie %.1f kWh', $config->seed, $config->solarKwc, $config->batteryKwh));
 
         $rows = [];
-        $totalProduction = 0.0;
-        $totalDemand = 0.0;
-        $totalImport = 0.0;
-        $totalExport = 0.0;
-        $batteryLevel = 0.0;
-
-        $date = GameDate::epoch($epoch);
-        for ($tick = 0; $tick < $days; ++$tick) {
-            $today = $weather->for($seed, $date);
-            $production = $solar->dailyProductionKwh($solarKwc, $today, $date);
-            $consumption = $demand->dailyDemandKwh($date);
-            $balance = $balancer->settle($production, $consumption, $battery, $batteryLevel);
-            $batteryLevel = $balance->batteryLevelKwh;
-
+        $state = GameState::start();
+        while (!$engine->isFinished($config, $state)) {
+            $snapshot = $engine->snapshot($config, $state);
+            $balance = $snapshot->balance;
             $grid = $balance->gridImportKwh - $balance->gridExportKwh;
 
             $rows[] = [
-                $date->format('Y-m-d'),
-                sprintf('%d %%', (int) round($today->cloudCover * 100)),
-                sprintf('%.1f°', $today->temperatureC),
-                sprintf('%.1f', $production),
-                sprintf('%.1f', $consumption),
+                $snapshot->date->format('Y-m-d'),
+                sprintf('%d %%', (int) round($snapshot->weather->cloudCover * 100)),
+                sprintf('%.1f°', $snapshot->weather->temperatureC),
+                sprintf('%.1f', $balance->productionKwh),
+                sprintf('%.1f', $balance->demandKwh),
                 sprintf('%d %%', (int) round($balance->selfSufficiencyRatio() * 100)),
                 sprintf('%+.1f', -$grid),
-                sprintf('%.1f', $batteryLevel),
+                sprintf('%.1f', $balance->batteryLevelKwh),
             ];
 
-            $totalProduction += $production;
-            $totalDemand += $consumption;
-            $totalImport += $balance->gridImportKwh;
-            $totalExport += $balance->gridExportKwh;
-
-            $date = $date->next();
+            $state = $engine->advance($config, $state);
         }
 
         $io->table(
@@ -125,13 +106,13 @@ final class SimulateDemoCommand extends Command
             $rows,
         );
 
-        $selfSufficiency = $totalDemand > 0.0 ? ($totalDemand - $totalImport) / $totalDemand : 1.0;
+        $totals = $state->totals;
         $io->definitionList(
-            ['Production totale' => sprintf('%.1f kWh', $totalProduction)],
-            ['Consommation totale' => sprintf('%.1f kWh', $totalDemand)],
-            ['Importé du réseau' => sprintf('%.1f kWh', $totalImport)],
-            ['Exporté (surplus)' => sprintf('%.1f kWh', $totalExport)],
-            ['Autosuffisance' => sprintf('%d %%', (int) round($selfSufficiency * 100))],
+            ['Production totale' => sprintf('%.1f kWh', $totals->productionKwh)],
+            ['Consommation totale' => sprintf('%.1f kWh', $totals->demandKwh)],
+            ['Importé du réseau' => sprintf('%.1f kWh', $totals->importKwh)],
+            ['Exporté (surplus)' => sprintf('%.1f kWh', $totals->exportKwh)],
+            ['Autosuffisance' => sprintf('%d %%', (int) round($totals->selfSufficiencyRatio() * 100))],
         );
 
         $io->success(sprintf('Simulation terminée : %d jours joués.', $days));
