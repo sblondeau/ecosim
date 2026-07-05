@@ -18,11 +18,11 @@ use Symfony\Component\HttpFoundation\RequestStack;
  * Persists the current game in the HTTP session (Phase 0-1 vertical slice).
  *
  * No database yet: a game is stored as a flat array of primitives and rebuilt
- * into domain objects on load. This keeps the browser loop playable now; a
- * Doctrine-backed store can replace this class later without touching the
- * domain or the presentation (both only know {@see Game}).
+ * into domain objects on load. Implements {@see GameStore} so a Doctrine-backed
+ * store can replace this class later — the controller depends on the
+ * interface, not on this implementation.
  */
-final readonly class SessionGameStore
+final readonly class SessionGameStore implements GameStore
 {
     private const string SESSION_KEY = 'ecosim_game';
     private const string DEFAULT_EPOCH = '2025-01-01';

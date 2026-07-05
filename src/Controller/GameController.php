@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Application\GameStore;
 use App\Application\GameViewFactory;
-use App\Application\SessionGameStore;
 use App\Domain\Simulation\SimulationEngine;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,7 +21,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class GameController extends AbstractController
 {
     public function __construct(
-        private readonly SessionGameStore $store,
+        private readonly GameStore $store,
         private readonly GameViewFactory $viewFactory,
         private readonly SimulationEngine $engine,
     ) {
