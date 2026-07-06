@@ -28,6 +28,13 @@ final readonly class SessionGameStore implements GameStore
     private const string DEFAULT_EPOCH = '2025-01-01';
     private const int DEFAULT_HORIZON_DAYS = 365;
 
+    /**
+     * Bump whenever the stored shape changes: a session written by an older
+     * format is thrown away and the game restarts, instead of being silently
+     * rebuilt into a valid-looking but absurd state by the hydrate fallbacks.
+     */
+    private const int FORMAT_VERSION = 2;
+
     public function __construct(
         private RequestStack $requestStack,
         private EnergyCalibration $calibration = new EnergyCalibration(),
@@ -35,13 +42,18 @@ final readonly class SessionGameStore implements GameStore
     }
 
     /**
-     * The game in progress, or a fresh one if none has been started yet.
+     * The game in progress, or a fresh one if none has been started yet
+     * (or if the stored game predates the current session format).
      */
     public function current(): Game
     {
         $data = $this->requestStack->getSession()->get(self::SESSION_KEY);
 
-        return is_array($data) ? $this->hydrate($data) : $this->reset();
+        if (!is_array($data) || self::FORMAT_VERSION !== ($data['version'] ?? null)) {
+            return $this->reset();
+        }
+
+        return $this->hydrate($data);
     }
 
     public function save(Game $game): void
@@ -104,6 +116,7 @@ final readonly class SessionGameStore implements GameStore
     private function dehydrate(Game $game): array
     {
         return [
+            'version' => self::FORMAT_VERSION,
             'seed' => $game->config->seed,
             'epoch' => $game->config->epoch->format('Y-m-d'),
             'horizonDays' => $game->config->horizonDays,
