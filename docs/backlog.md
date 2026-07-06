@@ -62,6 +62,16 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
   ce qui contredit le scénario primo-accédant et vide la décision « installer »
   de son sens. Passer au départ nu **dans le même commit** que l'action
   d'installation (sinon le jeu devient inerte entre-temps). Décision actée.
+- **Production par phase dans `settle()`** (déclencheur : Phase 2, éolien).
+  La signature de `EnergyBalanceCalculator::settle()` est agnostique de la
+  source (`float $productionKwh`), mais le modèle interne suppose une
+  production « en forme de soleil » : tout en journée, zéro la nuit. L'éolien
+  produit aussi la nuit — sommer ses kWh dans le pot « jour » détruirait la
+  leçon d'intermittence combinée que la Phase 2 vient enseigner (§15). Cible :
+  passer la production par phase (`$daytimeProduction`, `$nightProduction`),
+  solaire → jour, éolien réparti sur les deux ; mêmes priorités
+  (direct → batterie → réseau) appliquées à chaque phase. Bonus : la batterie
+  pourra se charger la nuit avec du vent.
 
 ## Robustesse (avant multiplication des actions joueur)
 
