@@ -1,0 +1,13 @@
+# PHPStan configuration.
+#
+# The Symfony and Doctrine extensions are auto-registered by
+# phpstan/extension-installer, so they teach PHPStan about framework magic
+# (reflective calls, the container, ORM metadata) — no manual includes needed.
+# The pure simulation core (src/Domain) stays framework-free and is analysed at
+# the same strict level as the rest.
+parameters:
+    level: 8
+    paths:
+        - src
+    tmpDir: .phpstan.cache
+    treatPhpDocTypesAsCertain: false
