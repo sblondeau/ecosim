@@ -44,7 +44,7 @@ final readonly class WeatherGenerator
         $amplitude = $this->calibration->seasonalTemperatureAmplitudeC()->value;
         $noiseBand = $this->calibration->dailyTemperatureNoiseC()->value;
 
-        $seasonal = $mean - $amplitude * $this->seasonalCosine($date);
+        $seasonal = $mean - $amplitude * $this->winterCycle($date);
         $noise = ($this->hash01($seed, $date->dayIndex(), 'temp') - 0.5) * 2.0 * $noiseBand;
 
         return round($seasonal + $noise, 1);
@@ -66,18 +66,19 @@ final readonly class WeatherGenerator
         $noise = $this->lerp($low, $high, $this->smoothstep($t));
 
         // Cloudier in winter (+amplitude), clearer in summer (−amplitude).
-        $seasonalMean = $mean + $amplitude * $this->seasonalCosine($date);
+        $seasonalMean = $mean + $amplitude * $this->winterCycle($date);
         $cloud = $seasonalMean + ($noise - 0.5) * $spread;
 
         return round($this->clamp01($cloud), 3);
     }
 
     /**
-     * Cosine of the annual cycle: +1 at the coldest day, −1 half a year later.
+     * The annual cycle anchored on winter: +1 in the dead of winter (coldest
+     * day of the year), −1 in mid-summer.
      */
-    private function seasonalCosine(GameDate $date): float
+    private function winterCycle(GameDate $date): float
     {
-        return SeasonalCycle::cosine($date->dayOfYear(), $this->calibration->coldestDayOfYear()->value);
+        return SeasonalCycle::at($date->dayOfYear(), $this->calibration->coldestDayOfYear()->value);
     }
 
     /**

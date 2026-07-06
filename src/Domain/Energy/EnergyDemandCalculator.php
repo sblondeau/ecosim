@@ -31,7 +31,7 @@ final readonly class EnergyDemandCalculator
         $amplitude = $this->calibration->householdDemandSeasonalAmplitudeKwh()->value;
         $peakDay = $this->calibration->householdDemandPeakDayOfYear()->value;
 
-        $demand = $mean + $amplitude * SeasonalCycle::cosine($date->dayOfYear(), $peakDay);
+        $demand = $mean + $amplitude * SeasonalCycle::at($date->dayOfYear(), $peakDay);
 
         return round($demand, 2);
     }

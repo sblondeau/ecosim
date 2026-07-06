@@ -40,7 +40,7 @@ final readonly class SolarProductionCalculator
         $amplitude = $this->calibration->solarSeasonalAmplitudeHours()->value;
         $peakDay = $this->calibration->solarPeakDayOfYear()->value;
 
-        $clearSkyHours = $mean + $amplitude * SeasonalCycle::cosine($date->dayOfYear(), $peakDay);
+        $clearSkyHours = $mean + $amplitude * SeasonalCycle::at($date->dayOfYear(), $peakDay);
 
         $cloudLoss = $this->calibration->solarCloudLossFactor()->value;
         $cloudFactor = 1.0 - $cloudLoss * $weather->cloudCover;
