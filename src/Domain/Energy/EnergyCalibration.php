@@ -22,10 +22,21 @@ use function sqrt;
  */
 final class EnergyCalibration
 {
-    /** Day of the year of maximum solar potential (summer solstice, ~21 June). */
+    /**
+     * Day of the year of maximum clear-sky solar potential. Purely geometric
+     * (no thermal lag, unlike temperature): the clear-sky component peaks at
+     * the summer solstice; cloud effects are modelled separately.
+     */
     public function solarPeakDayOfYear(): Coefficient
     {
-        return new Coefficient(172.0, 'day-of-year', 170.0, 174.0, 'Solstice d\'été', '2025-01-01');
+        return new Coefficient(
+            value: 172.0,
+            unit: 'day-of-year',
+            min: 170.0,
+            max: 174.0,
+            source: 'Fait astronomique — solstice d\'été le 20-21 juin (éphémérides IMCCE, Observatoire de Paris)',
+            reviewedOn: '2025-01-01',
+        );
     }
 
     /** Mean clear-sky daily peak-sun-hours over the year (France métropolitaine). */
