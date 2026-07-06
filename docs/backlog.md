@@ -73,6 +73,15 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
   (direct → batterie → réseau) appliquées à chaque phase. Bonus : la batterie
   pourra se charger la nuit avec du vent.
 
+- **Durée de vie / dégradation de la batterie dans le ROI** (déclencheur :
+  étape finances, calculs de retour sur investissement). L'autodécharge
+  (~1-3 %/mois) est volontairement ignorée : négligeable au tick journalier,
+  et la batterie se vide chaque nuit de toute façon. En revanche la **perte de
+  capacité** (~2-3 %/an, garanties typiques 70-80 % après 10 ans) participe au
+  mauvais ROI de la batterie seule (retour 15-20+ ans, game-design §8) — à
+  intégrer en `Coefficient` sourcé quand les calculs de ROI arriveront, pour
+  rester fidèle au principe « ne jamais forcer un ROI positif ».
+
 ## Robustesse (avant multiplication des actions joueur)
 
 - **Versionner le format de session** (`SessionGameStore`) : les fallbacks
