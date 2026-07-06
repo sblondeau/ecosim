@@ -18,13 +18,6 @@ final class WeatherTest extends TestCase
         self::assertSame(14.3, $weather->temperatureC);
     }
 
-    public function testClearSkyFractionIsTheComplementOfCloudCover(): void
-    {
-        self::assertEqualsWithDelta(0.75, new Weather(0.25, 10.0)->clearSkyFraction(), 1e-9);
-        self::assertSame(1.0, new Weather(0.0, 10.0)->clearSkyFraction());
-        self::assertSame(0.0, new Weather(1.0, 10.0)->clearSkyFraction());
-    }
-
     public function testRejectsCloudCoverBelowZero(): void
     {
         $this->expectException(InvalidArgumentException::class);

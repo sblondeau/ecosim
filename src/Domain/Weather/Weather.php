@@ -28,13 +28,4 @@ final readonly class Weather
             throw new InvalidArgumentException("Cloud cover must be within [0, 1], got {$cloudCover}.");
         }
     }
-
-    /**
-     * Fraction of clear sky, 0 (fully overcast) to 1 (clear) — the complement
-     * of the cloud cover. Convenience for the future solar model.
-     */
-    public function clearSkyFraction(): float
-    {
-        return 1.0 - $this->cloudCover;
-    }
 }
