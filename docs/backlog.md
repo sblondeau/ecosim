@@ -33,6 +33,19 @@ En Phase 5 (météo complète), la **pression atmosphérique** devient la variab
 pivot qui corrèle température/nébulosité/vent (game-design §5) — l'anticyclone
 hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant.
 
+- **Faire de l'irradiance une sortie de la météo** (déclencheur : Phase 5, ou
+  Phase 2/éolien si le patron devient récurrent avant). Le game-design §5 liste
+  « irradiance (dérivée) » comme variable météo, mais aujourd'hui le modèle du
+  ciel vit dans `EnergyCalibration`/`SolarProductionCalculator` :
+  `solarPeakDayOfYear`, `solarClearSkyPeakSunHoursMean`,
+  `solarSeasonalAmplitudeHours`, `solarCloudLossFactor` sont de la climatologie
+  d'irradiation / optique atmosphérique, pas des propriétés de l'installation.
+  Cible : la météo livre l'irradiance du jour (dérivée saison + nuages), et
+  `SolarProductionCalculator` ne fait plus que la conversion
+  (irradiance × kWc × performance ratio) — seuls performance ratio et
+  équipement restent côté Energy. Même patron ensuite pour l'éolien (la météo
+  livre le vent, l'énergie le convertit).
+
 ## Énergie / gameplay
 
 - **Bruit journalier sur la demande** : la demande est une sinusoïde pure →
