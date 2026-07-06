@@ -145,6 +145,9 @@ inline sans le rattacher au registre + un commentaire de source.
   finances → événement panne + bilan.
 - **En cas d'ambiguïté ou de sous-spécification pour cette phase : demander**,
   ne pas improviser une mécanique non documentée.
+- Les améliorations identifiées mais volontairement différées sont notées dans
+  **`docs/backlog.md`**, chacune avec l'étape qui la déclenche. Consulter ce
+  fichier en début d'étape ; ne pas les faire « en avance ».
 - Interface : **minimale** au MVP (jauges finances/confort/patrimoine + 2-3 zones
   cliquables toit/chaudière/garage). Pas de carte, pas d'animations.
 
