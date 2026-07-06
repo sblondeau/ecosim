@@ -21,6 +21,13 @@ lorsque la température pilote quelque chose (besoin de chauffage, confort) :
   nébulosité (points de contrôle interpolés, `cloudPersistenceDays`).
   Pédagogiquement clé : une semaine de froid continu est le scénario qui met
   un chauffage (et une facture) sous tension.
+- **Extraire le value noise vers `Domain/Math`** : `hash01`/`lerp`/`smoothstep`
+  (+ `clamp01`) sont des primitives mathématiques génériques, privées dans
+  `WeatherGenerator` faute de second consommateur (même règle d'extraction que
+  `SeasonalCycle`, sorti quand le solaire en a eu besoin). Le bruit sur la
+  demande et la persistance de la température (ci-dessus) seront ces seconds
+  consommateurs → extraire alors une classe qui nomme le concept (bruit 1D
+  semé et lissé : `(seed, index, salt) → valeur`), plutôt que 4 helpers en vrac.
 
 En Phase 5 (météo complète), la **pression atmosphérique** devient la variable
 pivot qui corrèle température/nébulosité/vent (game-design §5) — l'anticyclone
