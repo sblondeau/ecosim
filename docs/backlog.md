@@ -82,16 +82,10 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
   intégrer en `Coefficient` sourcé quand les calculs de ROI arriveront, pour
   rester fidèle au principe « ne jamais forcer un ROI positif ».
 
-## Robustesse (avant multiplication des actions joueur)
+## Robustesse
 
-- **Versionner le format de session** (`SessionGameStore`) : les fallbacks
-  silencieux (`?? 0.0`) transforment une session d'un ancien format en partie
-  absurde (équipement à 0) au lieu de la réinitialiser. Ajouter un champ de
-  version et `reset()` si mismatch.
-- **CSRF sur les POST** : les formulaires bruts du dashboard n'ont pas de
-  `csrf_token()` et le contrôleur ne vérifie rien. Faible enjeu tant que la
-  seule action est « jour suivant », à poser proprement avec les vraies
-  actions joueur (installer, emprunter…).
+- ~~Versionner le format de session~~ : fait (champ `version` + reset si mismatch).
+- ~~CSRF sur les POST~~ : fait (`csrf_token('game')` + vérification contrôleur).
 - **Phase dupliquée dans la calibration** : `WeatherCalibration::coldestDayOfYear`
   et `EnergyCalibration::householdDemandPeakDayOfYear` encodent la même réalité
   (creux thermique de mi-janvier) en deux endroits — risque de dérive, à

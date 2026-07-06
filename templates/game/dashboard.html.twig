@@ -125,10 +125,12 @@
     <div class="actions">
         {% if not game.finished %}
             <form method="post" action="{{ path('app_game_advance') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('game') }}">
                 <button type="submit" class="btn-primary">Jour suivant →</button>
             </form>
         {% endif %}
         <form method="post" action="{{ path('app_game_reset') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('game') }}">
             <button type="submit" class="btn-ghost">Nouvelle partie</button>
         </form>
     </div>
