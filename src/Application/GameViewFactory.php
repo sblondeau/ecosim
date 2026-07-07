@@ -41,6 +41,7 @@ final readonly class GameViewFactory
         $snapshot = $this->engine->snapshot($config, $state);
         $balance = $snapshot->balance;
         $totals = $state->totals;
+        $household = $state->household;
 
         return new GameView(
             dayNumber: $state->currentDay + 1,
@@ -56,14 +57,24 @@ final readonly class GameViewFactory
             selfSufficiencyPct: (int) round($balance->selfSufficiencyRatio() * 100),
             gridImportKwh: $balance->gridImportKwh,
             gridExportKwh: $balance->gridExportKwh,
-            solarKwc: $state->solarKwc,
+            heatingLabel: $household->heatingSystem->label(),
+            insulationLabel: $household->insulation->label(),
+            dpeLetter: $household->dpeClass()->label(),
+            heatingElectricityKwh: $snapshot->heating->electricityKwh,
+            fuelOilLitres: $snapshot->heating->fuelOilLitres,
+            comfortScorePct: $snapshot->comfort->score,
+            indoorTemperatureC: $snapshot->comfort->indoorC,
+            feltTemperatureC: $snapshot->comfort->feltC,
+            solarKwc: $household->solarKwc,
             batteryLevelKwh: $balance->batteryLevelKwh,
-            batteryCapacityKwh: $state->batteryKwh,
-            batteryPct: $state->batteryKwh > 0.0 ? (int) round($balance->batteryLevelKwh / $state->batteryKwh * 100) : 0,
+            batteryCapacityKwh: $household->batteryKwh,
+            batteryPct: $household->batteryKwh > 0.0 ? (int) round($balance->batteryLevelKwh / $household->batteryKwh * 100) : 0,
             totalProductionKwh: round($totals->productionKwh, 1),
             totalImportKwh: round($totals->importKwh, 1),
             totalExportKwh: round($totals->exportKwh, 1),
             totalSelfSufficiencyPct: (int) round($totals->selfSufficiencyRatio() * 100),
+            totalFuelOilLitres: round($totals->fuelOilLitres, 1),
+            averageComfortPct: $totals->averageComfortScore(),
         );
     }
 

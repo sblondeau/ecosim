@@ -70,7 +70,10 @@
         <div class="card">
             <h2>Énergie du jour</h2>
             <div class="row"><span class="k">Production solaire</span><span>{{ game.productionKwh|number_format(1, ',', ' ') }} kWh</span></div>
-            <div class="row"><span class="k">Consommation</span><span>{{ game.demandKwh|number_format(1, ',', ' ') }} kWh</span></div>
+            <div class="row"><span class="k">Consommation élec.</span><span>{{ game.demandKwh|number_format(1, ',', ' ') }} kWh</span></div>
+            {% if game.fuelOilLitres > 0 %}
+                <div class="row"><span class="k">Fioul brûlé</span><span>{{ game.fuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
+            {% endif %}
             <div class="row"><span class="k">Réseau</span>
                 <span>
                     {% if game.gridExportKwh > game.gridImportKwh %}
@@ -83,6 +86,14 @@
         </div>
 
         <div class="card">
+            <h2>Confort thermique</h2>
+            <div class="big">{{ game.comfortScorePct }} %</div>
+            <div class="gauge"><span style="width: {{ game.comfortScorePct }}%; background: var(--accent);"></span></div>
+            <div class="row" style="margin-top:.6rem"><span class="k">Ressenti</span><span>{{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
+            <div class="row"><span class="k">Air intérieur</span><span>{{ game.indoorTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
+        </div>
+
+        <div class="card">
             <h2>Autosuffisance (jour)</h2>
             <div class="big">{{ game.selfSufficiencyPct }} %</div>
             <div class="gauge"><span style="width: {{ game.selfSufficiencyPct }}%; background: var(--accent);"></span></div>
@@ -92,7 +103,7 @@
     </div>
 
     <section>
-        <h2 class="section">Ma maison</h2>
+        <h2 class="section">Ma maison — Isolation : {{ game.insulationLabel }} · DPE {{ game.dpeLetter }}</h2>
         <div class="zones">
             <div class="zone">
                 <div class="emo">🔆</div>
@@ -102,7 +113,7 @@
             <div class="zone">
                 <div class="emo">🔥</div>
                 <div class="lbl">Chaudière</div>
-                <div class="val">Fioul</div>
+                <div class="val">{{ game.heatingLabel }}</div>
             </div>
             <div class="zone">
                 <div class="emo">🔋</div>
@@ -119,6 +130,8 @@
             <div class="row"><span class="k">Importé du réseau</span><span>{{ game.totalImportKwh|number_format(1, ',', ' ') }} kWh</span></div>
             <div class="row"><span class="k">Exporté (surplus)</span><span>{{ game.totalExportKwh|number_format(1, ',', ' ') }} kWh</span></div>
             <div class="row"><span class="k">Autosuffisance globale</span><span>{{ game.totalSelfSufficiencyPct }} %</span></div>
+            <div class="row"><span class="k">Fioul consommé</span><span>{{ game.totalFuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
+            <div class="row"><span class="k">Confort moyen</span><span>{{ game.averageComfortPct }} %</span></div>
         </div>
     </section>
 

@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Domain\Building\HeatingSystem;
+use App\Domain\Building\Household;
+use App\Domain\Building\InsulationLevel;
 use App\Domain\Energy\EnergyCalibration;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\SimulationEngine;
 use DateTimeImmutable;
 
+use function implode;
 use function sprintf;
 
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -23,13 +27,14 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  * Demonstrates the Phase 0-1 daily loop in the terminal, with no database or UI.
  *
  * Drives the same {@see SimulationEngine} as the web dashboard
- * ({@see \App\Controller\GameController}) — day by day, printing the weather
- * and energy balance for each tick. Exercises the pure domain core with no
- * other entry-point-specific logic duplicated here.
+ * ({@see \App\Controller\GameController}) — day by day, printing weather,
+ * energy balance, heating and comfort for each tick. The building options
+ * make configurations comparable (fioul passoire vs insulated heat-pump home)
+ * before the in-game renovation actions exist.
  */
 #[AsCommand(
     name: 'app:simulate:demo',
-    description: 'Advance the simulation day by day and print weather + energy balance.',
+    description: 'Advance the simulation day by day and print weather, energy, heating and comfort.',
 )]
 final class SimulateDemoCommand extends Command
 {
@@ -40,13 +45,17 @@ final class SimulateDemoCommand extends Command
     protected function configure(): void
     {
         $calibration = new EnergyCalibration();
+        $insulations = implode('|', array_map(static fn (InsulationLevel $l): string => $l->value, InsulationLevel::cases()));
+        $heatings = implode('|', array_map(static fn (HeatingSystem $h): string => $h->value, HeatingSystem::cases()));
 
         $this
             ->addOption('days', 'd', InputOption::VALUE_REQUIRED, 'Number of days to simulate', (string) self::DEFAULT_DAYS)
             ->addOption('from', 'f', InputOption::VALUE_REQUIRED, 'Epoch date (Y-m-d)', self::DEFAULT_EPOCH)
             ->addOption('seed', 's', InputOption::VALUE_REQUIRED, 'Weather seed (same seed = same weather)', (string) self::DEFAULT_SEED)
             ->addOption('solar', null, InputOption::VALUE_REQUIRED, 'Installed solar peak power (kWc)', (string) $calibration->defaultSolarPeakPowerKwc()->value)
-            ->addOption('battery', null, InputOption::VALUE_REQUIRED, 'Battery capacity (kWh, 0 = none)', (string) $calibration->defaultBatteryCapacityKwh()->value);
+            ->addOption('battery', null, InputOption::VALUE_REQUIRED, 'Battery capacity (kWh, 0 = none)', (string) $calibration->defaultBatteryCapacityKwh()->value)
+            ->addOption('insulation', null, InputOption::VALUE_REQUIRED, "Insulation level ({$insulations})", InsulationLevel::None->value)
+            ->addOption('heating', null, InputOption::VALUE_REQUIRED, "Heating system ({$heatings})", HeatingSystem::FuelOilBoiler->value);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -68,8 +77,26 @@ final class SimulateDemoCommand extends Command
             return Command::INVALID;
         }
 
-        $solarKwc = (float) $input->getOption('solar');
-        $batteryKwh = (float) $input->getOption('battery');
+        $insulation = InsulationLevel::tryFrom((string) $input->getOption('insulation'));
+        if (null === $insulation) {
+            $io->error(sprintf('Invalid --insulation "%s".', (string) $input->getOption('insulation')));
+
+            return Command::INVALID;
+        }
+
+        $heating = HeatingSystem::tryFrom((string) $input->getOption('heating'));
+        if (null === $heating) {
+            $io->error(sprintf('Invalid --heating "%s".', (string) $input->getOption('heating')));
+
+            return Command::INVALID;
+        }
+
+        $household = new Household(
+            solarKwc: (float) $input->getOption('solar'),
+            batteryKwh: (float) $input->getOption('battery'),
+            insulation: $insulation,
+            heatingSystem: $heating,
+        );
 
         $config = new GameConfig(
             seed: (int) $input->getOption('seed'),
@@ -79,10 +106,18 @@ final class SimulateDemoCommand extends Command
         $engine = new SimulationEngine();
 
         $io->title(sprintf('EcoSim — %d jours depuis %s', $days, $epochOption));
-        $io->text(sprintf('Graine %d · Solaire %.1f kWc · Batterie %.1f kWh', $config->seed, $solarKwc, $batteryKwh));
+        $io->text(sprintf(
+            'Graine %d · Solaire %.1f kWc · Batterie %.1f kWh · Isolation %s · %s · DPE %s',
+            $config->seed,
+            $household->solarKwc,
+            $household->batteryKwh,
+            $household->insulation->label(),
+            $household->heatingSystem->label(),
+            $household->dpeClass()->label(),
+        ));
 
         $rows = [];
-        $state = GameState::start($solarKwc, $batteryKwh);
+        $state = GameState::start($household);
         while (!$engine->isFinished($config, $state)) {
             $snapshot = $engine->snapshot($config, $state);
             $balance = $snapshot->balance;
@@ -94,7 +129,11 @@ final class SimulateDemoCommand extends Command
                 sprintf('%.1f°', $snapshot->weather->temperatureC),
                 sprintf('%.1f', $balance->productionKwh),
                 sprintf('%.1f', $balance->demandKwh),
-                sprintf('%d %%', (int) round($balance->selfSufficiencyRatio() * 100)),
+                sprintf('%.0f', $snapshot->heating->needKwh),
+                $snapshot->heating->fuelOilLitres > 0.0
+                    ? sprintf('%.1f L', $snapshot->heating->fuelOilLitres)
+                    : sprintf('%.1f kWh', $snapshot->heating->electricityKwh),
+                sprintf('%d %%', $snapshot->comfort->score),
                 sprintf('%+.1f', -$grid),
                 sprintf('%.1f', $balance->batteryLevelKwh),
             ];
@@ -103,17 +142,19 @@ final class SimulateDemoCommand extends Command
         }
 
         $io->table(
-            ['Date', 'Nébul.', 'Temp', 'Prod', 'Conso', 'Autoconso', 'Réseau±', 'Batt'],
+            ['Date', 'Nébul.', 'Temp', 'Prod', 'Conso él.', 'Besoin ch.', 'Combustible', 'Confort', 'Réseau±', 'Batt'],
             $rows,
         );
 
         $totals = $state->totals;
         $io->definitionList(
             ['Production totale' => sprintf('%.1f kWh', $totals->productionKwh)],
-            ['Consommation totale' => sprintf('%.1f kWh', $totals->demandKwh)],
+            ['Consommation élec. totale' => sprintf('%.1f kWh', $totals->demandKwh)],
             ['Importé du réseau' => sprintf('%.1f kWh', $totals->importKwh)],
             ['Exporté (surplus)' => sprintf('%.1f kWh', $totals->exportKwh)],
             ['Autosuffisance' => sprintf('%d %%', (int) round($totals->selfSufficiencyRatio() * 100))],
+            ['Fioul consommé' => sprintf('%.1f L', $totals->fuelOilLitres)],
+            ['Confort moyen' => sprintf('%d %%', $totals->averageComfortScore())],
         );
 
         $io->success(sprintf('Simulation terminée : %d jours joués.', $days));

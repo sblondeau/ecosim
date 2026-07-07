@@ -29,6 +29,15 @@ final readonly class GameView
         public int $selfSufficiencyPct,
         public float $gridImportKwh,
         public float $gridExportKwh,
+        // Heating & comfort
+        public string $heatingLabel,
+        public string $insulationLabel,
+        public string $dpeLetter,
+        public float $heatingElectricityKwh,
+        public float $fuelOilLitres,
+        public int $comfortScorePct,
+        public float $indoorTemperatureC,
+        public float $feltTemperatureC,
         // Equipment
         public float $solarKwc,
         public float $batteryLevelKwh,
@@ -39,6 +48,8 @@ final readonly class GameView
         public float $totalImportKwh,
         public float $totalExportKwh,
         public int $totalSelfSufficiencyPct,
+        public float $totalFuelOilLitres,
+        public int $averageComfortPct,
     ) {
     }
 }

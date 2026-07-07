@@ -6,30 +6,41 @@ namespace App\Domain\Simulation;
 
 use App\Domain\Energy\EnergyBalance;
 
+use function round;
+
 /**
- * Running cumulative energy totals over a game (game-design §8, §15).
+ * Running cumulative totals over a game (game-design §8, §15).
  *
- * Immutable: {@see self::add()} folds one more day's {@see EnergyBalance} into
- * fresh totals. Used for the period summary shown on the dashboard and, later,
- * for the end-of-game report.
+ * Immutable: {@see self::add()} folds one more settled day into fresh totals.
+ * Used for the period summary shown on the dashboard and, later, for the
+ * end-of-game report.
  */
 final readonly class PeriodTotals
 {
+    /**
+     * @param int<0, max> $days
+     */
     public function __construct(
         public float $productionKwh = 0.0,
         public float $demandKwh = 0.0,
         public float $importKwh = 0.0,
         public float $exportKwh = 0.0,
+        public float $fuelOilLitres = 0.0,
+        public float $comfortScoreSum = 0.0,
+        public int $days = 0,
     ) {
     }
 
-    public function add(EnergyBalance $balance): self
+    public function add(EnergyBalance $balance, float $fuelOilLitres, int $comfortScore): self
     {
         return new self(
             productionKwh: $this->productionKwh + $balance->productionKwh,
             demandKwh: $this->demandKwh + $balance->demandKwh,
             importKwh: $this->importKwh + $balance->gridImportKwh,
             exportKwh: $this->exportKwh + $balance->gridExportKwh,
+            fuelOilLitres: $this->fuelOilLitres + $fuelOilLitres,
+            comfortScoreSum: $this->comfortScoreSum + $comfortScore,
+            days: $this->days + 1,
         );
     }
 
@@ -43,5 +54,17 @@ final readonly class PeriodTotals
         }
 
         return ($this->demandKwh - $this->importKwh) / $this->demandKwh;
+    }
+
+    /**
+     * Average comfort score over the lived days (100 before any day is lived).
+     */
+    public function averageComfortScore(): int
+    {
+        if (0 === $this->days) {
+            return 100;
+        }
+
+        return (int) round($this->comfortScoreSum / $this->days);
     }
 }

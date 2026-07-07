@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Domain\Building\HeatingSystem;
+use App\Domain\Building\Household;
+use App\Domain\Building\InsulationLevel;
 use App\Domain\Energy\EnergyCalibration;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
@@ -33,7 +36,7 @@ final readonly class SessionGameStore implements GameStore
      * format is thrown away and the game restarts, instead of being silently
      * rebuilt into a valid-looking but absurd state by the hydrate fallbacks.
      */
-    private const int FORMAT_VERSION = 2;
+    private const int FORMAT_VERSION = 3;
 
     public function __construct(
         private RequestStack $requestStack,
@@ -62,7 +65,9 @@ final readonly class SessionGameStore implements GameStore
     }
 
     /**
-     * Start a new game with the default Phase 0-1 equipment and store it.
+     * Start a new game on the locked Phase 0-1 scenario: the primo-accédant's
+     * old fuel-oil, uninsulated house (game-design §15), with the default
+     * solar + battery equipment (bare start arrives with the install actions).
      */
     public function reset(): Game
     {
@@ -72,12 +77,14 @@ final readonly class SessionGameStore implements GameStore
             horizonDays: self::DEFAULT_HORIZON_DAYS,
         );
 
-        $state = GameState::start(
+        $household = new Household(
             solarKwc: $this->calibration->defaultSolarPeakPowerKwc()->value,
             batteryKwh: $this->calibration->defaultBatteryCapacityKwh()->value,
+            insulation: InsulationLevel::None,
+            heatingSystem: HeatingSystem::FuelOilBoiler,
         );
 
-        $game = new Game($config, $state);
+        $game = new Game($config, GameState::start($household));
         $this->save($game);
 
         return $game;
@@ -94,16 +101,25 @@ final readonly class SessionGameStore implements GameStore
             horizonDays: max(1, (int) ($data['horizonDays'] ?? self::DEFAULT_HORIZON_DAYS)),
         );
 
+        $household = new Household(
+            solarKwc: (float) ($data['solarKwc'] ?? 0.0),
+            batteryKwh: (float) ($data['batteryKwh'] ?? 0.0),
+            insulation: InsulationLevel::from((string) ($data['insulation'] ?? InsulationLevel::None->value)),
+            heatingSystem: HeatingSystem::from((string) ($data['heating'] ?? HeatingSystem::FuelOilBoiler->value)),
+        );
+
         $state = new GameState(
             max(0, (int) ($data['currentDay'] ?? 0)),
-            (float) ($data['solarKwc'] ?? 0.0),
-            (float) ($data['batteryKwh'] ?? 0.0),
+            $household,
             (float) ($data['batteryLevelKwh'] ?? 0.0),
             new PeriodTotals(
                 productionKwh: (float) ($data['totalProduction'] ?? 0.0),
                 demandKwh: (float) ($data['totalDemand'] ?? 0.0),
                 importKwh: (float) ($data['totalImport'] ?? 0.0),
                 exportKwh: (float) ($data['totalExport'] ?? 0.0),
+                fuelOilLitres: (float) ($data['totalFuelOil'] ?? 0.0),
+                comfortScoreSum: (float) ($data['comfortScoreSum'] ?? 0.0),
+                days: max(0, (int) ($data['daysLived'] ?? 0)),
             ),
         );
 
@@ -121,13 +137,18 @@ final readonly class SessionGameStore implements GameStore
             'epoch' => $game->config->epoch->format('Y-m-d'),
             'horizonDays' => $game->config->horizonDays,
             'currentDay' => $game->state->currentDay,
-            'solarKwc' => $game->state->solarKwc,
-            'batteryKwh' => $game->state->batteryKwh,
+            'solarKwc' => $game->state->household->solarKwc,
+            'batteryKwh' => $game->state->household->batteryKwh,
+            'insulation' => $game->state->household->insulation->value,
+            'heating' => $game->state->household->heatingSystem->value,
             'batteryLevelKwh' => $game->state->batteryLevelKwh,
             'totalProduction' => $game->state->totals->productionKwh,
             'totalDemand' => $game->state->totals->demandKwh,
             'totalImport' => $game->state->totals->importKwh,
             'totalExport' => $game->state->totals->exportKwh,
+            'totalFuelOil' => $game->state->totals->fuelOilLitres,
+            'comfortScoreSum' => $game->state->totals->comfortScoreSum,
+            'daysLived' => $game->state->totals->days,
         ];
     }
 }
