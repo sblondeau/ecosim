@@ -126,6 +126,19 @@ final class EnergyCalibration
         return new Coefficient(15.0, 'day-of-year', 5.0, 25.0, 'RTE: pointe hivernale de la demande résidentielle', '2025-01-01');
     }
 
+    /** Half-width of the day-to-day demand noise (laundry days, guests, absences…). */
+    public function householdDemandDailyNoiseKwh(): Coefficient
+    {
+        return new Coefficient(
+            value: 1.5,
+            unit: 'kWh/day',
+            min: 1.0,
+            max: 2.5,
+            source: 'Calibration de jeu : variabilité journalière des usages domestiques (~±15 % de la base)',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
     /**
      * Fraction of daily demand drawn during daylight hours (when solar is
      * producing). The rest falls in the evening/night peak — this split is what

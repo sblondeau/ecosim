@@ -57,7 +57,7 @@ final readonly class SimulationEngine
         $need = $this->heatingNeed->dailyNeedKwh($household->insulation, $weather->temperatureC);
         $heating = $this->heatingEnergy->consumptionFor($household->heatingSystem, $need);
 
-        $demand = $this->baseDemand->dailyDemandKwh($date) + $heating->electricityKwh;
+        $demand = $this->baseDemand->dailyDemandKwh($config->seed, $date) + $heating->electricityKwh;
         $balance = $this->balancer->settle($production, $demand, $this->battery($state), $state->batteryLevelKwh);
 
         $comfort = $this->comfort->comfortFor($household->insulation, $weather->temperatureC);
