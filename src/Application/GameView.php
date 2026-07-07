@@ -29,6 +29,14 @@ final readonly class GameView
         public int $selfSufficiencyPct,
         public float $gridImportKwh,
         public float $gridExportKwh,
+        // Finances (today's ledger + savings)
+        public string $savingsLabel,
+        public bool $savingsNegative,
+        public string $electricityCostLabel,
+        public string $fuelOilCostLabel,
+        public string $surplusRevenueLabel,
+        public bool $incomeCreditedToday,
+        public string $monthlyNetIncomeLabel,
         // Heating & comfort
         public string $heatingLabel,
         public string $insulationLabel,
@@ -50,6 +58,10 @@ final readonly class GameView
         public int $totalSelfSufficiencyPct,
         public float $totalFuelOilLitres,
         public int $averageComfortPct,
+        public string $totalElectricityCostLabel,
+        public string $totalFuelOilCostLabel,
+        public string $totalSurplusRevenueLabel,
+        public string $totalNetEnergyCostLabel,
     ) {
     }
 }

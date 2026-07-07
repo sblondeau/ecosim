@@ -8,6 +8,7 @@ use App\Application\GameViewFactory;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
 use App\Domain\Building\InsulationLevel;
+use App\Domain\Finance\Money;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\PeriodTotals;
@@ -32,7 +33,7 @@ final class GameViewFactoryTest extends TestCase
 
     public function testBuildsDisplayReadyScalars(): void
     {
-        $view = new GameViewFactory()->build(self::config(), GameState::start(self::passoire()));
+        $view = new GameViewFactory()->build(self::config(), GameState::start(self::passoire(), Money::fromEuros(8000.0)));
 
         self::assertSame(1, $view->dayNumber);
         self::assertSame('Hiver', $view->seasonLabel);
@@ -48,7 +49,7 @@ final class GameViewFactoryTest extends TestCase
 
     public function testPercentagesStayWithinBounds(): void
     {
-        $view = new GameViewFactory()->build(self::config(), GameState::start(self::passoire()));
+        $view = new GameViewFactory()->build(self::config(), GameState::start(self::passoire(), Money::fromEuros(8000.0)));
 
         self::assertGreaterThanOrEqual(0, $view->cloudPct);
         self::assertLessThanOrEqual(100, $view->cloudPct);
@@ -61,7 +62,7 @@ final class GameViewFactoryTest extends TestCase
     public function testReportsFinishedAtHorizon(): void
     {
         $config = new GameConfig(2025, new DateTimeImmutable('2025-01-01'), 3);
-        $atHorizon = new GameState(3, self::passoire(), 0.0, new PeriodTotals());
+        $atHorizon = new GameState(3, self::passoire(), 0.0, Money::zero(), new PeriodTotals());
 
         self::assertTrue(new GameViewFactory()->build($config, $atHorizon)->finished);
     }

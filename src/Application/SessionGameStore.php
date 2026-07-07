@@ -8,6 +8,8 @@ use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
 use App\Domain\Building\InsulationLevel;
 use App\Domain\Energy\EnergyCalibration;
+use App\Domain\Finance\FinanceCalibration;
+use App\Domain\Finance\Money;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\PeriodTotals;
@@ -36,11 +38,12 @@ final readonly class SessionGameStore implements GameStore
      * format is thrown away and the game restarts, instead of being silently
      * rebuilt into a valid-looking but absurd state by the hydrate fallbacks.
      */
-    private const int FORMAT_VERSION = 4;
+    private const int FORMAT_VERSION = 5;
 
     public function __construct(
         private RequestStack $requestStack,
         private EnergyCalibration $calibration = new EnergyCalibration(),
+        private FinanceCalibration $finance = new FinanceCalibration(),
     ) {
     }
 
@@ -84,7 +87,9 @@ final readonly class SessionGameStore implements GameStore
             heatingSystem: HeatingSystem::FuelOilBoiler,
         );
 
-        $game = new Game($config, GameState::start($household));
+        $savings = Money::fromEuros($this->finance->startingSavings()->value);
+
+        $game = new Game($config, GameState::start($household, $savings));
         $this->save($game);
 
         return $game;
@@ -112,6 +117,7 @@ final readonly class SessionGameStore implements GameStore
             max(0, (int) ($data['currentDay'] ?? 0)),
             $household,
             (float) ($data['batteryLevelKwh'] ?? 0.0),
+            Money::fromCents((int) ($data['savingsCents'] ?? 0)),
             new PeriodTotals(
                 productionKwh: (float) ($data['totalProduction'] ?? 0.0),
                 demandKwh: (float) ($data['totalDemand'] ?? 0.0),
@@ -119,6 +125,9 @@ final readonly class SessionGameStore implements GameStore
                 exportKwh: (float) ($data['totalExport'] ?? 0.0),
                 fuelOilLitres: (float) ($data['totalFuelOil'] ?? 0.0),
                 comfortScoreSum: (float) ($data['comfortScoreSum'] ?? 0.0),
+                electricityCost: Money::fromCents((int) ($data['elecCostCents'] ?? 0)),
+                fuelOilCost: Money::fromCents((int) ($data['fuelCostCents'] ?? 0)),
+                surplusRevenue: Money::fromCents((int) ($data['revenueCents'] ?? 0)),
                 days: max(0, (int) ($data['daysLived'] ?? 0)),
             ),
         );
@@ -142,12 +151,16 @@ final readonly class SessionGameStore implements GameStore
             'insulation' => $game->state->household->insulation->value,
             'heating' => $game->state->household->heatingSystem->value,
             'batteryLevelKwh' => $game->state->batteryLevelKwh,
+            'savingsCents' => $game->state->savings->cents,
             'totalProduction' => $game->state->totals->productionKwh,
             'totalDemand' => $game->state->totals->demandKwh,
             'totalImport' => $game->state->totals->importKwh,
             'totalExport' => $game->state->totals->exportKwh,
             'totalFuelOil' => $game->state->totals->fuelOilLitres,
             'comfortScoreSum' => $game->state->totals->comfortScoreSum,
+            'elecCostCents' => $game->state->totals->electricityCost->cents,
+            'fuelCostCents' => $game->state->totals->fuelOilCost->cents,
+            'revenueCents' => $game->state->totals->surplusRevenue->cents,
             'daysLived' => $game->state->totals->days,
         ];
     }

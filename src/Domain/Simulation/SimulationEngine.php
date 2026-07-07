@@ -12,20 +12,25 @@ use App\Domain\Energy\EnergyBalanceCalculator;
 use App\Domain\Energy\EnergyCalibration;
 use App\Domain\Energy\EnergyDemandCalculator;
 use App\Domain\Energy\SolarProductionCalculator;
+use App\Domain\Finance\BillCalculator;
+use App\Domain\Finance\FinanceCalibration;
+use App\Domain\Finance\Money;
 use App\Domain\Time\GameDate;
 use App\Domain\Weather\WeatherGenerator;
 
 /**
  * The heart of the simulation: turning one day into the next (game-design §3).
  *
- * Pure and deterministic — it wires the weather, energy and building models
- * together and folds a settled day into the game state. No framework, no
- * database, no clock: a game is entirely reproducible from its
+ * Pure and deterministic — it wires the weather, energy, building and finance
+ * models together and folds a settled day into the game state. No framework,
+ * no database, no clock: a game is entirely reproducible from its
  * {@see GameConfig} and the sequence of {@see self::advance()} calls.
  *
  * Heating joins the loop by carrier (game-design §12): a heat pump adds its
  * electricity to the household demand (and thus interacts with solar, battery
  * and grid), while the fuel-oil boiler burns litres outside the electric loop.
+ * Money follows the same flows: the day's bill prices the settled energy, and
+ * the household's net income lands on the 1st of each month.
  */
 final readonly class SimulationEngine
 {
@@ -37,13 +42,15 @@ final readonly class SimulationEngine
         private HeatingEnergyCalculator $heatingEnergy = new HeatingEnergyCalculator(),
         private ThermalComfortCalculator $comfort = new ThermalComfortCalculator(),
         private EnergyBalanceCalculator $balancer = new EnergyBalanceCalculator(),
+        private BillCalculator $bill = new BillCalculator(),
         private EnergyCalibration $calibration = new EnergyCalibration(),
+        private FinanceCalibration $finance = new FinanceCalibration(),
     ) {
     }
 
     /**
-     * The current day's weather, energy balance, heating and comfort, without
-     * advancing the game.
+     * The current day's weather, energy balance, heating, comfort and ledger
+     * (bill + income), without advancing the game.
      */
     public function snapshot(GameConfig $config, GameState $state): DailySnapshot
     {
@@ -62,7 +69,30 @@ final readonly class SimulationEngine
 
         $comfort = $this->comfort->comfortFor($household->insulation, $weather->temperatureC);
 
-        return new DailySnapshot($date, $weather, $balance, $heating, $comfort);
+        return new DailySnapshot(
+            $date,
+            $weather,
+            $balance,
+            $heating,
+            $comfort,
+            $this->bill->billFor($balance, $heating),
+            $this->incomeFor($date),
+        );
+    }
+
+    /**
+     * Net monthly income (income minus non-energy living expenses), credited
+     * on the 1st of each month; zero on every other day.
+     */
+    private function incomeFor(GameDate $date): Money
+    {
+        if (!$date->isFirstOfMonth()) {
+            return Money::zero();
+        }
+
+        return Money::fromEuros(
+            $this->finance->monthlyNetIncome()->value - $this->finance->monthlyLivingExpenses()->value,
+        );
     }
 
     /**

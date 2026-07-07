@@ -9,6 +9,7 @@ use App\Application\SessionGameStore;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
 use App\Domain\Building\InsulationLevel;
+use App\Domain\Finance\Money;
 use App\Domain\Simulation\DailySnapshot;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
@@ -53,7 +54,7 @@ final class SessionGameStoreTest extends TestCase
     {
         $config = new GameConfig(seed: 42, epoch: new DateTimeImmutable('2025-01-01'), horizonDays: 10);
         $household = new Household(3.0, 5.0, InsulationLevel::Retrofitted, HeatingSystem::HeatPump);
-        $state = GameState::start($household)->advanced($this->someDay($config, $household));
+        $state = GameState::start($household, Money::fromEuros(8000.0))->advanced($this->someDay($config, $household));
 
         $this->store->save(new Game($config, $state));
         $loaded = $this->store->current();
@@ -67,6 +68,8 @@ final class SessionGameStoreTest extends TestCase
         self::assertSame(InsulationLevel::Retrofitted, $loaded->state->household->insulation);
         self::assertSame(HeatingSystem::HeatPump, $loaded->state->household->heatingSystem);
         self::assertSame($state->batteryLevelKwh, $loaded->state->batteryLevelKwh);
+        self::assertSame($state->savings->cents, $loaded->state->savings->cents);
+        self::assertSame($state->totals->fuelOilCost->cents, $loaded->state->totals->fuelOilCost->cents);
         self::assertSame($state->totals->productionKwh, $loaded->state->totals->productionKwh);
         self::assertSame($state->totals->fuelOilLitres, $loaded->state->totals->fuelOilLitres);
         self::assertSame($state->totals->days, $loaded->state->totals->days);
@@ -76,7 +79,7 @@ final class SessionGameStoreTest extends TestCase
     {
         // A pre-versioning payload (or any older format): day 99, no/old version key.
         $this->session->set(self::SESSION_KEY, [
-            'version' => 2,
+            'version' => 4,
             'seed' => 1,
             'epoch' => '2025-01-01',
             'horizonDays' => 365,
@@ -90,6 +93,6 @@ final class SessionGameStoreTest extends TestCase
 
     private function someDay(GameConfig $config, Household $household): DailySnapshot
     {
-        return new SimulationEngine()->snapshot($config, GameState::start($household));
+        return new SimulationEngine()->snapshot($config, GameState::start($household, Money::fromEuros(8000.0)));
     }
 }

@@ -80,6 +80,14 @@ final class GameDateTest extends TestCase
         self::assertSame('2025-01-01 00:00:00', $date->format('Y-m-d H:i:s'));
     }
 
+    public function testIsFirstOfMonth(): void
+    {
+        self::assertTrue(GameDate::epoch(self::epoch('2025-02-01'))->isFirstOfMonth());
+        self::assertFalse(GameDate::epoch(self::epoch('2025-02-02'))->isFirstOfMonth());
+        // Crossing a month boundary by ticking.
+        self::assertTrue(GameDate::fromDayIndex(self::epoch('2025-01-15'), 17)->isFirstOfMonth());
+    }
+
     public function testDayOfYearHandlesLeapYearEnd(): void
     {
         // 2024 is a leap year → 366 days.

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Domain\Finance\FinanceCalibration;
+use App\Domain\Finance\Money;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\SimulationEngine;
@@ -33,6 +35,7 @@ final readonly class GameViewFactory
 
     public function __construct(
         private SimulationEngine $engine = new SimulationEngine(),
+        private FinanceCalibration $finance = new FinanceCalibration(),
     ) {
     }
 
@@ -57,6 +60,15 @@ final readonly class GameViewFactory
             selfSufficiencyPct: (int) round($balance->selfSufficiencyRatio() * 100),
             gridImportKwh: $balance->gridImportKwh,
             gridExportKwh: $balance->gridExportKwh,
+            savingsLabel: $state->savings->format(),
+            savingsNegative: $state->savings->isNegative(),
+            electricityCostLabel: $snapshot->bill->electricityCost->format(),
+            fuelOilCostLabel: $snapshot->bill->fuelOilCost->format(),
+            surplusRevenueLabel: $snapshot->bill->surplusRevenue->format(),
+            incomeCreditedToday: $snapshot->incomeCredited->cents > 0,
+            monthlyNetIncomeLabel: Money::fromEuros(
+                $this->finance->monthlyNetIncome()->value - $this->finance->monthlyLivingExpenses()->value,
+            )->format(),
             heatingLabel: $household->heatingSystem->label(),
             insulationLabel: $household->insulation->label(),
             dpeLetter: $household->dpeClass()->label(),
@@ -75,6 +87,10 @@ final readonly class GameViewFactory
             totalSelfSufficiencyPct: (int) round($totals->selfSufficiencyRatio() * 100),
             totalFuelOilLitres: round($totals->fuelOilLitres, 1),
             averageComfortPct: $totals->averageComfortScore(),
+            totalElectricityCostLabel: $totals->electricityCost->format(),
+            totalFuelOilCostLabel: $totals->fuelOilCost->format(),
+            totalSurplusRevenueLabel: $totals->surplusRevenue->format(),
+            totalNetEnergyCostLabel: $totals->netEnergyCost()->format(),
         );
     }
 

@@ -8,6 +8,8 @@ use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
 use App\Domain\Building\InsulationLevel;
 use App\Domain\Energy\EnergyCalibration;
+use App\Domain\Finance\FinanceCalibration;
+use App\Domain\Finance\Money;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\SimulationEngine;
@@ -104,6 +106,7 @@ final class SimulateDemoCommand extends Command
             horizonDays: $days,
         );
         $engine = new SimulationEngine();
+        $finance = new FinanceCalibration();
 
         $io->title(sprintf('EcoSim — %d jours depuis %s', $days, $epochOption));
         $io->text(sprintf(
@@ -117,7 +120,7 @@ final class SimulateDemoCommand extends Command
         ));
 
         $rows = [];
-        $state = GameState::start($household);
+        $state = GameState::start($household, Money::fromEuros($finance->startingSavings()->value));
         while (!$engine->isFinished($config, $state)) {
             $snapshot = $engine->snapshot($config, $state);
             $balance = $snapshot->balance;
@@ -134,15 +137,15 @@ final class SimulateDemoCommand extends Command
                     ? sprintf('%.1f L', $snapshot->heating->fuelOilLitres)
                     : sprintf('%.1f kWh', $snapshot->heating->electricityKwh),
                 sprintf('%d %%', $snapshot->comfort->score),
+                $snapshot->bill->netCost()->format(),
                 sprintf('%+.1f', -$grid),
-                sprintf('%.1f', $balance->batteryLevelKwh),
             ];
 
             $state = $engine->advance($config, $state);
         }
 
         $io->table(
-            ['Date', 'Nébul.', 'Temp', 'Prod', 'Conso él.', 'Besoin ch.', 'Combustible', 'Confort', 'Réseau±', 'Batt'],
+            ['Date', 'Nébul.', 'Temp', 'Prod', 'Conso él.', 'Besoin ch.', 'Combustible', 'Confort', 'Facture/j', 'Réseau±'],
             $rows,
         );
 
@@ -155,6 +158,11 @@ final class SimulateDemoCommand extends Command
             ['Autosuffisance' => sprintf('%d %%', (int) round($totals->selfSufficiencyRatio() * 100))],
             ['Fioul consommé' => sprintf('%.1f L', $totals->fuelOilLitres)],
             ['Confort moyen' => sprintf('%d %%', $totals->averageComfortScore())],
+            ['Facture électricité' => $totals->electricityCost->format()],
+            ['Facture fioul' => $totals->fuelOilCost->format()],
+            ['Revente cumulée' => $totals->surplusRevenue->format()],
+            ['Coût énergie net' => $totals->netEnergyCost()->format()],
+            ['Épargne finale' => $state->savings->format()],
         );
 
         $io->success(sprintf('Simulation terminée : %d jours joués.', $days));

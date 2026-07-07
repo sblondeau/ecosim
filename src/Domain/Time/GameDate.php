@@ -100,6 +100,14 @@ final readonly class GameDate
         return Season::fromMonth($month);
     }
 
+    /**
+     * First calendar day of a month — when monthly money lands (income).
+     */
+    public function isFirstOfMonth(): bool
+    {
+        return 1 === (int) $this->date->format('j');
+    }
+
     public function format(string $format = 'Y-m-d'): string
     {
         return $this->date->format($format);
