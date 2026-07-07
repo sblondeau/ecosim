@@ -27,7 +27,7 @@ final class SimulationEngineTest extends TestCase
 
     private static function passoire(): Household
     {
-        return new Household(3.0, 5.0, InsulationLevel::None, HeatingSystem::FuelOilBoiler);
+        return new Household(3.0, 5.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler);
     }
 
     public function testSnapshotIsDeterministic(): void
@@ -88,8 +88,8 @@ final class SimulationEngineTest extends TestCase
         $engine = new SimulationEngine();
         $config = self::config();
 
-        $fioulHome = new Household(3.0, 5.0, InsulationLevel::None, HeatingSystem::FuelOilBoiler);
-        $heatPumpHome = new Household(3.0, 5.0, InsulationLevel::None, HeatingSystem::HeatPump);
+        $fioulHome = new Household(3.0, 5.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler);
+        $heatPumpHome = new Household(3.0, 5.0, InsulationLevel::Original, HeatingSystem::HeatPump);
 
         $fioul = $engine->snapshot($config, GameState::start($fioulHome));
         $heatPump = $engine->snapshot($config, GameState::start($heatPumpHome));

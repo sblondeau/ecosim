@@ -15,7 +15,7 @@ final class HouseholdTest extends TestCase
 {
     public function testExposesItsConfiguration(): void
     {
-        $household = new Household(3.0, 5.0, InsulationLevel::None, HeatingSystem::FuelOilBoiler);
+        $household = new Household(3.0, 5.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler);
 
         self::assertSame(3.0, $household->solarKwc);
         self::assertSame(5.0, $household->batteryKwh);
@@ -26,13 +26,13 @@ final class HouseholdTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
 
-        new Household(-1.0, 5.0, InsulationLevel::None, HeatingSystem::FuelOilBoiler);
+        new Household(-1.0, 5.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler);
     }
 
     public function testRejectsNegativeBatteryCapacity(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
-        new Household(3.0, -1.0, InsulationLevel::None, HeatingSystem::FuelOilBoiler);
+        new Household(3.0, -1.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler);
     }
 }

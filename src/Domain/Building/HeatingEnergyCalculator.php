@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Building;
 
+use App\Domain\Energy\EnergyCalibration;
+
 use function round;
 
 /**
@@ -12,11 +14,14 @@ use function round;
  * This is where the electrification lesson lives (game-design §12): for the
  * same delivered heat, the heat pump draws need/SCOP (~3.5× less final energy)
  * while the boiler burns need/efficiency (more energy than the heat itself).
+ * The equipment/fuel characteristics are energy-conversion facts, so they come
+ * from {@see EnergyCalibration} — the building side only says how much heat
+ * the house needs.
  */
 final readonly class HeatingEnergyCalculator
 {
     public function __construct(
-        private BuildingCalibration $calibration = new BuildingCalibration(),
+        private EnergyCalibration $calibration = new EnergyCalibration(),
     ) {
     }
 

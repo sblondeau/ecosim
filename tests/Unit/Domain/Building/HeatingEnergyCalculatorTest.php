@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\Building;
 
-use App\Domain\Building\BuildingCalibration;
 use App\Domain\Building\HeatingEnergyCalculator;
 use App\Domain\Building\HeatingSystem;
+use App\Domain\Energy\EnergyCalibration;
 use PHPUnit\Framework\TestCase;
 
 final class HeatingEnergyCalculatorTest extends TestCase
@@ -32,7 +32,7 @@ final class HeatingEnergyCalculatorTest extends TestCase
 
     public function testBoilerBurnsMoreEnergyThanTheHeatItDelivers(): void
     {
-        $calibration = new BuildingCalibration();
+        $calibration = new EnergyCalibration();
         $consumption = new HeatingEnergyCalculator($calibration)->consumptionFor(HeatingSystem::FuelOilBoiler, 100.0);
 
         self::assertSame(0.0, $consumption->electricityKwh);
@@ -42,7 +42,7 @@ final class HeatingEnergyCalculatorTest extends TestCase
 
     public function testElectrificationLessonHeatPumpBeatsBoilerOnFinalEnergy(): void
     {
-        $calibration = new BuildingCalibration();
+        $calibration = new EnergyCalibration();
         $calculator = new HeatingEnergyCalculator($calibration);
         $need = 100.0;
 

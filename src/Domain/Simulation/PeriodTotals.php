@@ -18,6 +18,10 @@ use function round;
 final readonly class PeriodTotals
 {
     /**
+     * @param float       $fuelOilLitres total fuel oil burnt by the boiler since day 1 —
+     *                                   feeds the fioul line of the bill (étape finances)
+     *                                   and the end-of-game report; stops growing once
+     *                                   the player switches to the heat pump
      * @param int<0, max> $days
      */
     public function __construct(

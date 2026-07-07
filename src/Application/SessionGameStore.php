@@ -36,7 +36,7 @@ final readonly class SessionGameStore implements GameStore
      * format is thrown away and the game restarts, instead of being silently
      * rebuilt into a valid-looking but absurd state by the hydrate fallbacks.
      */
-    private const int FORMAT_VERSION = 3;
+    private const int FORMAT_VERSION = 4;
 
     public function __construct(
         private RequestStack $requestStack,
@@ -80,7 +80,7 @@ final readonly class SessionGameStore implements GameStore
         $household = new Household(
             solarKwc: $this->calibration->defaultSolarPeakPowerKwc()->value,
             batteryKwh: $this->calibration->defaultBatteryCapacityKwh()->value,
-            insulation: InsulationLevel::None,
+            insulation: InsulationLevel::Original,
             heatingSystem: HeatingSystem::FuelOilBoiler,
         );
 
@@ -104,7 +104,7 @@ final readonly class SessionGameStore implements GameStore
         $household = new Household(
             solarKwc: (float) ($data['solarKwc'] ?? 0.0),
             batteryKwh: (float) ($data['batteryKwh'] ?? 0.0),
-            insulation: InsulationLevel::from((string) ($data['insulation'] ?? InsulationLevel::None->value)),
+            insulation: InsulationLevel::from((string) ($data['insulation'] ?? InsulationLevel::Original->value)),
             heatingSystem: HeatingSystem::from((string) ($data['heating'] ?? HeatingSystem::FuelOilBoiler->value)),
         );
 

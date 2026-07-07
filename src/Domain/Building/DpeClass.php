@@ -27,8 +27,8 @@ enum DpeClass: string
     public static function fromBuilding(InsulationLevel $insulation, HeatingSystem $heating): self
     {
         return match ([$insulation, $heating]) {
-            [InsulationLevel::None, HeatingSystem::FuelOilBoiler] => self::G,
-            [InsulationLevel::None, HeatingSystem::HeatPump] => self::E,
+            [InsulationLevel::Original, HeatingSystem::FuelOilBoiler] => self::G,
+            [InsulationLevel::Original, HeatingSystem::HeatPump] => self::E,
             [InsulationLevel::Retrofitted, HeatingSystem::FuelOilBoiler] => self::E,
             [InsulationLevel::Retrofitted, HeatingSystem::HeatPump] => self::C,
             [InsulationLevel::Reinforced, HeatingSystem::FuelOilBoiler] => self::D,

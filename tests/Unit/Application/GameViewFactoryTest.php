@@ -27,7 +27,7 @@ final class GameViewFactoryTest extends TestCase
 
     private static function passoire(): Household
     {
-        return new Household(3.0, 5.0, InsulationLevel::None, HeatingSystem::FuelOilBoiler);
+        return new Household(3.0, 5.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler);
     }
 
     public function testBuildsDisplayReadyScalars(): void
@@ -40,7 +40,7 @@ final class GameViewFactoryTest extends TestCase
         self::assertSame(3.0, $view->solarKwc);
         self::assertSame(5.0, $view->batteryCapacityKwh);
         self::assertSame('Chaudière fioul', $view->heatingLabel);
-        self::assertSame('Aucune', $view->insulationLabel);
+        self::assertSame('D\'origine', $view->insulationLabel);
         self::assertSame('G', $view->dpeLetter);
         self::assertGreaterThan(0.0, $view->fuelOilLitres, 'A January day in the passoire burns fuel oil.');
         self::assertFalse($view->finished);

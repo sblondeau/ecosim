@@ -44,7 +44,7 @@ final class SessionGameStoreTest extends TestCase
 
         self::assertSame(0, $game->state->currentDay);
         self::assertGreaterThan(0.0, $game->state->household->solarKwc, 'Default equipment is installed.');
-        self::assertSame(InsulationLevel::None, $game->state->household->insulation, 'The scenario starts uninsulated.');
+        self::assertSame(InsulationLevel::Original, $game->state->household->insulation, 'The scenario starts uninsulated.');
         self::assertSame(HeatingSystem::FuelOilBoiler, $game->state->household->heatingSystem, 'The scenario starts on fuel oil.');
         self::assertTrue($this->session->has(self::SESSION_KEY), 'The fresh game is persisted.');
     }

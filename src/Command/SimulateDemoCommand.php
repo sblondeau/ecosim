@@ -54,7 +54,7 @@ final class SimulateDemoCommand extends Command
             ->addOption('seed', 's', InputOption::VALUE_REQUIRED, 'Weather seed (same seed = same weather)', (string) self::DEFAULT_SEED)
             ->addOption('solar', null, InputOption::VALUE_REQUIRED, 'Installed solar peak power (kWc)', (string) $calibration->defaultSolarPeakPowerKwc()->value)
             ->addOption('battery', null, InputOption::VALUE_REQUIRED, 'Battery capacity (kWh, 0 = none)', (string) $calibration->defaultBatteryCapacityKwh()->value)
-            ->addOption('insulation', null, InputOption::VALUE_REQUIRED, "Insulation level ({$insulations})", InsulationLevel::None->value)
+            ->addOption('insulation', null, InputOption::VALUE_REQUIRED, "Insulation level ({$insulations})", InsulationLevel::Original->value)
             ->addOption('heating', null, InputOption::VALUE_REQUIRED, "Heating system ({$heatings})", HeatingSystem::FuelOilBoiler->value);
     }
 

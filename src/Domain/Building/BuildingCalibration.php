@@ -7,12 +7,17 @@ namespace App\Domain\Building;
 use App\Domain\Calibration\Coefficient;
 
 /**
- * Sourced coefficients for the Phase 0-1 building model: heating need,
- * heating-system conversion and thermal comfort (game-design §8, §12, §15).
+ * Sourced coefficients for the Phase 0-1 building model: what is BUILT —
+ * envelope heat loss, indoor temperatures, cold walls, comfort (game-design
+ * §8, §15). Heating-equipment characteristics (boiler efficiency, fuel energy
+ * content, heat-pump SCOP) are energy-conversion facts and live in
+ * {@see \App\Domain\Energy\EnergyCalibration}.
  *
  * The heating-need model is the standard degree-day method: daily need =
  * heat-loss rate × insulation factor × max(0, base − outdoor). Calibrated for
- * the scenario's house — an old ~100 m² DPE F-G home (game-design §15).
+ * the scenario's house — an old ~100 m² DPE F-G home (game-design §15): the
+ * house size and openings are bundled INTO these per-house coefficients (one
+ * single house in this phase), not parameters yet.
  * Every number is a {@see Coefficient} (§13); nothing inlined.
  */
 final class BuildingCalibration
@@ -49,7 +54,7 @@ final class BuildingCalibration
     }
 
     /**
-     * Heat loss of the UNinsulated scenario house, per degree-day.
+     * Heat loss of the unrenovated scenario house, per degree-day.
      */
     public function heatLossKwhPerDegreeDay(): Coefficient
     {
@@ -64,18 +69,20 @@ final class BuildingCalibration
     }
 
     /**
-     * How much of the reference heat loss remains at a given insulation tier
-     * (1.0 = the uninsulated starting house).
+     * How much of the reference heat loss remains at a given insulation tier.
+     * 1.0 is the unrenovated original house — the calibration reference, not
+     * "zero insulation" (walls always resist a little; that residual
+     * resistance is already inside heatLossKwhPerDegreeDay).
      */
     public function insulationFactor(InsulationLevel $level): Coefficient
     {
         return match ($level) {
-            InsulationLevel::None => new Coefficient(
+            InsulationLevel::Original => new Coefficient(
                 value: 1.0,
                 unit: 'fraction',
                 min: 1.0,
                 max: 1.0,
-                source: 'Référence : état de départ du scénario (passoire non isolée, game-design §15)',
+                source: 'Référence : état de départ du scénario (isolation d\'origine, game-design §15)',
                 reviewedOn: '2025-01-01',
             ),
             InsulationLevel::Retrofitted => new Coefficient(
@@ -98,52 +105,6 @@ final class BuildingCalibration
     }
 
     /**
-     * Seasonal efficiency of the scenario's ageing fuel-oil boiler.
-     */
-    public function fuelOilBoilerEfficiency(): Coefficient
-    {
-        return new Coefficient(
-            value: 0.85,
-            unit: 'fraction',
-            min: 0.75,
-            max: 0.92,
-            source: 'ADEME : rendement saisonnier d\'une chaudière fioul ancienne génération',
-            reviewedOn: '2025-01-01',
-        );
-    }
-
-    /**
-     * Energy content of domestic fuel oil (net calorific value).
-     */
-    public function fuelOilEnergyKwhPerLitre(): Coefficient
-    {
-        return new Coefficient(
-            value: 9.96,
-            unit: 'kWh/L',
-            min: 9.8,
-            max: 10.1,
-            source: 'PCI du fioul domestique ≈ 9,96 kWh/litre (valeur réglementaire française)',
-            reviewedOn: '2025-01-01',
-        );
-    }
-
-    /**
-     * Seasonal COP of the single Phase 0-1 heat-pump model, as measured in
-     * real conditions (not the optimistic nameplate figure).
-     */
-    public function heatPumpScop(): Coefficient
-    {
-        return new Coefficient(
-            value: 3.5,
-            unit: 'ratio',
-            min: 2.9,
-            max: 4.3,
-            source: 'ADEME : SCOP mesuré en conditions réelles, PAC air/eau (game-design §12)',
-            reviewedOn: '2025-01-01',
-        );
-    }
-
-    /**
      * Cold-wall discomfort: fraction of the indoor/outdoor gap subtracted from
      * the felt temperature (poorly insulated walls radiate cold even when the
      * air is at the setpoint). ~0.15 × 19 °C gap ≈ 3 °C felt loss in a
@@ -152,7 +113,7 @@ final class BuildingCalibration
     public function coldWallPenaltyFactor(InsulationLevel $level): Coefficient
     {
         return match ($level) {
-            InsulationLevel::None => new Coefficient(
+            InsulationLevel::Original => new Coefficient(
                 value: 0.15,
                 unit: 'fraction',
                 min: 0.10,

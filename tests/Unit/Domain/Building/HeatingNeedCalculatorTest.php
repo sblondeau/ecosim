@@ -14,16 +14,16 @@ final class HeatingNeedCalculatorTest extends TestCase
     {
         $calculator = new HeatingNeedCalculator();
 
-        self::assertSame(0.0, $calculator->dailyNeedKwh(InsulationLevel::None, 20.0));
-        self::assertSame(0.0, $calculator->dailyNeedKwh(InsulationLevel::None, 18.0));
+        self::assertSame(0.0, $calculator->dailyNeedKwh(InsulationLevel::Original, 20.0));
+        self::assertSame(0.0, $calculator->dailyNeedKwh(InsulationLevel::Original, 18.0));
     }
 
     public function testColderDaysNeedMoreHeat(): void
     {
         $calculator = new HeatingNeedCalculator();
 
-        $mild = $calculator->dailyNeedKwh(InsulationLevel::None, 12.0);
-        $freezing = $calculator->dailyNeedKwh(InsulationLevel::None, 0.0);
+        $mild = $calculator->dailyNeedKwh(InsulationLevel::Original, 12.0);
+        $freezing = $calculator->dailyNeedKwh(InsulationLevel::Original, 0.0);
 
         self::assertGreaterThan($mild, $freezing);
     }
@@ -31,14 +31,14 @@ final class HeatingNeedCalculatorTest extends TestCase
     public function testFreezingDayInThePassoireMatchesTheDegreeDayFormula(): void
     {
         // 12.5 kWh/°C·day × 1.0 × (18 − 0) = 225 kWh — the scenario's pain.
-        self::assertSame(225.0, new HeatingNeedCalculator()->dailyNeedKwh(InsulationLevel::None, 0.0));
+        self::assertSame(225.0, new HeatingNeedCalculator()->dailyNeedKwh(InsulationLevel::Original, 0.0));
     }
 
     public function testInsulationReducesTheNeed(): void
     {
         $calculator = new HeatingNeedCalculator();
 
-        $none = $calculator->dailyNeedKwh(InsulationLevel::None, 5.0);
+        $none = $calculator->dailyNeedKwh(InsulationLevel::Original, 5.0);
         $retrofitted = $calculator->dailyNeedKwh(InsulationLevel::Retrofitted, 5.0);
         $reinforced = $calculator->dailyNeedKwh(InsulationLevel::Reinforced, 5.0);
 

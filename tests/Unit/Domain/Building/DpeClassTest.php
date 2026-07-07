@@ -23,8 +23,8 @@ final class DpeClassTest extends TestCase
      */
     public static function buildingProvider(): iterable
     {
-        yield 'starting passoire (none + fioul) is G' => [InsulationLevel::None, HeatingSystem::FuelOilBoiler, DpeClass::G];
-        yield 'heat pump alone improves to E' => [InsulationLevel::None, HeatingSystem::HeatPump, DpeClass::E];
+        yield 'starting passoire (none + fioul) is G' => [InsulationLevel::Original, HeatingSystem::FuelOilBoiler, DpeClass::G];
+        yield 'heat pump alone improves to E' => [InsulationLevel::Original, HeatingSystem::HeatPump, DpeClass::E];
         yield 'insulation alone improves to E' => [InsulationLevel::Retrofitted, HeatingSystem::FuelOilBoiler, DpeClass::E];
         yield 'retrofitted + heat pump reaches C' => [InsulationLevel::Retrofitted, HeatingSystem::HeatPump, DpeClass::C];
         yield 'reinforced + fioul stays D (fossil ceiling)' => [InsulationLevel::Reinforced, HeatingSystem::FuelOilBoiler, DpeClass::D];

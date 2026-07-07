@@ -55,6 +55,14 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
   (direct → batterie → réseau) appliquées à chaque phase. Bonus : la batterie
   pourra se charger la nuit avec du vent.
 
+- **Paramétrer la taille/le volume du logement** (déclencheur : V2, scénario
+  locataire / plusieurs logements). En Phase 0-1 il n'y a qu'UNE maison, donc
+  sa surface (~100 m²), ses ouvertures et sa géométrie sont volontairement
+  *fondues dans* les coefficients par-maison (`heatLossKwhPerDegreeDay`,
+  `coldWallPenaltyFactor`) plutôt qu'exposées en paramètres jamais variés.
+  Quand plusieurs logements existeront : passer à des coefficients par m²
+  (kWh/m²/DJU) × surface, et faire dépendre l'effet parois froides de la part
+  de parois déperditives (murs extérieurs, vitrages).
 - **Durée de vie / dégradation de la batterie dans le ROI** (déclencheur :
   étape finances, calculs de retour sur investissement). L'autodécharge
   (~1-3 %/mois) est volontairement ignorée : négligeable au tick journalier,
