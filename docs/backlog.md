@@ -55,6 +55,13 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
   (direct → batterie → réseau) appliquées à chaque phase. Bonus : la batterie
   pourra se charger la nuit avec du vent.
 
+- **Totaux par vecteur énergétique** (déclencheur : V1.1 véhicule/carburant, ou
+  comptabilité CO₂). `PeriodTotals` nomme ses vecteurs en dur (kWh électriques,
+  litres de fioul) — fidèle au scope « facture 2 lignes » de la Phase 0-1, mais
+  dès qu'un 3ᵉ vecteur arrive (essence du véhicule, §18 V1.1) ou qu'il faut
+  sommer du CO₂ par vecteur, généraliser en totaux indexés par un enum
+  `EnergyCarrier` (quantité + unité par vecteur) sur lesquels facture et bilan
+  itèrent, plutôt que d'empiler des champs `xxxLitres`.
 - **Paramétrer la taille/le volume du logement** (déclencheur : V2, scénario
   locataire / plusieurs logements). En Phase 0-1 il n'y a qu'UNE maison, donc
   sa surface (~100 m²), ses ouvertures et sa géométrie sont volontairement
