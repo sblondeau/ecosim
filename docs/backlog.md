@@ -61,7 +61,11 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
   dès qu'un 3ᵉ vecteur arrive (essence du véhicule, §18 V1.1) ou qu'il faut
   sommer du CO₂ par vecteur, généraliser en totaux indexés par un enum
   `EnergyCarrier` (quantité + unité par vecteur) sur lesquels facture et bilan
-  itèrent, plutôt que d'empiler des champs `xxxLitres`.
+  itèrent, plutôt que d'empiler des champs `xxxLitres`. Chaque vecteur reste
+  une ligne séparée (le joueur doit voir quel usage coûte quoi — §18 V1.1 :
+  le carburant du véhicule est une ligne à part, pas fusionnée avec le fioul) ;
+  l'agrégat « énergie fossile » (budget/CO₂ total) devient alors une somme
+  dérivée sur les vecteurs, l'indicateur de l'effet global de l'électrification.
 - **Paramétrer la taille/le volume du logement** (déclencheur : V2, scénario
   locataire / plusieurs logements). En Phase 0-1 il n'y a qu'UNE maison, donc
   sa surface (~100 m²), ses ouvertures et sa géométrie sont volontairement
