@@ -37,6 +37,8 @@ final readonly class GameView
         public string $surplusRevenueLabel,
         public bool $incomeCreditedToday,
         public string $monthlyNetIncomeLabel,
+        // Patrimoine (non-liquid, realisable on resale only — §8)
+        public string $propertyValueLabel,
         // Heating & comfort
         public string $heatingLabel,
         public string $insulationLabel,

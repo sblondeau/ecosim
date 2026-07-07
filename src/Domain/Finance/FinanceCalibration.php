@@ -95,6 +95,37 @@ final class FinanceCalibration
     }
 
     /**
+     * Purchase price of the scenario house — bought AS a G passoire (the
+     * passoire discount is already priced in, game-design §8: décote ~15 %).
+     */
+    public function housePurchasePrice(): Coefficient
+    {
+        return new Coefficient(
+            value: 200000.0,
+            unit: '€',
+            min: 150000.0,
+            max: 260000.0,
+            source: 'Notaires de France : prix médian d\'une maison ancienne hors grandes métropoles (ordre de grandeur 2024)',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
+    /**
+     * Property-value gain per DPE class gained, for a house.
+     */
+    public function dpeClassValueStep(): Coefficient
+    {
+        return new Coefficient(
+            value: 0.08,
+            unit: 'fraction/classe',
+            min: 0.04,
+            max: 0.10,
+            source: 'Notaires de France : impact du DPE sur la valeur, ~+8 %/classe pour une maison (game-design §8)',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
+    /**
      * Savings available at the start of the game — deliberately NOT enough to
      * pay for a full renovation out of pocket: the prime and the zero-interest
      * loan (later bricks) are what unlock the big decisions.

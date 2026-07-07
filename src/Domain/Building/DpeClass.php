@@ -40,4 +40,21 @@ enum DpeClass: string
     {
         return $this->value;
     }
+
+    /**
+     * Number of classes above G (worst): G = 0, F = 1 … A = 6. Used by the
+     * property-value formula (each class gained adds a sourced percentage).
+     */
+    public function stepsAboveWorst(): int
+    {
+        return match ($this) {
+            self::G => 0,
+            self::F => 1,
+            self::E => 2,
+            self::D => 3,
+            self::C => 4,
+            self::B => 5,
+            self::A => 6,
+        };
+    }
 }

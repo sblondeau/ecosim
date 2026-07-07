@@ -6,6 +6,7 @@ namespace App\Application;
 
 use App\Domain\Finance\FinanceCalibration;
 use App\Domain\Finance\Money;
+use App\Domain\Finance\PropertyValuator;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\SimulationEngine;
@@ -36,6 +37,7 @@ final readonly class GameViewFactory
     public function __construct(
         private SimulationEngine $engine = new SimulationEngine(),
         private FinanceCalibration $finance = new FinanceCalibration(),
+        private PropertyValuator $property = new PropertyValuator(),
     ) {
     }
 
@@ -69,6 +71,7 @@ final readonly class GameViewFactory
             monthlyNetIncomeLabel: Money::fromEuros(
                 $this->finance->monthlyNetIncome()->value - $this->finance->monthlyLivingExpenses()->value,
             )->format(),
+            propertyValueLabel: $this->property->valueFor($household->dpeClass())->format(),
             heatingLabel: $household->heatingSystem->label(),
             insulationLabel: $household->insulation->label(),
             dpeLetter: $household->dpeClass()->label(),
