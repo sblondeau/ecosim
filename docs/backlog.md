@@ -4,30 +4,14 @@ Petites améliorations identifiées en cours de route (audits, revues), à
 raccrocher aux étapes où elles deviennent utiles. Ne pas les faire « en
 avance » : chacune est notée avec son déclencheur.
 
-## Météo — à faire ensemble à l'étape 5 (chauffage/confort)
+## Météo
 
-Ces deux raffinements du générateur de température n'ont d'effet visible que
-lorsque la température pilote quelque chose (besoin de chauffage, confort) :
-
-- **Bande de bruit saisonnière** : `dailyTemperatureNoiseC` est fixe (±3 °C)
-  toute l'année alors que la variabilité réelle est plus forte en hiver
-  (advection de masses d'air : ~±4 °C) qu'en été (~±2 °C). Faire suivre la
-  bande par le cycle hivernal, comme la moyenne :
-  `noiseBand = meanNoise + noiseSeasonalAmplitude × winterCycle(date)`,
-  avec un nouveau `Coefficient` sourcé (Météo-France) dans `WeatherCalibration`.
-- **Persistance de la température** : le bruit journalier est blanc
-  (indépendant d'un jour à l'autre) → pas de « vague de froid » qui s'installe.
-  Donner à la température le mécanisme de persistance déjà utilisé par la
-  nébulosité (points de contrôle interpolés, `cloudPersistenceDays`).
-  Pédagogiquement clé : une semaine de froid continu est le scénario qui met
-  un chauffage (et une facture) sous tension.
-- **Extraire le value noise vers `Domain/Math`** : `hash01`/`lerp`/`smoothstep`
-  (+ `clamp01`) sont des primitives mathématiques génériques, privées dans
-  `WeatherGenerator` faute de second consommateur (même règle d'extraction que
-  `SeasonalCycle`, sorti quand le solaire en a eu besoin). Le bruit sur la
-  demande et la persistance de la température (ci-dessus) seront ces seconds
-  consommateurs → extraire alors une classe qui nomme le concept (bruit 1D
-  semé et lissé : `(seed, index, salt) → valeur`), plutôt que 4 helpers en vrac.
+- ~~Bande de bruit saisonnière~~ : fait (`temperatureNoiseSeasonalAmplitudeC`,
+  ±4 °C en hiver / ±2 °C en été).
+- ~~Persistance de la température~~ : fait (`temperaturePersistenceDays`, vagues
+  de froid/redoux qui s'installent sur plusieurs jours).
+- ~~Extraire le value noise vers `Domain/Math`~~ : fait (`SeededNoise` :
+  `uniform`/`centered`/`smooth`, canaux indépendants).
 
 En Phase 5 (météo complète), la **pression atmosphérique** devient la variable
 pivot qui corrèle température/nébulosité/vent (game-design §5) — l'anticyclone
@@ -48,10 +32,8 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
 
 ## Énergie / gameplay
 
-- **Bruit journalier sur la demande** : la demande est une sinusoïde pure →
-  autoconsommation plate à l'intérieur d'une saison (95 % chaque jour d'été).
-  Un petit bruit semé (comme la météo) rendrait chaque jour différent — le
-  livrable §15 promet « météo/demande variables ». À faire avec l'étape 5.
+- ~~Bruit journalier sur la demande~~ : fait (`householdDemandDailyNoiseKwh`,
+  bruit blanc semé ±1,5 kWh/j).
 - **UX batterie** : avec la calibration actuelle (5 kWh, demande nocturne
   ~5-7 kWh), la batterie finit à 0 kWh tous les soirs, été comme hiver — la
   jauge « niveau de fin de journée » affichera toujours 0 et paraîtra cassée.
@@ -73,6 +55,25 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
   (direct → batterie → réseau) appliquées à chaque phase. Bonus : la batterie
   pourra se charger la nuit avec du vent.
 
+- **Totaux par vecteur énergétique** (déclencheur : V1.1 véhicule/carburant, ou
+  comptabilité CO₂). `PeriodTotals` nomme ses vecteurs en dur (kWh électriques,
+  litres de fioul) — fidèle au scope « facture 2 lignes » de la Phase 0-1, mais
+  dès qu'un 3ᵉ vecteur arrive (essence du véhicule, §18 V1.1) ou qu'il faut
+  sommer du CO₂ par vecteur, généraliser en totaux indexés par un enum
+  `EnergyCarrier` (quantité + unité par vecteur) sur lesquels facture et bilan
+  itèrent, plutôt que d'empiler des champs `xxxLitres`. Chaque vecteur reste
+  une ligne séparée (le joueur doit voir quel usage coûte quoi — §18 V1.1 :
+  le carburant du véhicule est une ligne à part, pas fusionnée avec le fioul) ;
+  l'agrégat « énergie fossile » (budget/CO₂ total) devient alors une somme
+  dérivée sur les vecteurs, l'indicateur de l'effet global de l'électrification.
+- **Paramétrer la taille/le volume du logement** (déclencheur : V2, scénario
+  locataire / plusieurs logements). En Phase 0-1 il n'y a qu'UNE maison, donc
+  sa surface (~100 m²), ses ouvertures et sa géométrie sont volontairement
+  *fondues dans* les coefficients par-maison (`heatLossKwhPerDegreeDay`,
+  `coldWallPenaltyFactor`) plutôt qu'exposées en paramètres jamais variés.
+  Quand plusieurs logements existeront : passer à des coefficients par m²
+  (kWh/m²/DJU) × surface, et faire dépendre l'effet parois froides de la part
+  de parois déperditives (murs extérieurs, vitrages).
 - **Durée de vie / dégradation de la batterie dans le ROI** (déclencheur :
   étape finances, calculs de retour sur investissement). L'autodécharge
   (~1-3 %/mois) est volontairement ignorée : négligeable au tick journalier,
@@ -82,16 +83,10 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
   intégrer en `Coefficient` sourcé quand les calculs de ROI arriveront, pour
   rester fidèle au principe « ne jamais forcer un ROI positif ».
 
-## Robustesse (avant multiplication des actions joueur)
+## Robustesse
 
-- **Versionner le format de session** (`SessionGameStore`) : les fallbacks
-  silencieux (`?? 0.0`) transforment une session d'un ancien format en partie
-  absurde (équipement à 0) au lieu de la réinitialiser. Ajouter un champ de
-  version et `reset()` si mismatch.
-- **CSRF sur les POST** : les formulaires bruts du dashboard n'ont pas de
-  `csrf_token()` et le contrôleur ne vérifie rien. Faible enjeu tant que la
-  seule action est « jour suivant », à poser proprement avec les vraies
-  actions joueur (installer, emprunter…).
+- ~~Versionner le format de session~~ : fait (champ `version` + reset si mismatch).
+- ~~CSRF sur les POST~~ : fait (`csrf_token('game')` + vérification contrôleur).
 - **Phase dupliquée dans la calibration** : `WeatherCalibration::coldestDayOfYear`
   et `EnergyCalibration::householdDemandPeakDayOfYear` encodent la même réalité
   (creux thermique de mi-janvier) en deux endroits — risque de dérive, à

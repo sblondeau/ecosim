@@ -88,6 +88,25 @@ final class WeatherGeneratorTest extends TestCase
         }
     }
 
+    public function testTemperatureMovesGraduallyColdSpellsPersist(): void
+    {
+        $generator = new WeatherGenerator();
+        $date = self::epoch('2025-01-01');
+
+        $maxDayToDayJump = 0.0;
+        $previous = $generator->for(self::SEED, $date)->temperatureC;
+        for ($i = 1; $i < 366; ++$i) {
+            $date = $date->next();
+            $current = $generator->for(self::SEED, $date)->temperatureC;
+            $maxDayToDayJump = max($maxDayToDayJump, abs($current - $previous));
+            $previous = $current;
+        }
+
+        // Smooth persistent noise: no white-noise zapping (which could jump
+        // ~8 °C overnight). Regimes settle in and drift over days.
+        self::assertLessThan(4.0, $maxDayToDayJump);
+    }
+
     private function averageTemperature(WeatherGenerator $generator, GameDate $start, int $days): float
     {
         $sum = 0.0;

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Simulation;
 
+use App\Domain\Building\HeatingEnergyCalculator;
+use App\Domain\Building\HeatingNeedCalculator;
+use App\Domain\Building\ThermalComfortCalculator;
 use App\Domain\Energy\Battery;
 use App\Domain\Energy\EnergyBalanceCalculator;
 use App\Domain\Energy\EnergyCalibration;
@@ -15,34 +18,51 @@ use App\Domain\Weather\WeatherGenerator;
 /**
  * The heart of the simulation: turning one day into the next (game-design §3).
  *
- * Pure and deterministic — it wires the weather and energy models together and
- * folds a settled day into the game state. No framework, no database, no clock:
- * a game is entirely reproducible from its {@see GameConfig} and the sequence of
- * {@see self::advance()} calls.
+ * Pure and deterministic — it wires the weather, energy and building models
+ * together and folds a settled day into the game state. No framework, no
+ * database, no clock: a game is entirely reproducible from its
+ * {@see GameConfig} and the sequence of {@see self::advance()} calls.
+ *
+ * Heating joins the loop by carrier (game-design §12): a heat pump adds its
+ * electricity to the household demand (and thus interacts with solar, battery
+ * and grid), while the fuel-oil boiler burns litres outside the electric loop.
  */
 final readonly class SimulationEngine
 {
     public function __construct(
         private WeatherGenerator $weather = new WeatherGenerator(),
         private SolarProductionCalculator $solar = new SolarProductionCalculator(),
-        private EnergyDemandCalculator $demand = new EnergyDemandCalculator(),
+        private EnergyDemandCalculator $baseDemand = new EnergyDemandCalculator(),
+        private HeatingNeedCalculator $heatingNeed = new HeatingNeedCalculator(),
+        private HeatingEnergyCalculator $heatingEnergy = new HeatingEnergyCalculator(),
+        private ThermalComfortCalculator $comfort = new ThermalComfortCalculator(),
         private EnergyBalanceCalculator $balancer = new EnergyBalanceCalculator(),
         private EnergyCalibration $calibration = new EnergyCalibration(),
     ) {
     }
 
     /**
-     * The current day's weather and energy balance, without advancing the game.
+     * The current day's weather, energy balance, heating and comfort, without
+     * advancing the game.
      */
     public function snapshot(GameConfig $config, GameState $state): DailySnapshot
     {
+        $household = $state->household;
+
         $date = GameDate::fromDayIndex($config->epoch, $state->currentDay);
         $weather = $this->weather->for($config->seed, $date);
-        $production = $this->solar->dailyProductionKwh($state->solarKwc, $weather, $date);
-        $demand = $this->demand->dailyDemandKwh($date);
+
+        $production = $this->solar->dailyProductionKwh($household->solarKwc, $weather, $date);
+
+        $need = $this->heatingNeed->dailyNeedKwh($household->insulation, $weather->temperatureC);
+        $heating = $this->heatingEnergy->consumptionFor($household->heatingSystem, $need);
+
+        $demand = $this->baseDemand->dailyDemandKwh($config->seed, $date) + $heating->electricityKwh;
         $balance = $this->balancer->settle($production, $demand, $this->battery($state), $state->batteryLevelKwh);
 
-        return new DailySnapshot($date, $weather, $balance);
+        $comfort = $this->comfort->comfortFor($household->insulation, $weather->temperatureC);
+
+        return new DailySnapshot($date, $weather, $balance, $heating, $comfort);
     }
 
     /**
@@ -55,9 +75,7 @@ final readonly class SimulationEngine
             return $state;
         }
 
-        $snapshot = $this->snapshot($config, $state);
-
-        return $state->advanced($snapshot->balance->batteryLevelKwh, $snapshot->balance);
+        return $state->advanced($this->snapshot($config, $state));
     }
 
     public function isFinished(GameConfig $config, GameState $state): bool
@@ -67,6 +85,6 @@ final readonly class SimulationEngine
 
     private function battery(GameState $state): Battery
     {
-        return Battery::of($state->batteryKwh, $this->calibration->batteryOneWayEfficiency());
+        return Battery::of($state->household->batteryKwh, $this->calibration->batteryOneWayEfficiency());
     }
 }

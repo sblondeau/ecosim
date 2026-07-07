@@ -10,7 +10,8 @@ use function sqrt;
 
 /**
  * Sourced coefficients for the Phase 0-1 energy loop: solar production, base
- * household electricity demand, and battery storage (game-design §3, §8, §15).
+ * household electricity demand, battery storage and heating-energy conversion
+ * (game-design §3, §8, §12, §15).
  *
  * Values are calibrated to a French residential setting (PVGIS / ADEME / RTE
  * orders of magnitude) and kept coarse for the MVP. Every number lives here as
@@ -126,6 +127,19 @@ final class EnergyCalibration
         return new Coefficient(15.0, 'day-of-year', 5.0, 25.0, 'RTE: pointe hivernale de la demande résidentielle', '2025-01-01');
     }
 
+    /** Half-width of the day-to-day demand noise (laundry days, guests, absences…). */
+    public function householdDemandDailyNoiseKwh(): Coefficient
+    {
+        return new Coefficient(
+            value: 1.5,
+            unit: 'kWh/day',
+            min: 1.0,
+            max: 2.5,
+            source: 'Calibration de jeu : variabilité journalière des usages domestiques (~±15 % de la base)',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
     /**
      * Fraction of daily demand drawn during daylight hours (when solar is
      * producing). The rest falls in the evening/night peak — this split is what
@@ -166,5 +180,51 @@ final class EnergyCalibration
     public function batteryOneWayEfficiency(): float
     {
         return sqrt($this->batteryRoundTripEfficiency()->value);
+    }
+
+    /**
+     * Seasonal efficiency of the scenario's ageing fuel-oil boiler.
+     */
+    public function fuelOilBoilerEfficiency(): Coefficient
+    {
+        return new Coefficient(
+            value: 0.85,
+            unit: 'fraction',
+            min: 0.75,
+            max: 0.92,
+            source: 'ADEME : rendement saisonnier d\'une chaudière fioul ancienne génération',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
+    /**
+     * Energy content of domestic fuel oil (net calorific value).
+     */
+    public function fuelOilEnergyKwhPerLitre(): Coefficient
+    {
+        return new Coefficient(
+            value: 9.96,
+            unit: 'kWh/L',
+            min: 9.8,
+            max: 10.1,
+            source: 'PCI du fioul domestique ≈ 9,96 kWh/litre (valeur réglementaire française)',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
+    /**
+     * Seasonal COP of the single Phase 0-1 heat-pump model, as measured in
+     * real conditions (not the optimistic nameplate figure).
+     */
+    public function heatPumpScop(): Coefficient
+    {
+        return new Coefficient(
+            value: 3.5,
+            unit: 'ratio',
+            min: 2.9,
+            max: 4.3,
+            source: 'ADEME : SCOP mesuré en conditions réelles, PAC air/eau (game-design §12)',
+            reviewedOn: '2025-01-01',
+        );
     }
 }

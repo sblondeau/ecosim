@@ -10,6 +10,7 @@ use App\Domain\Simulation\SimulationEngine;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsCsrfTokenValid;
 
 /**
  * The Phase 0-1 dashboard: one household, one day at a time.
@@ -37,6 +38,7 @@ final class GameController extends AbstractController
         ]);
     }
 
+    #[IsCsrfTokenValid('game', tokenKey: '_token')]
     #[Route('/jour-suivant', name: 'app_game_advance', methods: ['POST'])]
     public function advance(): Response
     {
@@ -46,6 +48,7 @@ final class GameController extends AbstractController
         return $this->redirectToRoute('app_game');
     }
 
+    #[IsCsrfTokenValid('game', tokenKey: '_token')]
     #[Route('/nouvelle-partie', name: 'app_game_reset', methods: ['POST'])]
     public function reset(): Response
     {

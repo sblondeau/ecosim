@@ -1,0 +1,73 @@
+/* EcoSim — dashboard (Phase 0-1). Served through AssetMapper. */
+
+:root {
+    --bg: #0f1720;
+    --card: #172231;
+    --ink: #e8eef5;
+    --muted: #90a2b8;
+    --line: #24303f;
+    --accent: #35c07f;
+    --warn: #e0a341;
+    --cold: #4aa3df;
+    --bar-bg: #24303f;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+}
+
+.wrap { max-width: 900px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+header.top { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: .5rem; }
+h1 { font-size: 1.4rem; margin: 0; letter-spacing: .5px; }
+.sub { color: var(--muted); font-size: .95rem; }
+
+.progress { height: 6px; background: var(--bar-bg); border-radius: 3px; margin: .8rem 0 1.4rem; overflow: hidden; }
+.progress > span { display: block; height: 100%; background: var(--accent); }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 1rem 1.1rem; }
+.card h2 {
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: var(--muted);
+    margin: 0 0 .8rem;
+    font-weight: 600;
+}
+
+.big { font-size: 2rem; font-weight: 700; }
+
+.row { display: flex; justify-content: space-between; padding: .2rem 0; border-top: 1px solid var(--line); }
+.row:first-of-type { border-top: 0; }
+.row .k { color: var(--muted); }
+
+.gauge { height: 10px; background: var(--bar-bg); border-radius: 5px; overflow: hidden; margin-top: .5rem; }
+.gauge > span { display: block; height: 100%; }
+
+.zones { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin-top: .3rem; }
+.zone { text-align: center; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 1rem .5rem; }
+.zone .emo { font-size: 1.8rem; }
+.zone .lbl { font-size: .8rem; color: var(--muted); }
+.zone .val { font-weight: 600; font-size: .9rem; }
+
+.actions { display: flex; gap: .8rem; margin-top: 1.6rem; flex-wrap: wrap; }
+
+button { font: inherit; cursor: pointer; border: 0; border-radius: 10px; padding: .7rem 1.3rem; font-weight: 600; }
+.btn-primary { background: var(--accent); color: #06231a; }
+.btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+
+.banner { background: var(--warn); color: #241a06; border-radius: 10px; padding: .8rem 1rem; margin-bottom: 1.2rem; font-weight: 600; }
+
+.pos { color: var(--accent); }
+.neg { color: var(--warn); }
+
+section { margin-top: 1.4rem; }
+section > h2.section { font-size: .8rem; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin: 0 0 .6rem; }

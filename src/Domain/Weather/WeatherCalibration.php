@@ -66,8 +66,9 @@ final class WeatherCalibration
     }
 
     /**
-     * Amplitude of the day-to-day temperature noise around the seasonal mean
-     * (weather variability), applied as a uniform ± band per day.
+     * Mean half-width of the day-to-day temperature band around the seasonal
+     * mean (weather variability); the actual band swings with the season, see
+     * {@see self::temperatureNoiseSeasonalAmplitudeC()}.
      */
     public function dailyTemperatureNoiseC(): Coefficient
     {
@@ -77,6 +78,39 @@ final class WeatherCalibration
             min: 2.0,
             max: 4.0,
             source: 'Ordre de grandeur de l\'écart-type des anomalies journalières (Météo-France)',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
+    /**
+     * Seasonal swing of the temperature-noise band: day-to-day variability is
+     * larger in winter (air-mass advection: oceanic mild vs continental cold)
+     * than in summer (radiation-dominated, steadier). Band ≈ mean ± this.
+     */
+    public function temperatureNoiseSeasonalAmplitudeC(): Coefficient
+    {
+        return new Coefficient(
+            value: 1.0,
+            unit: '°C',
+            min: 0.5,
+            max: 1.5,
+            source: 'Météo-France : variabilité journalière hivernale accrue (advection de masses d\'air) vs été',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
+    /**
+     * Number of days between temperature control points: cold spells and mild
+     * spells persist over several days instead of resetting daily.
+     */
+    public function temperaturePersistenceDays(): Coefficient
+    {
+        return new Coefficient(
+            value: 5.0,
+            unit: 'day',
+            min: 3.0,
+            max: 8.0,
+            source: 'Durée typique des régimes synoptiques (vague de froid, redoux) : plusieurs jours',
             reviewedOn: '2025-01-01',
         );
     }
