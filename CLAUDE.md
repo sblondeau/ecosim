@@ -68,15 +68,18 @@ Persistance   src/Entity/ + src/Repository/  (Doctrine, entités anémiques = é
   services de domaine sans état.
 - La présentation ne voit **que** `GameView` (objet de lecture plat) → c'est ce
   qui permet de swapper l'UI (Twig → canvas/three.js) sans toucher au métier.
-- État présent : domaine `src/Domain/{Time,Weather,Energy,Building,Math,Simulation,Calibration}`
-  (tick, météo semée, production solaire/batterie/bilan, chauffage fioul/PAC +
-  besoin degrés-jours + confort thermique + DPE, `Household`, `SimulationEngine`,
-  registre `Coefficient`) ; `src/Application/` (`GameView` + `GameViewFactory`,
-  `GameStore`/`SessionGameStore`, `Game`) ; présentation `src/Controller/GameController`
-  + `templates/game/dashboard.html.twig` (tranche web jouable en session, sans DB
-  ni JS, CSRF par attribut) ; `app:simulate:demo` (démo terminal, configurations
-  bâtiment comparables). Persistance Doctrine (`src/Entity`), LiveComponent
-  `data-poll`, actions joueur : pas encore posés.
+- État présent : domaine `src/Domain/{Time,Weather,Energy,Building,Finance,Math,Simulation,Calibration}`
+  (tick, météo semée à régimes persistants, production solaire/batterie/bilan,
+  chauffage fioul/PAC + confort + DPE, `Household`, argent — `Money` en centimes,
+  facture 2 lignes, revenu mensuel, prime par tranches, éco-PTZ `Loan`,
+  `RenovationQuoter`, valeur du bien DPE — `SimulationEngine`, registre
+  `Coefficient`) ; `src/Application/` (`GameView`/`ActionView` + factory,
+  `RenovationHandler`, `GameStore`/`SessionGameStore` v6, `Game`) ; présentation
+  `GameController` (dashboard, jour-suivant, **travaux**, nouvelle-partie, CSRF
+  par attribut, flashs) + dashboard Twig (Finances/Patrimoine/Confort, zones,
+  travaux avec devis et double financement) ; **départ nu** (le primo-accédant
+  installe tout en jeu) ; `app:simulate:demo`. Persistance Doctrine, LiveComponent
+  `data-poll`, événement panne + bilan de fin : pas encore posés.
 
 Migration future possible vers du DDD plus strict (agrégats + mapping) sans tout
 casser, si l'échelle ville/pays l'exige — mais **pas maintenant**.
