@@ -43,6 +43,8 @@
             <div class="row"><span class="k">Électricité (jour)</span><span class="neg">−{{ game.electricityCostLabel }}</span></div>
             <div class="row"><span class="k">Fioul (jour)</span><span class="neg">−{{ game.fuelOilCostLabel }}</span></div>
             <div class="row"><span class="k">Revente surplus</span><span class="pos">+{{ game.surplusRevenueLabel }}</span></div>
+            <div class="row"><span class="k">Revenu mensuel</span><span class="pos">+{{ game.monthlyIncomeLabel }}</span></div>
+            <div class="row"><span class="k">Dépenses du foyer</span><span class="neg">−{{ game.monthlyExpensesLabel }}</span></div>
             <div class="row"><span class="k">Reste à vivre mensuel</span><span>{{ game.monthlyNetIncomeLabel }}{% if game.incomeCreditedToday %} <span class="pos">(crédité aujourd'hui)</span>{% endif %}</span></div>
             {% if game.loanActive %}
                 <div class="row"><span class="k">Mensualité éco-PTZ</span><span class="neg">−{{ game.loanMonthlyPaymentLabel }}</span></div>

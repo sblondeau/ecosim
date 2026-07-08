@@ -36,6 +36,8 @@ final readonly class GameView
         public string $fuelOilCostLabel,
         public string $surplusRevenueLabel,
         public bool $incomeCreditedToday,
+        public string $monthlyIncomeLabel,
+        public string $monthlyExpensesLabel,
         public string $monthlyNetIncomeLabel,
         // Patrimoine (non-liquid, realisable on resale only — §8)
         public string $propertyValueLabel,

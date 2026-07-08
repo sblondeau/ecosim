@@ -71,6 +71,8 @@ final readonly class GameViewFactory
             fuelOilCostLabel: $snapshot->bill->fuelOilCost->format(),
             surplusRevenueLabel: $snapshot->bill->surplusRevenue->format(),
             incomeCreditedToday: $snapshot->incomeCredited->cents > 0,
+            monthlyIncomeLabel: Money::fromEuros($this->finance->monthlyNetIncome()->value)->format(),
+            monthlyExpensesLabel: Money::fromEuros($this->finance->monthlyLivingExpenses()->value)->format(),
             monthlyNetIncomeLabel: Money::fromEuros(
                 $this->finance->monthlyNetIncome()->value - $this->finance->monthlyLivingExpenses()->value,
             )->format(),
