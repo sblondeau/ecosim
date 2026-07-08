@@ -12,8 +12,16 @@
 {% block body %}
 <div class="wrap">
     <header class="top">
-        <h1>🏠 EcoSim — Ma maison</h1>
-        <div class="sub">Jour {{ game.dayNumber }} / {{ game.horizonDays }} · {{ game.dateLabel }} · {{ game.seasonLabel }}</div>
+        <div>
+            <h1>🏠 EcoSim — Ma maison</h1>
+            <div class="sub">Jour {{ game.dayNumber }} / {{ game.horizonDays }} · {{ game.dateLabel }} · {{ game.seasonLabel }}</div>
+        </div>
+        {% if not game.finished %}
+            <form method="post" action="{{ path('app_game_advance') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('game') }}">
+                <button type="submit" class="btn-primary">Jour suivant →</button>
+            </form>
+        {% endif %}
     </header>
     <div class="progress"><span style="width: {{ game.progressPct }}%"></span></div>
 
