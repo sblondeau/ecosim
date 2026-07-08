@@ -77,6 +77,7 @@ final readonly class SimulationEngine
             $comfort,
             $this->bill->billFor($balance, $heating),
             $this->incomeFor($date),
+            $date->isFirstOfMonth() ? $state->loan->installmentDue() : Money::zero(),
         );
     }
 

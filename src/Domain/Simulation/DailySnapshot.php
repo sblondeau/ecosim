@@ -31,6 +31,8 @@ final readonly class DailySnapshot
         public DailyBill $bill,
         /** Net income credited this day (non-zero on the 1st of each month). */
         public Money $incomeCredited,
+        /** Loan installment due this day (non-zero on the 1st, when a loan is active). */
+        public Money $loanPayment,
     ) {
     }
 }

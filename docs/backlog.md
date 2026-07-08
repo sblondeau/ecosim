@@ -34,16 +34,10 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
 
 - ~~Bruit journalier sur la demande~~ : fait (`householdDemandDailyNoiseKwh`,
   bruit blanc semé ±1,5 kWh/j).
-- **UX batterie** : avec la calibration actuelle (5 kWh, demande nocturne
-  ~5-7 kWh), la batterie finit à 0 kWh tous les soirs, été comme hiver — la
-  jauge « niveau de fin de journée » affichera toujours 0 et paraîtra cassée.
-  Afficher plutôt l'énergie déchargée du jour (« la batterie a couvert X kWh
-  ce soir ») et/ou revoir le couple capacité / répartition jour-nuit.
-  À traiter au plus tard avec les actions joueur (installation batterie).
-- **Départ équipé vs nu** : la partie démarre avec 3 kWc + 5 kWh installés,
-  ce qui contredit le scénario primo-accédant et vide la décision « installer »
-  de son sens. Passer au départ nu **dans le même commit** que l'action
-  d'installation (sinon le jeu devient inerte entre-temps). Décision actée.
+- ~~UX batterie~~ : fait (la jauge montre l'énergie restituée à la maison le
+  soir, pas le niveau de fin de journée toujours nul).
+- ~~Départ équipé vs nu~~ : fait (départ nu, dans le même commit que les
+  actions d'installation).
 - **Production par phase dans `settle()`** (déclencheur : Phase 2, éolien).
   La signature de `EnergyBalanceCalculator::settle()` est agnostique de la
   source (`float $productionKwh`), mais le modèle interne suppose une

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Simulation;
 
 use App\Domain\Building\Household;
+use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
 
 /**
@@ -27,13 +28,14 @@ final readonly class GameState
         public Household $household,
         public float $batteryLevelKwh,
         public Money $savings,
+        public Loan $loan,
         public PeriodTotals $totals,
     ) {
     }
 
     public static function start(Household $household, Money $savings): self
     {
-        return new self(0, $household, 0.0, $savings, new PeriodTotals());
+        return new self(0, $household, 0.0, $savings, Loan::none(), new PeriodTotals());
     }
 
     /**
@@ -48,8 +50,29 @@ final readonly class GameState
             $this->currentDay + 1,
             $this->household,
             $day->balance->batteryLevelKwh,
-            $this->savings->plus($day->incomeCredited)->minus($day->bill->netCost()),
+            $this->savings
+                ->plus($day->incomeCredited)
+                ->minus($day->bill->netCost())
+                ->minus($day->loanPayment),
+            $this->loan->afterPayment($day->loanPayment),
             $this->totals->add($day),
+        );
+    }
+
+    /**
+     * The state right after signing a renovation: new household configuration,
+     * savings after the cash part, loan after the financed part. The day does
+     * not advance — deciding is not living.
+     */
+    public function renovated(Household $household, Money $savings, Loan $loan): self
+    {
+        return new self(
+            $this->currentDay,
+            $household,
+            $this->batteryLevelKwh,
+            $savings,
+            $loan,
+            $this->totals,
         );
     }
 }

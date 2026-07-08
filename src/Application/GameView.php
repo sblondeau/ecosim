@@ -39,6 +39,10 @@ final readonly class GameView
         public string $monthlyNetIncomeLabel,
         // Patrimoine (non-liquid, realisable on resale only — §8)
         public string $propertyValueLabel,
+        // Loan (éco-PTZ account)
+        public bool $loanActive,
+        public string $loanMonthlyPaymentLabel,
+        public string $loanRemainingLabel,
         // Heating & comfort
         public string $heatingLabel,
         public string $insulationLabel,
@@ -53,6 +57,8 @@ final readonly class GameView
         public float $batteryLevelKwh,
         public float $batteryCapacityKwh,
         public int $batteryPct,
+        /** Energy the battery delivered to the home today (its visible usefulness). */
+        public float $batteryDischargedKwh,
         // Cumulative period totals
         public float $totalProductionKwh,
         public float $totalImportKwh,
@@ -64,6 +70,12 @@ final readonly class GameView
         public string $totalFuelOilCostLabel,
         public string $totalSurplusRevenueLabel,
         public string $totalNetEnergyCostLabel,
+        /**
+         * Renovations available right now, keyed by work slug.
+         *
+         * @var array<string, ActionView>
+         */
+        public array $actions = [],
     ) {
     }
 }

@@ -7,8 +7,8 @@ namespace App\Application;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
 use App\Domain\Building\InsulationLevel;
-use App\Domain\Energy\EnergyCalibration;
 use App\Domain\Finance\FinanceCalibration;
+use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
@@ -38,11 +38,10 @@ final readonly class SessionGameStore implements GameStore
      * format is thrown away and the game restarts, instead of being silently
      * rebuilt into a valid-looking but absurd state by the hydrate fallbacks.
      */
-    private const int FORMAT_VERSION = 5;
+    private const int FORMAT_VERSION = 6;
 
     public function __construct(
         private RequestStack $requestStack,
-        private EnergyCalibration $calibration = new EnergyCalibration(),
         private FinanceCalibration $finance = new FinanceCalibration(),
     ) {
     }
@@ -69,8 +68,9 @@ final readonly class SessionGameStore implements GameStore
 
     /**
      * Start a new game on the locked Phase 0-1 scenario: the primo-accédant's
-     * old fuel-oil, uninsulated house (game-design §15), with the default
-     * solar + battery equipment (bare start arrives with the install actions).
+     * old fuel-oil house with original insulation and NO production equipment
+     * (game-design §15/§18) — installing solar, a battery, insulation or a
+     * heat pump are the game's decisions.
      */
     public function reset(): Game
     {
@@ -81,8 +81,8 @@ final readonly class SessionGameStore implements GameStore
         );
 
         $household = new Household(
-            solarKwc: $this->calibration->defaultSolarPeakPowerKwc()->value,
-            batteryKwh: $this->calibration->defaultBatteryCapacityKwh()->value,
+            solarKwc: 0.0,
+            batteryKwh: 0.0,
             insulation: InsulationLevel::Original,
             heatingSystem: HeatingSystem::FuelOilBoiler,
         );
@@ -118,6 +118,11 @@ final readonly class SessionGameStore implements GameStore
             $household,
             (float) ($data['batteryLevelKwh'] ?? 0.0),
             Money::fromCents((int) ($data['savingsCents'] ?? 0)),
+            new Loan(
+                remaining: Money::fromCents((int) ($data['loanRemainingCents'] ?? 0)),
+                monthlyPayment: Money::fromCents((int) ($data['loanPaymentCents'] ?? 0)),
+                borrowedTotal: Money::fromCents((int) ($data['loanBorrowedCents'] ?? 0)),
+            ),
             new PeriodTotals(
                 productionKwh: (float) ($data['totalProduction'] ?? 0.0),
                 demandKwh: (float) ($data['totalDemand'] ?? 0.0),
@@ -152,6 +157,9 @@ final readonly class SessionGameStore implements GameStore
             'heating' => $game->state->household->heatingSystem->value,
             'batteryLevelKwh' => $game->state->batteryLevelKwh,
             'savingsCents' => $game->state->savings->cents,
+            'loanRemainingCents' => $game->state->loan->remaining->cents,
+            'loanPaymentCents' => $game->state->loan->monthlyPayment->cents,
+            'loanBorrowedCents' => $game->state->loan->borrowedTotal->cents,
             'totalProduction' => $game->state->totals->productionKwh,
             'totalDemand' => $game->state->totals->demandKwh,
             'totalImport' => $game->state->totals->importKwh,

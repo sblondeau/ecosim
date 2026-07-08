@@ -80,6 +80,7 @@ final class PeriodTotalsTest extends TestCase
                 surplusRevenue: Money::fromCents(6),
             ),
             incomeCredited: Money::zero(),
+            loanPayment: Money::zero(),
         );
     }
 }

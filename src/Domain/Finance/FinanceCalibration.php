@@ -141,4 +141,150 @@ final class FinanceCalibration
             reviewedOn: '2025-01-01',
         );
     }
+
+    /** Intermediate insulation package (attic + walls), Original -> Retrofitted. */
+    public function insulationRetrofitCost(): Coefficient
+    {
+        return new Coefficient(
+            value: 15000.0,
+            unit: '€',
+            min: 10000.0,
+            max: 20000.0,
+            source: 'ADEME : bouquet isolation intermédiaire (combles + murs), maison ~100 m²',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
+    /** Full-performance insulation (BBC-réno level), Retrofitted -> Reinforced. */
+    public function insulationReinforceCost(): Coefficient
+    {
+        return new Coefficient(
+            value: 25000.0,
+            unit: '€',
+            min: 18000.0,
+            max: 35000.0,
+            source: 'ADEME : rénovation globale performante (niveau BBC réno), complément maison ~100 m²',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
+    /** Air/water heat pump, installed (replacing the fuel-oil boiler). */
+    public function heatPumpInstallCost(): Coefficient
+    {
+        return new Coefficient(
+            value: 13000.0,
+            unit: '€',
+            min: 10000.0,
+            max: 16000.0,
+            source: 'ADEME : PAC air/eau posée, maison individuelle ~100 m² (dépose chaudière incluse)',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
+    /** Rooftop solar installation (the single 3 kWc catalogue model), installed. */
+    public function solarInstallCost(): Coefficient
+    {
+        return new Coefficient(
+            value: 7500.0,
+            unit: '€',
+            min: 6000.0,
+            max: 9000.0,
+            source: 'ADEME / observatoires du marché PV : installation résidentielle 3 kWc clé en main, 2024',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
+    /** Home battery (the single 5 kWh catalogue model), installed. */
+    public function batteryInstallCost(): Coefficient
+    {
+        return new Coefficient(
+            value: 5000.0,
+            unit: '€',
+            min: 4000.0,
+            max: 7000.0,
+            source: 'Marché du stockage résidentiel : batterie ~5 kWh posée, 2024 (~800-1200 €/kWh)',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
+    /** Absolute cap on the renovation prime. */
+    public function subsidyCap(): Coefficient
+    {
+        return new Coefficient(
+            value: 15000.0,
+            unit: '€',
+            min: 10000.0,
+            max: 20000.0,
+            source: 'Esprit MaPrimeRénov\' : plafond d\'aide par geste/bouquet (simplifié, game-design §18)',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
+    /** Écrêtement: the prime never covers more than this share of the cost. */
+    public function subsidyMaxShare(): Coefficient
+    {
+        return new Coefficient(
+            value: 0.9,
+            unit: 'fraction',
+            min: 0.8,
+            max: 1.0,
+            source: 'MaPrimeRénov\' : écrêtement, reste à charge minimum toujours dû (game-design §8)',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
+    /** Regulatory cap of the zero-interest loan (total borrowed). */
+    public function loanCap(): Coefficient
+    {
+        return new Coefficient(
+            value: 50000.0,
+            unit: '€',
+            min: 50000.0,
+            max: 50000.0,
+            source: 'Éco-PTZ : plafond réglementaire de 50 000 € (game-design §8)',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
+    /** Annual income ceiling of the "très modeste" prime bracket (couple, hors IdF). */
+    public function veryModestIncomeCeiling(): Coefficient
+    {
+        return new Coefficient(value: 20000.0, unit: '€/an', min: 15000.0, max: 23000.0, source: 'Esprit MaPrimeRénov\' (barème bleu, couple hors IdF)', reviewedOn: '2025-01-01');
+    }
+
+    /** Prime rate of the "très modeste" bracket. */
+    public function veryModestSubsidyRate(): Coefficient
+    {
+        return new Coefficient(value: 0.8, unit: 'fraction', min: 0.7, max: 0.9, source: 'Game-design §8 : jusqu\'à 80 % pour les très modestes (MaPrimeRénov\' bleu)', reviewedOn: '2025-01-01');
+    }
+
+    /** Annual income ceiling of the "modeste" bracket. */
+    public function modestIncomeCeiling(): Coefficient
+    {
+        return new Coefficient(value: 27000.0, unit: '€/an', min: 23000.0, max: 30000.0, source: 'Esprit MaPrimeRénov\' (barème jaune, couple hors IdF)', reviewedOn: '2025-01-01');
+    }
+
+    /** Prime rate of the "modeste" bracket. */
+    public function modestSubsidyRate(): Coefficient
+    {
+        return new Coefficient(value: 0.6, unit: 'fraction', min: 0.5, max: 0.7, source: 'Esprit MaPrimeRénov\' (barème jaune)', reviewedOn: '2025-01-01');
+    }
+
+    /** Annual income ceiling of the "intermédiaire" bracket. */
+    public function intermediateIncomeCeiling(): Coefficient
+    {
+        return new Coefficient(value: 38000.0, unit: '€/an', min: 34000.0, max: 42000.0, source: 'Esprit MaPrimeRénov\' (barème violet, couple hors IdF)', reviewedOn: '2025-01-01');
+    }
+
+    /** Prime rate of the "intermédiaire" bracket — the scenario household lands here. */
+    public function intermediateSubsidyRate(): Coefficient
+    {
+        return new Coefficient(value: 0.4, unit: 'fraction', min: 0.3, max: 0.5, source: 'Esprit MaPrimeRénov\' (barème violet)', reviewedOn: '2025-01-01');
+    }
+
+    /** Prime rate above the last ceiling ("supérieur"). */
+    public function upperSubsidyRate(): Coefficient
+    {
+        return new Coefficient(value: 0.2, unit: 'fraction', min: 0.1, max: 0.3, source: 'Esprit MaPrimeRénov\' (barème rose)', reviewedOn: '2025-01-01');
+    }
 }

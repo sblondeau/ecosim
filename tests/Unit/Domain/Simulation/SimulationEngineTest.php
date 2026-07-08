@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Domain\Simulation;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
 use App\Domain\Building\InsulationLevel;
+use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
@@ -98,6 +99,24 @@ final class SimulationEngineTest extends TestCase
         );
     }
 
+    public function testLoanInstallmentIsPaidOnTheFirstOfTheMonth(): void
+    {
+        $engine = new SimulationEngine();
+        $config = self::config();
+        $state = GameState::start(self::passoire(), Money::fromEuros(8000.0))
+            ->renovated(self::passoire(), Money::fromEuros(8000.0), Loan::none()->borrow(Money::fromEuros(24000.0)));
+
+        // Day 0 is January 1st: the 100 € installment is due and paid.
+        $jan1 = $engine->snapshot($config, $state);
+        self::assertSame(100_00, $jan1->loanPayment->cents);
+
+        $after = $engine->advance($config, $state);
+        self::assertSame(24000_00 - 100_00, $after->loan->remaining->cents);
+
+        // January 2nd: nothing due.
+        self::assertSame(0, $engine->snapshot($config, $after)->loanPayment->cents);
+    }
+
     public function testFuelOilHeatingDoesNotTouchTheElectricLoop(): void
     {
         $engine = new SimulationEngine();
@@ -144,7 +163,7 @@ final class SimulationEngineTest extends TestCase
     {
         $engine = new SimulationEngine();
         $config = self::config(3);
-        $atHorizon = new GameState(3, self::passoire(), 0.0, Money::zero(), new PeriodTotals());
+        $atHorizon = new GameState(3, self::passoire(), 0.0, Money::zero(), Loan::none(), new PeriodTotals());
 
         self::assertTrue($engine->isFinished($config, $atHorizon));
         self::assertSame(3, $engine->advance($config, $atHorizon)->currentDay, 'A finished game does not advance.');

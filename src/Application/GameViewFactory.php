@@ -7,6 +7,8 @@ namespace App\Application;
 use App\Domain\Finance\FinanceCalibration;
 use App\Domain\Finance\Money;
 use App\Domain\Finance\PropertyValuator;
+use App\Domain\Finance\Renovation;
+use App\Domain\Finance\RenovationQuoter;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\SimulationEngine;
@@ -38,6 +40,7 @@ final readonly class GameViewFactory
         private SimulationEngine $engine = new SimulationEngine(),
         private FinanceCalibration $finance = new FinanceCalibration(),
         private PropertyValuator $property = new PropertyValuator(),
+        private RenovationQuoter $quoter = new RenovationQuoter(),
     ) {
     }
 
@@ -72,6 +75,9 @@ final readonly class GameViewFactory
                 $this->finance->monthlyNetIncome()->value - $this->finance->monthlyLivingExpenses()->value,
             )->format(),
             propertyValueLabel: $this->property->valueFor($household->dpeClass())->format(),
+            loanActive: $state->loan->isActive(),
+            loanMonthlyPaymentLabel: $state->loan->monthlyPayment->format(),
+            loanRemainingLabel: $state->loan->remaining->format(),
             heatingLabel: $household->heatingSystem->label(),
             insulationLabel: $household->insulation->label(),
             dpeLetter: $household->dpeClass()->label(),
@@ -84,6 +90,7 @@ final readonly class GameViewFactory
             batteryLevelKwh: $balance->batteryLevelKwh,
             batteryCapacityKwh: $household->batteryKwh,
             batteryPct: $household->batteryKwh > 0.0 ? (int) round($balance->batteryLevelKwh / $household->batteryKwh * 100) : 0,
+            batteryDischargedKwh: $balance->batteryDischargedKwh,
             totalProductionKwh: round($totals->productionKwh, 1),
             totalImportKwh: round($totals->importKwh, 1),
             totalExportKwh: round($totals->exportKwh, 1),
@@ -94,7 +101,39 @@ final readonly class GameViewFactory
             totalFuelOilCostLabel: $totals->fuelOilCost->format(),
             totalSurplusRevenueLabel: $totals->surplusRevenue->format(),
             totalNetEnergyCostLabel: $totals->netEnergyCost()->format(),
+            actions: $this->actionsFor($state),
         );
+    }
+
+    /**
+     * @return array<string, ActionView>
+     */
+    private function actionsFor(GameState $state): array
+    {
+        $loanCap = Money::fromEuros($this->finance->loanCap()->value);
+        $actions = [];
+
+        foreach (Renovation::cases() as $work) {
+            $quote = $this->quoter->quote($work, $state->household);
+            if (null === $quote) {
+                continue;
+            }
+
+            $net = $quote->netCost();
+
+            $actions[$work->value] = new ActionView(
+                work: $work->value,
+                title: $quote->title,
+                costLabel: $quote->cost->format(),
+                subsidyLabel: $quote->subsidy->cents > 0 ? $quote->subsidy->format() : '',
+                netCostLabel: $net->format(),
+                cashAllowed: $state->savings->cents >= $net->cents,
+                loanAllowed: $work->isLoanEligible()
+                    && $state->loan->borrowedTotal->plus($net)->cents <= $loanCap->cents,
+            );
+        }
+
+        return $actions;
     }
 
     private function frenchDate(GameDate $date): string

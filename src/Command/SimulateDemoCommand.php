@@ -54,8 +54,8 @@ final class SimulateDemoCommand extends Command
             ->addOption('days', 'd', InputOption::VALUE_REQUIRED, 'Number of days to simulate', (string) self::DEFAULT_DAYS)
             ->addOption('from', 'f', InputOption::VALUE_REQUIRED, 'Epoch date (Y-m-d)', self::DEFAULT_EPOCH)
             ->addOption('seed', 's', InputOption::VALUE_REQUIRED, 'Weather seed (same seed = same weather)', (string) self::DEFAULT_SEED)
-            ->addOption('solar', null, InputOption::VALUE_REQUIRED, 'Installed solar peak power (kWc)', (string) $calibration->defaultSolarPeakPowerKwc()->value)
-            ->addOption('battery', null, InputOption::VALUE_REQUIRED, 'Battery capacity (kWh, 0 = none)', (string) $calibration->defaultBatteryCapacityKwh()->value)
+            ->addOption('solar', null, InputOption::VALUE_REQUIRED, sprintf('Installed solar peak power (kWc, catalogue model: %.0f)', $calibration->defaultSolarPeakPowerKwc()->value), '0')
+            ->addOption('battery', null, InputOption::VALUE_REQUIRED, sprintf('Battery capacity (kWh, catalogue model: %.0f)', $calibration->defaultBatteryCapacityKwh()->value), '0')
             ->addOption('insulation', null, InputOption::VALUE_REQUIRED, "Insulation level ({$insulations})", InsulationLevel::Original->value)
             ->addOption('heating', null, InputOption::VALUE_REQUIRED, "Heating system ({$heatings})", HeatingSystem::FuelOilBoiler->value);
     }

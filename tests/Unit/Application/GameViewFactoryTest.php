@@ -8,6 +8,7 @@ use App\Application\GameViewFactory;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
 use App\Domain\Building\InsulationLevel;
+use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
@@ -62,7 +63,7 @@ final class GameViewFactoryTest extends TestCase
     public function testReportsFinishedAtHorizon(): void
     {
         $config = new GameConfig(2025, new DateTimeImmutable('2025-01-01'), 3);
-        $atHorizon = new GameState(3, self::passoire(), 0.0, Money::zero(), new PeriodTotals());
+        $atHorizon = new GameState(3, self::passoire(), 0.0, Money::zero(), Loan::none(), new PeriodTotals());
 
         self::assertTrue(new GameViewFactory()->build($config, $atHorizon)->finished);
     }

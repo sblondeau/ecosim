@@ -38,4 +38,24 @@ final readonly class Household
     {
         return DpeClass::fromBuilding($this->insulation, $this->heatingSystem);
     }
+
+    public function withSolarKwc(float $solarKwc): self
+    {
+        return new self($solarKwc, $this->batteryKwh, $this->insulation, $this->heatingSystem);
+    }
+
+    public function withBatteryKwh(float $batteryKwh): self
+    {
+        return new self($this->solarKwc, $batteryKwh, $this->insulation, $this->heatingSystem);
+    }
+
+    public function withInsulation(InsulationLevel $insulation): self
+    {
+        return new self($this->solarKwc, $this->batteryKwh, $insulation, $this->heatingSystem);
+    }
+
+    public function withHeatingSystem(HeatingSystem $heatingSystem): self
+    {
+        return new self($this->solarKwc, $this->batteryKwh, $this->insulation, $heatingSystem);
+    }
 }
