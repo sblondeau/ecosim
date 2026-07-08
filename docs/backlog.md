@@ -74,6 +74,15 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
   Quand plusieurs logements existeront : passer à des coefficients par m²
   (kWh/m²/DJU) × surface, et faire dépendre l'effet parois froides de la part
   de parois déperditives (murs extérieurs, vitrages).
+- **Solaire dans le DPE et valeur verte des équipements** (déclencheur :
+  Phase 4, vraie `PropertyValuation`). La matrice DPE (isolation × chauffage)
+  ignore le photovoltaïque — fidèle au réel tant que le chauffage est au fioul
+  (le 3CL ne déduit que la part AUTOCONSOMMÉE, négligeable face au fioul), mais
+  approximatif après électrification (la PAC rend l'offset solaire tangible,
+  un gain de classe devient possible en cas limite). À raffiner alors :
+  déduction 3CL de l'autoconsommation dans le calcul de classe, et « valeur
+  verte » propre des équipements hors DPE (installation PV revendable +
+  contrat de rachat attaché au bien) dans la valorisation.
 - **Durée de vie / dégradation de la batterie dans le ROI** (déclencheur :
   étape finances, calculs de retour sur investissement). L'autodécharge
   (~1-3 %/mois) est volontairement ignorée : négligeable au tick journalier,

@@ -11,8 +11,16 @@ namespace App\Domain\Building;
  * assumed simplification of the real 3CL method, good enough for the MVP's
  * property-value formula (game-design §15: « valeur du bien via une formule
  * simple liée au DPE »). Orders of magnitude: the class reflects primary
- * energy use, so insulation dominates and a heat pump improves the class
- * (SCOP ~3.5 outweighs the primary-energy factor of electricity).
+ * energy use AND the 2021 double-threshold GES étiquette, so insulation
+ * dominates and dropping fuel oil for a heat pump gains classes (SCOP ~3.5
+ * outweighs the primary-energy factor of electricity; fioul is disastrous on
+ * GES).
+ *
+ * Deliberately NOT in the matrix: solar panels (the real 3CL only deducts the
+ * AUTOCONSUMED share — negligible while heating is fuel-oil, second-order
+ * after electrification) and the battery (never counted by the real DPE).
+ * See docs/backlog.md for the refinement planned with the full
+ * PropertyValuation (Phase 4).
  */
 enum DpeClass: string
 {
