@@ -82,7 +82,14 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
   un gain de classe devient possible en cas limite). À raffiner alors :
   déduction 3CL de l'autoconsommation dans le calcul de classe, et « valeur
   verte » propre des équipements hors DPE (installation PV revendable +
-  contrat de rachat attaché au bien) dans la valorisation.
+  contrat de rachat attaché au bien) dans la valorisation. Garde-fous actés :
+  pas de double comptage (le canal DPE rémunère la performance du logement,
+  la valeur verte rémunère l'équipement), sourçage honnête (littérature
+  française mince sur le PV — fourchette large ou omission, §13), magnitude
+  bornée par le coût de l'installation et **dépréciation avec l'âge** (des
+  panneaux de 15 ans ne valent pas le neuf) — sinon poser des panneaux
+  deviendrait une machine à imprimer de la valeur immobilière (« jamais de
+  ROI positif forcé », §8).
 - **Durée de vie / dégradation de la batterie dans le ROI** (déclencheur :
   étape finances, calculs de retour sur investissement). L'autodécharge
   (~1-3 %/mois) est volontairement ignorée : négligeable au tick journalier,
