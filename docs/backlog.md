@@ -84,6 +84,24 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
   panneaux de 15 ans ne valent pas le neuf) — sinon poser des panneaux
   deviendrait une machine à imprimer de la valeur immobilière (« jamais de
   ROI positif forcé », §8).
+- **Bilan de fin par axes, jamais de « patrimoine global »** (déclencheur :
+  étape 7, bilan de fin). Décision actée : pas d'agrégat épargne + valeur du
+  bien − dette — le §1 interdit explicitement de sommer liquide et potentiel
+  (« fausse précision »), le §8 verrouille les 3 blocs jamais fusionnés. Le
+  bilan montre chaque delta séparément (épargne, valeur du bien, dette PTZ
+  restante, confort moyen, énergie). Seul sous-total défendable plus tard,
+  interne au bloc Patrimoine : « bien net de dette » (deux grandeurs non
+  liquides de même nature). Pas de mécanisme d'achat/revente du bien (§15 :
+  pas de marché immobilier dynamique) — la valeur est un indicateur de
+  conséquence, pas un objet de transaction.
+- **Véhicule (V1.1) : reprise déduite, hors patrimoine** (déclencheur : V1.1).
+  Coût réel du passage au VE = prix − aide (`SubsidyProgram` réutilisée, §18)
+  − **valeur de reprise de la thermique** (argus) — sans la reprise, le VE
+  serait artificiellement pénalisé. La voiture n'entre PAS dans l'axe
+  Patrimoine : le §18 la justifie « sur les seuls axes Finances et Carbone »,
+  et un actif à dépréciation rapide (~15-25 %/an) exigerait une courbe de
+  dépréciation continue pour un axe conçu autour du logement. Sa valeur
+  résiduelle se matérialise une seule fois, à l'échange (la reprise).
 - **Durée de vie / dégradation de la batterie dans le ROI** (déclencheur :
   étape finances, calculs de retour sur investissement). L'autodécharge
   (~1-3 %/mois) est volontairement ignorée : négligeable au tick journalier,
