@@ -127,17 +127,20 @@ final class FinanceCalibration
 
     /**
      * Savings available at the start of the game — deliberately NOT enough to
-     * pay for a full renovation out of pocket: the prime and the zero-interest
-     * loan (later bricks) are what unlock the big decisions.
+     * pay any single big work in cash on day 1 (heat pump 13 000 €, solar
+     * 7 500 €, battery 5 000 €): the prime and the zero-interest loan are what
+     * unlock the big decisions, and the boiler repair (~1 500 €) stays within
+     * reach when the scripted breakdown hits. Cash purchases come back once
+     * the household has saved for a while.
      */
     public function startingSavings(): Coefficient
     {
         return new Coefficient(
-            value: 8000.0,
+            value: 4000.0,
             unit: '€',
-            min: 5000.0,
-            max: 15000.0,
-            source: 'Calibration de jeu : épargne résiduelle après achat immobilier (scénario primo-accédant, game-design §18)',
+            min: 2000.0,
+            max: 8000.0,
+            source: 'Banque de France / INSEE : épargne de précaution résiduelle d\'un primo-accédant juste après l\'achat (ordre de grandeur, scénario game-design §18)',
             reviewedOn: '2025-01-01',
         );
     }
