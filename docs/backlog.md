@@ -102,6 +102,26 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
   et un actif à dépréciation rapide (~15-25 %/an) exigerait une courbe de
   dépréciation continue pour un axe conçu autour du logement. Sa valeur
   résiduelle se matérialise une seule fois, à l'échange (la reprise).
+- **Frais d'entretien annuels par équipement** (déclencheur : écran de ROI, ou
+  V1.1 quand le coût complet de possession devient un axe de comparaison).
+  Aujourd'hui `monthlyExpenses` est un forfait de vie (INSEE) insensible à
+  l'installation. Or l'entretien est réglementé et diffère par équipement :
+  chaudière fioul = entretien **annuel obligatoire** (décret 2009-649,
+  ~150-200 €/an), PAC = entretien obligatoire **tous les 2 ans** (décret
+  2020-912, PAC 4-70 kW, ~150-300 €/an), panneaux ≈ 0 (nettoyage), batterie ≈ 0.
+  À intégrer en `Coefficient` sourcés (décrets + ADEME) comme ligne de charge
+  périodique — l'écart d'entretien fait partie de la comparaison honnête
+  fioul/PAC (§13), même s'il est faible devant l'écart de facture énergie
+  (~3 000 €/an). Sans effet sur les décisions au MVP → différé.
+- **Durée de vie des équipements** (déclencheur : le même écran de ROI). Aucun
+  modèle d'usure au MVP — la seule matérialisation « fin de vie » est la panne
+  de chaudière **scriptée** (étape 7, choix du §15 : 1 événement scripté, pas
+  un compteur d'usure). À l'horizon fixe du MVP (quelques centaines de jours),
+  une PAC (~17 ans) ou des panneaux (~30 ans) ne s'usent jamais en partie. Les
+  durées de vie sourcées (ADEME) deviennent nécessaires dès qu'on affiche un
+  ROI : le game-design §8 exige de montrer qu'un retour > 40 ans dépasse la
+  durée de vie des équipements — même déclencheur que la dégradation batterie
+  ci-dessous.
 - **Durée de vie / dégradation de la batterie dans le ROI** (déclencheur :
   étape finances, calculs de retour sur investissement). L'autodécharge
   (~1-3 %/mois) est volontairement ignorée : négligeable au tick journalier,
