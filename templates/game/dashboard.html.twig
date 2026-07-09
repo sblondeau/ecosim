@@ -129,52 +129,51 @@
                 <div class="gauge"><span style="width: {{ game.batteryCapacityKwh > 0 ? (100 * game.batteryDischargedKwh / game.batteryCapacityKwh)|round : 0 }}%; background: var(--warn);"></span></div>
             {% endif %}
         </div>
-    </div>
 
-    <section>
-        <h2 class="section">Patrimoine</h2>
         <div class="card">
+            <h2>Patrimoine</h2>
             <div class="row"><span class="k">Valeur du bien (DPE {{ game.dpeLetter }})</span><span>{{ game.propertyValueLabel }}</span></div>
             <div class="row"><span class="k">Nature</span><span class="k">réalisable à la revente uniquement</span></div>
         </div>
-    </section>
 
-    <section>
-        <h2 class="section">Ma maison — Isolation : {{ game.insulationLabel }} · DPE {{ game.dpeLetter }}</h2>
-        <div class="zones">
-            <div class="zone">
-                <div class="emo">🔆</div>
-                <div class="lbl">Toit</div>
-                <div class="val">{{ game.solarKwc > 0 ? game.solarKwc|number_format(1, ',', ' ') ~ ' kWc' : '—' }}</div>
-            </div>
-            <div class="zone">
-                <div class="emo">{{ game.boilerBroken ? '🚨' : '🔥' }}</div>
-                <div class="lbl">Chaudière</div>
-                <div class="val">{{ game.heatingLabel }}{% if game.boilerBroken %} — en panne{% endif %}</div>
-            </div>
-            <div class="zone">
-                <div class="emo">🔋</div>
-                <div class="lbl">Garage</div>
-                <div class="val">{{ game.batteryCapacityKwh > 0 ? game.batteryCapacityKwh|number_format(0, ',', ' ') ~ ' kWh' : '—' }}</div>
+        <div class="card">
+            <h2>Ma maison — isolation {{ game.insulationLabel|lower }}</h2>
+            <div class="zones">
+                <div class="zone">
+                    <div class="emo">🔆</div>
+                    <div class="lbl">Toit</div>
+                    <div class="val">{{ game.solarKwc > 0 ? game.solarKwc|number_format(1, ',', ' ') ~ ' kWc' : '—' }}</div>
+                </div>
+                <div class="zone">
+                    <div class="emo">{{ game.boilerBroken ? '🚨' : '🔥' }}</div>
+                    <div class="lbl">Chauffage</div>
+                    <div class="val">{{ game.heatingLabel }}{% if game.boilerBroken %} — en panne{% endif %}</div>
+                </div>
+                <div class="zone">
+                    <div class="emo">🔋</div>
+                    <div class="lbl">Garage</div>
+                    <div class="val">{{ game.batteryCapacityKwh > 0 ? game.batteryCapacityKwh|number_format(0, ',', ' ') ~ ' kWh' : '—' }}</div>
+                </div>
             </div>
         </div>
-    </section>
 
-    <section>
-        <h2 class="section">Depuis le début</h2>
         <div class="card">
+            <h2>Depuis le début — énergie</h2>
             <div class="row"><span class="k">Production cumulée</span><span>{{ game.totalProductionKwh|number_format(1, ',', ' ') }} kWh</span></div>
-            <div class="row"><span class="k">Importé du réseau</span><span>{{ game.totalImportKwh|number_format(1, ',', ' ') }} kWh</span></div>
-            <div class="row"><span class="k">Exporté (surplus)</span><span>{{ game.totalExportKwh|number_format(1, ',', ' ') }} kWh</span></div>
+            <div class="row"><span class="k">Importé / exporté</span><span>{{ game.totalImportKwh|number_format(1, ',', ' ') }} / {{ game.totalExportKwh|number_format(1, ',', ' ') }} kWh</span></div>
             <div class="row"><span class="k">Autosuffisance globale</span><span>{{ game.totalSelfSufficiencyPct }} %</span></div>
             <div class="row"><span class="k">Fioul consommé</span><span>{{ game.totalFuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
             <div class="row"><span class="k">Confort moyen</span><span>{{ game.averageComfortPct }} %</span></div>
-            <div class="row"><span class="k">Facture électricité</span><span class="neg">−{{ game.totalElectricityCostLabel }}</span></div>
-            <div class="row"><span class="k">Facture fioul</span><span class="neg">−{{ game.totalFuelOilCostLabel }}</span></div>
-            <div class="row"><span class="k">Revente cumulée</span><span class="pos">+{{ game.totalSurplusRevenueLabel }}</span></div>
-            <div class="row"><span class="k">Coût énergie net</span><span>{{ game.totalNetEnergyCostLabel }}</span></div>
         </div>
-    </section>
+
+        <div class="card">
+            <h2>Depuis le début — factures</h2>
+            <div class="row"><span class="k">Électricité</span><span class="neg">−{{ game.totalElectricityCostLabel }}</span></div>
+            <div class="row"><span class="k">Fioul</span><span class="neg">−{{ game.totalFuelOilCostLabel }}</span></div>
+            <div class="row"><span class="k">Revente cumulée</span><span class="pos">+{{ game.totalSurplusRevenueLabel }}</span></div>
+            <div class="row"><span class="k">Coût énergie net</span><span><strong>{{ game.totalNetEnergyCostLabel }}</strong></span></div>
+        </div>
+    </div>
 
     {% if game.actions is not empty and not game.finished %}
         <section>

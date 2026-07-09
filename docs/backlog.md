@@ -172,6 +172,9 @@ réel / LiveComponent `data-poll` (décision actée : `SECONDS_PER_GAME_DAY`
 
 ## Confort d'été & rénovation granulaire (réflexion joueur, juillet 2026)
 
+**Acté au game-design §16** (source de vérité — cette entrée n'est que le
+rappel). Prérequis : Phase 5 (canicules) ET refonte visuelle « jeu » (§17).
+
 Constat : le jeu ne modélise que l'hiver. La plage de confort 19-26 °C existe,
 mais en été la maison suit la moyenne extérieure (pas d'apports solaires, pas
 de canicule dans la météo) → le confort d'été est « gratuit ». Et l'isolation
