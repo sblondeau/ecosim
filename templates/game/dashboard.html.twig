@@ -32,8 +32,39 @@
         <div class="banner banner-ok">✅ {{ message }}</div>
     {% endfor %}
 
-    {% if game.finished %}
-        <div class="banner">🏁 Partie terminée (horizon atteint). Le bilan de fin arrive dans une prochaine étape.</div>
+    {% if game.endReport %}
+        {% set report = game.endReport %}
+        <section class="end-report">
+            <div class="banner banner-ok">🏁 Fin de partie — un an dans votre maison. Voici les faits, axe par axe.</div>
+            <div class="grid">
+                <div class="card">
+                    <h2>Finances</h2>
+                    <div class="row"><span class="k">Épargne au départ</span><span>{{ report.savingsStartLabel }}</span></div>
+                    <div class="row"><span class="k">Épargne à la fin</span><span>{{ report.savingsEndLabel }}</span></div>
+                    <div class="row"><span class="k">Évolution</span><span class="{{ report.savingsDeltaNegative ? 'neg' : 'pos' }}"><strong>{{ report.savingsDeltaLabel }}</strong></span></div>
+                </div>
+                <div class="card">
+                    <h2>Patrimoine</h2>
+                    <div class="row"><span class="k">DPE</span><span>{{ report.dpeStartLetter }} → <strong>{{ report.dpeEndLetter }}</strong></span></div>
+                    <div class="row"><span class="k">Valeur du bien</span><span>{{ report.propertyStartLabel }} → {{ report.propertyEndLabel }}</span></div>
+                    <div class="row"><span class="k">Évolution</span><span><strong>{{ report.propertyDeltaLabel }}</strong> <span class="k">(réalisable à la revente uniquement)</span></span></div>
+                    {% if report.loanActive %}
+                        <div class="row"><span class="k">Éco-PTZ restant à rembourser</span><span class="neg">{{ report.loanRemainingLabel }}</span></div>
+                    {% endif %}
+                </div>
+                <div class="card">
+                    <h2>Confort</h2>
+                    <div class="big">{{ report.averageComfortPct }} %</div>
+                    <div class="row"><span class="k">Confort thermique moyen sur l'année</span><span></span></div>
+                </div>
+                <div class="card">
+                    <h2>Énergie</h2>
+                    <div class="row"><span class="k">Fioul consommé</span><span>{{ report.totalFuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
+                    <div class="row"><span class="k">Autosuffisance électrique</span><span>{{ report.totalSelfSufficiencyPct }} %</span></div>
+                    <div class="row"><span class="k">Coût énergie net sur l'année</span><span>{{ report.totalNetEnergyCostLabel }}</span></div>
+                </div>
+            </div>
+        </section>
     {% endif %}
 
     {% if game.boilerBroken and not game.finished %}

@@ -11,6 +11,7 @@ use App\Domain\Finance\Renovation;
 use App\Domain\Finance\RenovationQuoter;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
+use App\Domain\Simulation\Scenario;
 use App\Domain\Simulation\SimulationEngine;
 use App\Domain\Time\GameDate;
 
@@ -41,6 +42,7 @@ final readonly class GameViewFactory
         private FinanceCalibration $finance = new FinanceCalibration(),
         private PropertyValuator $property = new PropertyValuator(),
         private RenovationQuoter $quoter = new RenovationQuoter(),
+        private Scenario $scenario = new Scenario(),
     ) {
     }
 
@@ -52,7 +54,7 @@ final readonly class GameViewFactory
         $household = $state->household;
 
         return new GameView(
-            dayNumber: $state->currentDay + 1,
+            dayNumber: min($state->currentDay + 1, $config->horizonDays),
             dateLabel: $this->frenchDate($snapshot->date),
             seasonLabel: $snapshot->date->season()->label(),
             horizonDays: $config->horizonDays,
@@ -105,7 +107,52 @@ final readonly class GameViewFactory
             totalSurplusRevenueLabel: $totals->surplusRevenue->format(),
             totalNetEnergyCostLabel: $totals->netEnergyCost()->format(),
             actions: $this->actionsFor($state),
+            endReport: $this->engine->isFinished($config, $state) ? $this->endReport($state) : null,
         );
+    }
+
+    /**
+     * Measures the whole game against the scenario's day 0 — one delta per
+     * axis, never an aggregate (game-design §1: liquid savings and resale-only
+     * property value must not be summed).
+     */
+    private function endReport(GameState $state): EndReportView
+    {
+        $initialSavings = $this->scenario->startingSavings();
+        $initialDpe = $this->scenario->initialHousehold()->dpeClass();
+        $finalDpe = $state->household->dpeClass();
+
+        $initialProperty = $this->property->valueFor($initialDpe);
+        $finalProperty = $this->property->valueFor($finalDpe);
+
+        $savingsDelta = $state->savings->minus($initialSavings);
+
+        return new EndReportView(
+            daysLived: $state->totals->days,
+            savingsStartLabel: $initialSavings->format(),
+            savingsEndLabel: $state->savings->format(),
+            savingsDeltaLabel: self::signed($savingsDelta),
+            savingsDeltaNegative: $savingsDelta->isNegative(),
+            dpeStartLetter: $initialDpe->label(),
+            dpeEndLetter: $finalDpe->label(),
+            propertyStartLabel: $initialProperty->format(),
+            propertyEndLabel: $finalProperty->format(),
+            propertyDeltaLabel: self::signed($finalProperty->minus($initialProperty)),
+            loanActive: $state->loan->isActive(),
+            loanRemainingLabel: $state->loan->remaining->format(),
+            averageComfortPct: $state->totals->averageComfortScore(),
+            totalFuelOilLitres: round($state->totals->fuelOilLitres, 1),
+            totalSelfSufficiencyPct: (int) round($state->totals->selfSufficiencyRatio() * 100),
+            totalNetEnergyCostLabel: $state->totals->netEnergyCost()->format(),
+        );
+    }
+
+    /**
+     * Explicitly signed amount for a delta ("+1 234,56 €" / "−1 234,56 €").
+     */
+    private static function signed(Money $delta): string
+    {
+        return $delta->isNegative() ? $delta->format() : '+'.$delta->format();
     }
 
     /**

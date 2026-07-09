@@ -80,6 +80,8 @@ final readonly class GameView
          * @var array<string, ActionView>
          */
         public array $actions = [],
+        /** The factual per-axis report — only once the horizon is reached. */
+        public ?EndReportView $endReport = null,
     ) {
     }
 }

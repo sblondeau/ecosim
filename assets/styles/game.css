@@ -74,6 +74,8 @@ section > h2.section { font-size: .8rem; text-transform: uppercase; letter-spaci
 
 .banner-ok { background: var(--accent); color: #06231a; }
 
+.end-report { margin-bottom: 1.6rem; }
+
 .quote-actions { display: flex; gap: .6rem; margin-top: .8rem; flex-wrap: wrap; }
 .btn-small { padding: .45rem .9rem; font-size: .85rem; }
 button:disabled { opacity: .35; cursor: not-allowed; }
