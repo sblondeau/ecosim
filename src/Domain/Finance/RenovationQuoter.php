@@ -35,7 +35,23 @@ final readonly class RenovationQuoter
             Renovation::HeatPump => $this->heatPumpQuote($household),
             Renovation::SolarPanels => $this->solarQuote($household),
             Renovation::HomeBattery => $this->batteryQuote($household),
+            Renovation::BoilerRepair => $this->boilerRepairQuote($household),
         };
+    }
+
+    private function boilerRepairQuote(Household $household): ?RenovationQuote
+    {
+        if (!$household->boilerBroken) {
+            return null;
+        }
+
+        return new RenovationQuote(
+            work: Renovation::BoilerRepair,
+            title: 'Réparer la chaudière fioul',
+            cost: Money::fromEuros($this->calibration->boilerRepairCost()->value),
+            subsidy: Money::zero(),
+            resultingHousehold: $household->withBoilerBroken(false),
+        );
     }
 
     private function insulationQuote(Household $household): ?RenovationQuote

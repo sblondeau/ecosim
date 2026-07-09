@@ -35,4 +35,29 @@ final class HouseholdTest extends TestCase
 
         new Household(3.0, -1.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler);
     }
+
+    public function testOnlyTheFuelOilBoilerCanBeBroken(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::HeatPump, boilerBroken: true);
+    }
+
+    public function testReplacingTheHeatingSystemDiscardsTheBrokenBoiler(): void
+    {
+        $broken = new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler, boilerBroken: true);
+
+        $heatPumpHome = $broken->withHeatingSystem(HeatingSystem::HeatPump);
+
+        self::assertFalse($heatPumpHome->boilerBroken, 'The dead boiler left with the old system.');
+    }
+
+    public function testOtherWithersCarryTheBrokenFlag(): void
+    {
+        $broken = new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler, boilerBroken: true);
+
+        self::assertTrue($broken->withSolarKwc(3.0)->boilerBroken, 'Installing panels does not fix the boiler.');
+        self::assertTrue($broken->withInsulation(InsulationLevel::Retrofitted)->boilerBroken);
+        self::assertFalse($broken->withBoilerBroken(false)->boilerBroken, 'The repair clears the flag.');
+    }
 }

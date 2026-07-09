@@ -145,6 +145,19 @@ final class FinanceCalibration
         );
     }
 
+    /** Heavy repair of the old fuel-oil boiler (burner, circulator, heat body). */
+    public function boilerRepairCost(): Coefficient
+    {
+        return new Coefficient(
+            value: 1500.0,
+            unit: '€',
+            min: 800.0,
+            max: 3000.0,
+            source: 'Fourchette artisans chauffagistes : réparation lourde d\'une chaudière fioul ancienne (brûleur, circulateur, corps de chauffe), 2024',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
     /** Intermediate insulation package (attic + walls), Original -> Retrofitted. */
     public function insulationRetrofitCost(): Coefficient
     {

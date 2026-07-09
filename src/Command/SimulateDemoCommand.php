@@ -133,9 +133,11 @@ final class SimulateDemoCommand extends Command
                 sprintf('%.1f', $balance->productionKwh),
                 sprintf('%.1f', $balance->demandKwh),
                 sprintf('%.0f', $snapshot->heating->needKwh),
-                $snapshot->heating->fuelOilLitres > 0.0
-                    ? sprintf('%.1f L', $snapshot->heating->fuelOilLitres)
-                    : sprintf('%.1f kWh', $snapshot->heating->electricityKwh),
+                match (true) {
+                    $state->household->boilerBroken => 'panne ⚠',
+                    $snapshot->heating->fuelOilLitres > 0.0 => sprintf('%.1f L', $snapshot->heating->fuelOilLitres),
+                    default => sprintf('%.1f kWh', $snapshot->heating->electricityKwh),
+                },
                 sprintf('%d %%', $snapshot->comfort->score),
                 $snapshot->bill->netCost()->format(),
                 sprintf('%+.1f', -$grid),

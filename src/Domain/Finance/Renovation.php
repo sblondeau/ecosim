@@ -19,6 +19,8 @@ enum Renovation: string
     case HeatPump = 'heat_pump';
     case SolarPanels = 'solar_panels';
     case HomeBattery = 'home_battery';
+    /** Fix the broken fuel-oil boiler (the breakdown-event alternative to the heat pump). */
+    case BoilerRepair = 'boiler_repair';
 
     /**
      * Covered by the income-based prime (MaPrimeRénov'-like)?
@@ -27,7 +29,8 @@ enum Renovation: string
     {
         return match ($this) {
             self::Insulation, self::HeatPump => true,
-            self::SolarPanels, self::HomeBattery => false,
+            // Repairing fossil equipment is not energy-performance work.
+            self::SolarPanels, self::HomeBattery, self::BoilerRepair => false,
         };
     }
 

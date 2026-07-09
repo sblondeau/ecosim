@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Building;
 
 use function max;
+use function min;
 use function round;
 
 /**
@@ -14,8 +15,14 @@ use function round;
  *
  * Deliberately simple model, one assumption per line:
  * - during the heating season (outdoor below the degree-day base) the heating
- *   system holds the indoor air at the setpoint — undersized/broken heating
- *   arrives with the boiler-breakdown event (étape 7);
+ *   system holds the indoor air at the setpoint;
+ * - without heating (boiler breakdown, étape 7) the house settles at its
+ *   steady-state equilibrium: internal gains (appliances and occupants — the
+ *   household's base electricity all ends up as heat indoors) divided by the
+ *   envelope loss rate. No thermal-inertia buffer: the daily tick jumps
+ *   straight to the worst-case equilibrium, which overstates the first day or
+ *   two but never flatters the situation. Better insulation holds more of the
+ *   gains — the same sourced coefficients as the heating need, no new number;
  * - outside the heating season the house free-runs at the outdoor mean (no
  *   cooling in the Phase 0-1 scope, no heatwaves in the weather model yet);
  * - insulation shows up as the cold-wall effect: the felt temperature drops by
@@ -36,12 +43,42 @@ final readonly class ThermalComfortCalculator
             ? $this->calibration->heatingSetpointC()->value
             : $outdoorC;
 
+        return $this->comfortAt($insulation, $indoor, $outdoorC);
+    }
+
+    /**
+     * Comfort with NO working heating: indoor air at the unheated equilibrium.
+     *
+     * @param float $internalGainsKwh heat dissipated indoors over the day (base
+     *                                electricity use of the household), in kWh
+     */
+    public function unheatedComfortFor(InsulationLevel $insulation, float $outdoorC, float $internalGainsKwh): ThermalComfort
+    {
+        if ($outdoorC >= $this->calibration->heatingBaseTemperatureC()->value) {
+            // Free-running season: no heating was needed anyway.
+            return $this->comfortFor($insulation, $outdoorC);
+        }
+
+        $lossPerDegreeDay = $this->calibration->heatLossKwhPerDegreeDay()->value
+            * $this->calibration->insulationFactor($insulation)->value;
+        $gainC = max(0.0, $internalGainsKwh) / $lossPerDegreeDay;
+
+        $indoor = min(
+            $this->calibration->heatingSetpointC()->value,
+            $outdoorC + $gainC,
+        );
+
+        return $this->comfortAt($insulation, $indoor, $outdoorC);
+    }
+
+    private function comfortAt(InsulationLevel $insulation, float $indoorC, float $outdoorC): ThermalComfort
+    {
         $coldWallPenalty = $this->calibration->coldWallPenaltyFactor($insulation)->value
-            * max(0.0, $indoor - $outdoorC);
-        $felt = round($indoor - $coldWallPenalty, 1);
+            * max(0.0, $indoorC - $outdoorC);
+        $felt = round($indoorC - $coldWallPenalty, 1);
 
         return new ThermalComfort(
-            indoorC: round($indoor, 1),
+            indoorC: round($indoorC, 1),
             feltC: $felt,
             score: $this->score($felt),
         );

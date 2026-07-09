@@ -60,6 +60,22 @@ final readonly class GameState
     }
 
     /**
+     * The same day with a different household — for scripted events that hit
+     * the equipment (boiler breakdown) without touching the money.
+     */
+    public function withHousehold(Household $household): self
+    {
+        return new self(
+            $this->currentDay,
+            $household,
+            $this->batteryLevelKwh,
+            $this->savings,
+            $this->loan,
+            $this->totals,
+        );
+    }
+
+    /**
      * The state right after signing a renovation: new household configuration,
      * savings after the cash part, loan after the financed part. The day does
      * not advance — deciding is not living.

@@ -81,6 +81,7 @@ final readonly class GameViewFactory
             loanMonthlyPaymentLabel: $state->loan->monthlyPayment->format(),
             loanRemainingLabel: $state->loan->remaining->format(),
             heatingLabel: $household->heatingSystem->label(),
+            boilerBroken: $household->boilerBroken,
             insulationLabel: $household->insulation->label(),
             dpeLetter: $household->dpeClass()->label(),
             heatingElectricityKwh: $snapshot->heating->electricityKwh,

@@ -65,6 +65,25 @@ final class RenovationQuoterTest extends TestCase
         self::assertSame(5.0, $battery->resultingHousehold->batteryKwh);
     }
 
+    public function testBoilerRepairIsOnlyQuotedWhenBroken(): void
+    {
+        $quoter = new RenovationQuoter();
+
+        self::assertNull(
+            $quoter->quote(Renovation::BoilerRepair, self::barePassoire()),
+            'Nothing to repair while the boiler runs.',
+        );
+
+        $quote = $quoter->quote(Renovation::BoilerRepair, self::barePassoire()->withBoilerBroken(true));
+
+        self::assertNotNull($quote);
+        self::assertSame(1500_00, $quote->cost->cents);
+        self::assertSame(0, $quote->subsidy->cents, 'No public money for repairing fossil equipment.');
+        self::assertFalse(Renovation::BoilerRepair->isLoanEligible());
+        self::assertFalse($quote->resultingHousehold->boilerBroken, 'The repair puts the boiler back to work.');
+        self::assertSame(HeatingSystem::FuelOilBoiler, $quote->resultingHousehold->heatingSystem);
+    }
+
     public function testAlreadyDoneWorksAreNotQuoted(): void
     {
         $quoter = new RenovationQuoter();

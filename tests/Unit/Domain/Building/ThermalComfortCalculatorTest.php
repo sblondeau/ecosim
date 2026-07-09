@@ -48,6 +48,43 @@ final class ThermalComfortCalculatorTest extends TestCase
         self::assertGreaterThanOrEqual(94, $reinforced->score);
     }
 
+    public function testAnUnheatedPassoireSettlesJustAboveTheOutdoorTemperature(): void
+    {
+        // Steady state: 10 kWh of internal gains / 12.5 kWh/°C·day of losses = +0.8 °C.
+        $comfort = new ThermalComfortCalculator()->unheatedComfortFor(InsulationLevel::Original, 3.0, 10.0);
+
+        self::assertSame(3.8, $comfort->indoorC);
+        self::assertSame(0, $comfort->score, 'Far below the comfort range: the breakdown must hurt.');
+    }
+
+    public function testInsulationHoldsMoreOfTheInternalGainsWhenUnheated(): void
+    {
+        $calculator = new ThermalComfortCalculator();
+
+        $passoire = $calculator->unheatedComfortFor(InsulationLevel::Original, 3.0, 10.0);
+        // 10 kWh / (12.5 × 0.30) = +2.7 °C: same gains, three times the temperature rise.
+        $reinforced = $calculator->unheatedComfortFor(InsulationLevel::Reinforced, 3.0, 10.0);
+
+        self::assertGreaterThan($passoire->indoorC, $reinforced->indoorC);
+        self::assertSame(5.7, $reinforced->indoorC);
+    }
+
+    public function testUnheatedIndoorNeverExceedsTheSetpoint(): void
+    {
+        // A mild shoulder-season day: huge gains cannot warm the house past the setpoint.
+        $comfort = new ThermalComfortCalculator()->unheatedComfortFor(InsulationLevel::Reinforced, 17.0, 50.0);
+
+        self::assertSame(19.0, $comfort->indoorC);
+    }
+
+    public function testUnheatedFreeRunsLikeHeatedOutsideTheHeatingSeason(): void
+    {
+        $unheated = new ThermalComfortCalculator()->unheatedComfortFor(InsulationLevel::Original, 22.0, 10.0);
+
+        self::assertSame(22.0, $unheated->indoorC, 'No heating needed: the breakdown changes nothing in summer.');
+        self::assertSame(100, $unheated->score);
+    }
+
     public function testScoreDegradesProgressivelyNeverACliff(): void
     {
         $calculator = new ThermalComfortCalculator();

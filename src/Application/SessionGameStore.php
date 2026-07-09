@@ -7,12 +7,12 @@ namespace App\Application;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
 use App\Domain\Building\InsulationLevel;
-use App\Domain\Finance\FinanceCalibration;
 use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\PeriodTotals;
+use App\Domain\Simulation\Scenario;
 use DateTimeImmutable;
 
 use function is_array;
@@ -31,18 +31,17 @@ final readonly class SessionGameStore implements GameStore
 {
     private const string SESSION_KEY = 'ecosim_game';
     private const string DEFAULT_EPOCH = '2025-01-01';
-    private const int DEFAULT_HORIZON_DAYS = 365;
 
     /**
      * Bump whenever the stored shape changes: a session written by an older
      * format is thrown away and the game restarts, instead of being silently
      * rebuilt into a valid-looking but absurd state by the hydrate fallbacks.
      */
-    private const int FORMAT_VERSION = 6;
+    private const int FORMAT_VERSION = 7;
 
     public function __construct(
         private RequestStack $requestStack,
-        private FinanceCalibration $finance = new FinanceCalibration(),
+        private Scenario $scenario = new Scenario(),
     ) {
     }
 
@@ -77,19 +76,10 @@ final readonly class SessionGameStore implements GameStore
         $config = new GameConfig(
             seed: random_int(1, 1_000_000),
             epoch: new DateTimeImmutable(self::DEFAULT_EPOCH),
-            horizonDays: self::DEFAULT_HORIZON_DAYS,
+            horizonDays: Scenario::HORIZON_DAYS,
         );
 
-        $household = new Household(
-            solarKwc: 0.0,
-            batteryKwh: 0.0,
-            insulation: InsulationLevel::Original,
-            heatingSystem: HeatingSystem::FuelOilBoiler,
-        );
-
-        $savings = Money::fromEuros($this->finance->startingSavings()->value);
-
-        $game = new Game($config, GameState::start($household, $savings));
+        $game = new Game($config, $this->scenario->initialState());
         $this->save($game);
 
         return $game;
@@ -103,7 +93,8 @@ final readonly class SessionGameStore implements GameStore
         $config = new GameConfig(
             seed: (int) ($data['seed'] ?? 0),
             epoch: new DateTimeImmutable((string) ($data['epoch'] ?? self::DEFAULT_EPOCH)),
-            horizonDays: max(1, (int) ($data['horizonDays'] ?? self::DEFAULT_HORIZON_DAYS)),
+            horizonDays: max(1, (int) ($data['horizonDays'] ?? Scenario::HORIZON_DAYS)),
+            boilerBreakdownDay: (int) ($data['breakdownDay'] ?? Scenario::BOILER_BREAKDOWN_DAY),
         );
 
         $household = new Household(
@@ -111,6 +102,7 @@ final readonly class SessionGameStore implements GameStore
             batteryKwh: (float) ($data['batteryKwh'] ?? 0.0),
             insulation: InsulationLevel::from((string) ($data['insulation'] ?? InsulationLevel::Original->value)),
             heatingSystem: HeatingSystem::from((string) ($data['heating'] ?? HeatingSystem::FuelOilBoiler->value)),
+            boilerBroken: (bool) ($data['boilerBroken'] ?? false),
         );
 
         $state = new GameState(
@@ -150,11 +142,13 @@ final readonly class SessionGameStore implements GameStore
             'seed' => $game->config->seed,
             'epoch' => $game->config->epoch->format('Y-m-d'),
             'horizonDays' => $game->config->horizonDays,
+            'breakdownDay' => $game->config->boilerBreakdownDay,
             'currentDay' => $game->state->currentDay,
             'solarKwc' => $game->state->household->solarKwc,
             'batteryKwh' => $game->state->household->batteryKwh,
             'insulation' => $game->state->household->insulation->value,
             'heating' => $game->state->household->heatingSystem->value,
+            'boilerBroken' => $game->state->household->boilerBroken,
             'batteryLevelKwh' => $game->state->batteryLevelKwh,
             'savingsCents' => $game->state->savings->cents,
             'loanRemainingCents' => $game->state->loan->remaining->cents,

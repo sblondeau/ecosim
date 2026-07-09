@@ -36,6 +36,10 @@
         <div class="banner">🏁 Partie terminée (horizon atteint). Le bilan de fin arrive dans une prochaine étape.</div>
     {% endif %}
 
+    {% if game.boilerBroken and not game.finished %}
+        <div class="banner">🚨 La chaudière fioul est en panne : la maison n'est plus chauffée. Réparez-la ou remplacez-la (voir « Travaux disponibles »).</div>
+    {% endif %}
+
     <div class="grid">
         <div class="card">
             <h2>Finances</h2>
@@ -113,9 +117,9 @@
                 <div class="val">{{ game.solarKwc > 0 ? game.solarKwc|number_format(1, ',', ' ') ~ ' kWc' : '—' }}</div>
             </div>
             <div class="zone">
-                <div class="emo">🔥</div>
+                <div class="emo">{{ game.boilerBroken ? '🚨' : '🔥' }}</div>
                 <div class="lbl">Chaudière</div>
-                <div class="val">{{ game.heatingLabel }}</div>
+                <div class="val">{{ game.heatingLabel }}{% if game.boilerBroken %} — en panne{% endif %}</div>
             </div>
             <div class="zone">
                 <div class="emo">🔋</div>

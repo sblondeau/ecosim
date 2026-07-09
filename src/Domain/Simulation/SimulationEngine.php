@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Simulation;
 
+use App\Domain\Building\HeatingConsumption;
 use App\Domain\Building\HeatingEnergyCalculator;
 use App\Domain\Building\HeatingNeedCalculator;
+use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\ThermalComfortCalculator;
 use App\Domain\Energy\Battery;
 use App\Domain\Energy\EnergyBalanceCalculator;
@@ -61,13 +63,21 @@ final readonly class SimulationEngine
 
         $production = $this->solar->dailyProductionKwh($household->solarKwc, $weather, $date);
 
-        $need = $this->heatingNeed->dailyNeedKwh($household->insulation, $weather->temperatureC);
-        $heating = $this->heatingEnergy->consumptionFor($household->heatingSystem, $need);
+        // A broken boiler delivers nothing: no heat, no fuel burnt (étape 7 event).
+        $heating = $household->boilerBroken
+            ? HeatingConsumption::none()
+            : $this->heatingEnergy->consumptionFor(
+                $household->heatingSystem,
+                $this->heatingNeed->dailyNeedKwh($household->insulation, $weather->temperatureC),
+            );
 
-        $demand = $this->baseDemand->dailyDemandKwh($config->seed, $date) + $heating->electricityKwh;
+        $baseDemand = $this->baseDemand->dailyDemandKwh($config->seed, $date);
+        $demand = $baseDemand + $heating->electricityKwh;
         $balance = $this->balancer->settle($production, $demand, $this->battery($state), $state->batteryLevelKwh);
 
-        $comfort = $this->comfort->comfortFor($household->insulation, $weather->temperatureC);
+        $comfort = $household->boilerBroken
+            ? $this->comfort->unheatedComfortFor($household->insulation, $weather->temperatureC, $baseDemand)
+            : $this->comfort->comfortFor($household->insulation, $weather->temperatureC);
 
         return new DailySnapshot(
             $date,
@@ -106,7 +116,27 @@ final readonly class SimulationEngine
             return $state;
         }
 
-        return $state->advanced($this->snapshot($config, $state));
+        return $this->withScriptedEvents($config, $state->advanced($this->snapshot($config, $state)));
+    }
+
+    /**
+     * The one scripted event of the phase (game-design §15): on the configured
+     * morning the old fuel-oil boiler dies — but only if it is still there.
+     * A player who already switched to the heat pump never lives it, and a
+     * repaired boiler holds for the rest of the game (strict day equality:
+     * the event fires once, it is a scene, not a wear model).
+     */
+    private function withScriptedEvents(GameConfig $config, GameState $state): GameState
+    {
+        $household = $state->household;
+
+        $boilerDies = $state->currentDay === $config->boilerBreakdownDay
+            && HeatingSystem::FuelOilBoiler === $household->heatingSystem
+            && !$household->boilerBroken;
+
+        return $boilerDies
+            ? $state->withHousehold($household->withBoilerBroken(true))
+            : $state;
     }
 
     public function isFinished(GameConfig $config, GameState $state): bool

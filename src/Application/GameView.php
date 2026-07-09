@@ -47,6 +47,8 @@ final readonly class GameView
         public string $loanRemainingLabel,
         // Heating & comfort
         public string $heatingLabel,
+        /** The scripted breakdown happened and the boiler is still dead (no heating). */
+        public bool $boilerBroken,
         public string $insulationLabel,
         public string $dpeLetter,
         public float $heatingElectricityKwh,

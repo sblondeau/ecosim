@@ -169,6 +169,55 @@ final class SimulationEngineTest extends TestCase
         self::assertSame(3, $engine->advance($config, $atHorizon)->currentDay, 'A finished game does not advance.');
     }
 
+    public function testTheBoilerBreaksOnTheScriptedDay(): void
+    {
+        $engine = new SimulationEngine();
+        $config = self::config(30); // Default breakdown day: 19 (January 20th).
+        $state = GameState::start(self::passoire(), Money::fromEuros(4000.0));
+
+        while ($state->currentDay < 19) {
+            $state = $engine->advance($config, $state);
+            if ($state->currentDay < 19) {
+                self::assertFalse($state->household->boilerBroken, "Day {$state->currentDay}: still fine.");
+            }
+        }
+
+        self::assertTrue($state->household->boilerBroken, 'January 20th morning: the boiler is dead.');
+
+        $coldDay = $engine->snapshot($config, $state);
+        self::assertSame(0.0, $coldDay->heating->fuelOilLitres, 'A dead boiler burns nothing.');
+        self::assertSame(0.0, $coldDay->heating->needKwh);
+        self::assertLessThan(10.0, $coldDay->comfort->indoorC, 'The unheated January house is freezing.');
+        self::assertSame(0, $coldDay->comfort->score);
+        self::assertSame(0, $coldDay->bill->fuelOilCost->cents, 'No fuel burnt, no fuel billed.');
+    }
+
+    public function testARepairedBoilerDoesNotBreakAgain(): void
+    {
+        $engine = new SimulationEngine();
+        $config = self::config(30);
+        $broken = new GameState(19, self::passoire()->withBoilerBroken(true), 0.0, Money::fromEuros(4000.0), Loan::none(), new PeriodTotals());
+
+        $repaired = $broken->withHousehold($broken->household->withBoilerBroken(false));
+        $nextDay = $engine->advance($config, $repaired);
+
+        self::assertFalse($nextDay->household->boilerBroken, 'The scripted event fires once — a scene, not a wear model.');
+    }
+
+    public function testSwitchingToTheHeatPumpBeforeTheEventAvoidsIt(): void
+    {
+        $engine = new SimulationEngine();
+        $config = self::config(30);
+        $heatPumpHome = new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::HeatPump);
+        $state = GameState::start($heatPumpHome, Money::fromEuros(4000.0));
+
+        while (!$engine->isFinished($config, $state)) {
+            $state = $engine->advance($config, $state);
+        }
+
+        self::assertFalse($state->household->boilerBroken, 'Anticipating the switch means never living the breakdown.');
+    }
+
     public function testGamePlaysToTheHorizon(): void
     {
         $engine = new SimulationEngine();

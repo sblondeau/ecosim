@@ -72,6 +72,33 @@ final class RenovationHandlerTest extends TestCase
         self::assertIsString($result);
     }
 
+    public function testTheBrokenBoilerCanBeRepairedInCashWithTheStartingSavings(): void
+    {
+        $broken = GameState::start(
+            new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler, boilerBroken: true),
+            Money::fromEuros(4000.0), // The recalibrated scenario savings.
+        );
+
+        $result = new RenovationHandler()->order($broken, Renovation::BoilerRepair, RenovationHandler::FINANCING_CASH);
+
+        self::assertInstanceOf(GameState::class, $result);
+        self::assertFalse($result->household->boilerBroken);
+        self::assertSame(2500_00, $result->savings->cents, '4000 − 1500 of repair.');
+    }
+
+    public function testTheRepairCannotBeFinancedWithTheLoan(): void
+    {
+        $broken = GameState::start(
+            new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler, boilerBroken: true),
+            Money::fromEuros(4000.0),
+        );
+
+        $result = new RenovationHandler()->order($broken, Renovation::BoilerRepair, RenovationHandler::FINANCING_LOAN);
+
+        self::assertIsString($result);
+        self::assertStringContainsString('éco-PTZ', $result);
+    }
+
     public function testFullRenovationFitsUnderTheLoanCap(): void
     {
         $handler = new RenovationHandler();
