@@ -76,14 +76,14 @@ final class RenovationHandlerTest extends TestCase
     {
         $broken = GameState::start(
             new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler, boilerBroken: true),
-            Money::fromEuros(4000.0), // The recalibrated scenario savings.
+            Money::fromEuros(7750.0), // The recalibrated scenario savings.
         );
 
         $result = new RenovationHandler()->order($broken, Renovation::BoilerRepair, RenovationHandler::FINANCING_CASH);
 
         self::assertInstanceOf(GameState::class, $result);
         self::assertFalse($result->household->boilerBroken);
-        self::assertSame(2500_00, $result->savings->cents, '4000 − 1500 of repair.');
+        self::assertSame(6250_00, $result->savings->cents, '7750 − 1500 of repair.');
     }
 
     public function testTheRepairCannotBeFinancedWithTheLoan(): void

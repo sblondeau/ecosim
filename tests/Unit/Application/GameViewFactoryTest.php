@@ -53,8 +53,8 @@ final class GameViewFactoryTest extends TestCase
         $view = new GameViewFactory()->build(self::config(), GameState::start(self::passoire(), Money::fromEuros(8000.0)));
 
         self::assertSame('2 800,00 €', $view->monthlyIncomeLabel);
-        self::assertSame('2 300,00 €', $view->monthlyExpensesLabel);
-        self::assertSame('500,00 €', $view->monthlyNetIncomeLabel, 'Net = income − living expenses.');
+        self::assertSame('2 100,00 €', $view->monthlyExpensesLabel);
+        self::assertSame('700,00 €', $view->monthlyNetIncomeLabel, 'Net = income − living expenses.');
     }
 
     public function testPercentagesStayWithinBounds(): void
@@ -143,10 +143,10 @@ final class GameViewFactoryTest extends TestCase
         $report = new GameViewFactory()->build($config, $atHorizon)->endReport;
 
         self::assertNotNull($report);
-        self::assertSame('4 000,00 €', $report->savingsStartLabel, 'The scenario starting savings.');
+        self::assertSame('7 750,00 €', $report->savingsStartLabel, 'The scenario starting savings.');
         self::assertSame('5 000,00 €', $report->savingsEndLabel);
-        self::assertSame('+1 000,00 €', $report->savingsDeltaLabel);
-        self::assertFalse($report->savingsDeltaNegative);
+        self::assertSame('−2 750,00 €', $report->savingsDeltaLabel);
+        self::assertTrue($report->savingsDeltaNegative);
         self::assertSame('G', $report->dpeStartLetter);
         self::assertSame('C', $report->dpeEndLetter);
         self::assertSame('200 000,00 €', $report->propertyStartLabel);

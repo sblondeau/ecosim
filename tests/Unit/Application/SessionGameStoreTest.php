@@ -49,7 +49,7 @@ final class SessionGameStoreTest extends TestCase
         self::assertFalse($game->state->loan->isActive());
         self::assertSame(InsulationLevel::Original, $game->state->household->insulation, 'The scenario starts uninsulated.');
         self::assertSame(HeatingSystem::FuelOilBoiler, $game->state->household->heatingSystem, 'The scenario starts on fuel oil.');
-        self::assertSame(4000_00, $game->state->savings->cents, 'Tight post-purchase savings: no big work is cash-affordable on day 1.');
+        self::assertSame(7750_00, $game->state->savings->cents, 'Tight post-purchase savings: just below the heat pump net cost on day 1.');
         self::assertTrue($this->session->has(self::SESSION_KEY), 'The fresh game is persisted.');
     }
 

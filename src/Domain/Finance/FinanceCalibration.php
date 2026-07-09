@@ -85,11 +85,11 @@ final class FinanceCalibration
     public function monthlyLivingExpenses(): Coefficient
     {
         return new Coefficient(
-            value: 2300.0,
+            value: 2100.0,
             unit: '€/month',
             min: 1800.0,
             max: 2800.0,
-            source: 'Calibration de jeu : reste-à-vivre serré du primo-accédant (~500 €/mois hors énergie, game-design §18)',
+            source: 'Calibration de jeu : reste-à-vivre serré du primo-accédant (~700 €/mois hors énergie, game-design §18) — un janvier au fioul (~740 €) le consomme entièrement',
             reviewedOn: '2025-01-01',
         );
     }
@@ -126,20 +126,22 @@ final class FinanceCalibration
     }
 
     /**
-     * Savings available at the start of the game — deliberately NOT enough to
-     * pay any single big work in cash on day 1 (heat pump 13 000 €, solar
-     * 7 500 €, battery 5 000 €): the prime and the zero-interest loan are what
-     * unlock the big decisions, and the boiler repair (~1 500 €) stays within
-     * reach when the scripted breakdown hits. Cash purchases come back once
-     * the household has saved for a while.
+     * Savings available at the start of the game. Balanced against the heat
+     * pump's 7 800 € net cost around the scripted January 20th breakdown:
+     * NOT cash-affordable on day 1 (7 750 < 7 800 — anticipating means the
+     * loan), but with the ~700 € of January 1st net income minus ~19 days of
+     * fuel-oil bills, the panne morning always leaves JUST enough to pay the
+     * heat pump in cash — barely, wiping the account (measured over 500
+     * weather seeds: 7 864-8 084 €). Repair (~1 500 €), prime and éco-PTZ
+     * keep the other exits open; the choice at the breakdown is real.
      */
     public function startingSavings(): Coefficient
     {
         return new Coefficient(
-            value: 4000.0,
+            value: 7750.0,
             unit: '€',
-            min: 2000.0,
-            max: 8000.0,
+            min: 5000.0,
+            max: 12000.0,
             source: 'Banque de France / INSEE : épargne de précaution résiduelle d\'un primo-accédant juste après l\'achat (ordre de grandeur, scénario game-design §18)',
             reviewedOn: '2025-01-01',
         );

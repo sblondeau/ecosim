@@ -6,6 +6,8 @@ namespace App\Tests\Unit\Domain\Simulation;
 
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\InsulationLevel;
+use App\Domain\Finance\Renovation;
+use App\Domain\Finance\RenovationQuoter;
 use App\Domain\Simulation\Scenario;
 use PHPUnit\Framework\TestCase;
 
@@ -28,8 +30,21 @@ final class ScenarioTest extends TestCase
         $state = new Scenario()->initialState();
 
         self::assertSame(0, $state->currentDay);
-        self::assertSame(4000_00, $state->savings->cents);
+        self::assertSame(7750_00, $state->savings->cents);
         self::assertFalse($state->loan->isActive());
+    }
+
+    public function testTheHeatPumpIsNotCashAffordableOnDayOne(): void
+    {
+        $scenario = new Scenario();
+        $quote = new RenovationQuoter()->quote(Renovation::HeatPump, $scenario->initialHousehold());
+
+        self::assertNotNull($quote);
+        self::assertLessThan(
+            $quote->netCost()->cents,
+            $scenario->startingSavings()->cents,
+            'Anticipating the switch takes the loan; the cash option opens just around the breakdown (balance decision).',
+        );
     }
 
     public function testTheBreakdownFallsInsideTheHorizon(): void
