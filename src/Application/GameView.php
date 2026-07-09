@@ -23,6 +23,8 @@ final readonly class GameView
         // Weather
         public int $cloudPct,
         public float $temperatureC,
+        /** The last ≤30 days of weather, recomputed from the seed (no storage). */
+        public SparklineView $weatherSparkline,
         // Today's energy balance
         public float $productionKwh,
         public float $demandKwh,

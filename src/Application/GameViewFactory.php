@@ -14,7 +14,15 @@ use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\Scenario;
 use App\Domain\Simulation\SimulationEngine;
 use App\Domain\Time\GameDate;
+use App\Domain\Weather\Weather;
+use App\Domain\Weather\WeatherGenerator;
 
+use function array_map;
+use function count;
+use function implode;
+use function max;
+use function min;
+use function range;
 use function sprintf;
 
 /**
@@ -43,6 +51,7 @@ final readonly class GameViewFactory
         private PropertyValuator $property = new PropertyValuator(),
         private RenovationQuoter $quoter = new RenovationQuoter(),
         private Scenario $scenario = new Scenario(),
+        private WeatherGenerator $weather = new WeatherGenerator(),
     ) {
     }
 
@@ -62,6 +71,7 @@ final readonly class GameViewFactory
             progressPct: (int) round(min(1.0, $state->currentDay / $config->horizonDays) * 100),
             cloudPct: (int) round($snapshot->weather->cloudCover * 100),
             temperatureC: $snapshot->weather->temperatureC,
+            weatherSparkline: $this->weatherSparkline($config, $state),
             productionKwh: $balance->productionKwh,
             demandKwh: $balance->demandKwh,
             selfSufficiencyPct: (int) round($balance->selfSufficiencyRatio() * 100),
@@ -153,6 +163,56 @@ final readonly class GameViewFactory
     private static function signed(Money $delta): string
     {
         return $delta->isNegative() ? $delta->format() : '+'.$delta->format();
+    }
+
+    private const int SPARKLINE_DAYS = 30;
+
+    /**
+     * The last ≤30 days of weather, recomputed on the fly: the generator is
+     * seeded and deterministic, so the past needs no storage at all.
+     */
+    private function weatherSparkline(GameConfig $config, GameState $state): SparklineView
+    {
+        $firstDay = max(0, $state->currentDay - (self::SPARKLINE_DAYS - 1));
+
+        $window = array_map(
+            fn (int $day): Weather => $this->weather->for($config->seed, GameDate::fromDayIndex($config->epoch, $day)),
+            range($firstDay, $state->currentDay),
+        );
+        $temperatures = array_map(static fn (Weather $w): float => $w->temperatureC, $window);
+        $clouds = array_map(static fn (Weather $w): float => $w->cloudCover, $window);
+
+        // Pad the temperature scale so a flat spell does not fill the box.
+        $minTemp = min($temperatures) - 1.0;
+        $maxTemp = max($temperatures) + 1.0;
+
+        return new SparklineView(
+            days: count($temperatures),
+            temperaturePoints: self::polyline($temperatures, $minTemp, $maxTemp),
+            cloudPoints: self::polyline($clouds, 0.0, 1.0),
+            temperatureMinLabel: sprintf('%.0f°', $minTemp + 1.0),
+            temperatureMaxLabel: sprintf('%.0f°', $maxTemp - 1.0),
+        );
+    }
+
+    /**
+     * Projects a series into the sparkline viewBox (y axis pointing down).
+     *
+     * @param list<float> $values
+     */
+    private static function polyline(array $values, float $min, float $max): string
+    {
+        $count = count($values);
+        $span = $max - $min;
+        $points = [];
+
+        foreach ($values as $i => $value) {
+            $x = 1 === $count ? SparklineView::WIDTH : $i / ($count - 1) * SparklineView::WIDTH;
+            $y = SparklineView::HEIGHT * (1.0 - ($value - $min) / $span);
+            $points[] = sprintf('%.1f,%.1f', $x, $y);
+        }
+
+        return implode(' ', $points);
     }
 
     /**

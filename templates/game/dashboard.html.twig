@@ -92,6 +92,23 @@
             <div class="big">{{ game.temperatureC|number_format(1, ',', ' ') }}&nbsp;°C</div>
             <div class="row"><span class="k">Nébulosité</span><span>{{ game.cloudPct }} %</span></div>
             <div class="gauge"><span style="width: {{ game.cloudPct }}%; background: var(--cold);"></span></div>
+            {% set spark = game.weatherSparkline %}
+            {% if spark.days > 1 %}
+                <div class="spark">
+                    <div class="spark-head">
+                        <span class="k">{{ spark.days }} derniers jours</span>
+                        <span class="k">{{ spark.temperatureMinLabel }} … {{ spark.temperatureMaxLabel }}</span>
+                    </div>
+                    <svg viewBox="0 0 100 28" preserveAspectRatio="none" role="img" aria-label="Température et nébulosité des {{ spark.days }} derniers jours">
+                        <polyline points="{{ spark.cloudPoints }}" fill="none" stroke="var(--cold)" stroke-width="0.7" opacity="0.55"/>
+                        <polyline points="{{ spark.temperaturePoints }}" fill="none" stroke="var(--warn)" stroke-width="1"/>
+                    </svg>
+                    <div class="spark-legend">
+                        <span><i style="background: var(--warn);"></i> température</span>
+                        <span><i style="background: var(--cold);"></i> nébulosité</span>
+                    </div>
+                </div>
+            {% endif %}
         </div>
 
         <div class="card">

@@ -77,6 +77,24 @@ final class GameViewFactoryTest extends TestCase
         self::assertTrue(new GameViewFactory()->build($config, $atHorizon)->finished);
     }
 
+    public function testWeatherSparklineCoversTheRollingWindow(): void
+    {
+        $factory = new GameViewFactory();
+        $config = self::config();
+
+        $dayOne = $factory->build($config, GameState::start(self::passoire(), Money::fromEuros(4000.0)));
+        self::assertSame(1, $dayOne->weatherSparkline->days, 'Day 0: a single point.');
+
+        $day10 = new GameState(9, self::passoire(), 0.0, Money::zero(), Loan::none(), new PeriodTotals());
+        self::assertSame(10, $factory->build($config, $day10)->weatherSparkline->days);
+
+        $day100 = new GameState(99, self::passoire(), 0.0, Money::zero(), Loan::none(), new PeriodTotals());
+        $spark = $factory->build($config, $day100)->weatherSparkline;
+        self::assertSame(30, $spark->days, 'The window never exceeds 30 days.');
+        self::assertCount(30, explode(' ', $spark->temperaturePoints));
+        self::assertCount(30, explode(' ', $spark->cloudPoints));
+    }
+
     public function testNoEndReportWhileTheGameRuns(): void
     {
         $view = new GameViewFactory()->build(self::config(), GameState::start(self::passoire(), Money::fromEuros(4000.0)));

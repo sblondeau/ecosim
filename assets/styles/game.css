@@ -76,6 +76,12 @@ section > h2.section { font-size: .75rem; text-transform: uppercase; letter-spac
 
 .end-report { margin-bottom: 1.6rem; }
 
+.spark { margin-top: .6rem; }
+.spark svg { display: block; width: 100%; height: 40px; }
+.spark-head { display: flex; justify-content: space-between; font-size: .75rem; margin-bottom: .2rem; }
+.spark-legend { display: flex; gap: 1rem; font-size: .72rem; color: var(--muted); margin-top: .2rem; }
+.spark-legend i { display: inline-block; width: 10px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: .3rem; }
+
 .quote-actions { display: flex; gap: .6rem; margin-top: .8rem; flex-wrap: wrap; }
 .btn-small { padding: .45rem .9rem; font-size: .85rem; }
 button:disabled { opacity: .35; cursor: not-allowed; }
