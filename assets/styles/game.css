@@ -106,6 +106,9 @@ section > h2.section { font-size: .75rem; text-transform: uppercase; letter-spac
 .tip:hover .tipbox, .tip:focus .tipbox { display: block; }
 .card .tip:first-of-type .tipbox { left: 0; transform: none; }
 
+.effects { margin-top: .5rem; padding: .45rem .6rem; background: var(--bg); border-radius: 8px; font-size: .82rem; color: var(--accent); }
+.effects-none { color: var(--muted); }
+
 .quote-actions { display: flex; gap: .6rem; margin-top: .8rem; flex-wrap: wrap; }
 .btn-small { padding: .45rem .9rem; font-size: .85rem; }
 button:disabled { opacity: .35; cursor: not-allowed; }

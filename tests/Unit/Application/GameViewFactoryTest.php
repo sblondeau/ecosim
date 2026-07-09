@@ -77,6 +77,25 @@ final class GameViewFactoryTest extends TestCase
         self::assertTrue(new GameViewFactory()->build($config, $atHorizon)->finished);
     }
 
+    public function testQuotesCarryEstimatedEffects(): void
+    {
+        $bare = new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler);
+        $view = new GameViewFactory()->build(self::config(), GameState::start($bare, Money::fromEuros(4000.0)));
+
+        $solarEffects = implode(' | ', $view->actions['solar_panels']->effectLabels);
+        self::assertStringContainsString('kWh/an', $solarEffects, 'Panels announce their annual production.');
+        self::assertStringContainsString('Facture énergie : ≈ −', $solarEffects, 'Panels cut the bill.');
+
+        $heatPumpEffects = implode(' | ', $view->actions['heat_pump']->effectLabels);
+        self::assertStringContainsString('Facture énergie : ≈ −', $heatPumpEffects, 'Dropping fuel oil saves money every year.');
+
+        self::assertSame(
+            [],
+            $view->actions['home_battery']->effectLabels,
+            'A battery with no panels stores nothing — an honest quote says so.',
+        );
+    }
+
     public function testHelpTextsQuoteTheCalibratedFigures(): void
     {
         $help = new GameViewFactory()->build(self::config(), GameState::start(self::passoire(), Money::fromEuros(4000.0)))->help;

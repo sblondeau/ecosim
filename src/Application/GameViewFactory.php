@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use function abs;
+
 use App\Domain\Building\BuildingCalibration;
 use App\Domain\Energy\EnergyCalibration;
 use App\Domain\Finance\FinanceCalibration;
@@ -11,6 +13,8 @@ use App\Domain\Finance\Money;
 use App\Domain\Finance\PropertyValuator;
 use App\Domain\Finance\Renovation;
 use App\Domain\Finance\RenovationQuoter;
+use App\Domain\Simulation\AnnualOutcome;
+use App\Domain\Simulation\AnnualOutcomeEstimator;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\Scenario;
@@ -55,6 +59,7 @@ final readonly class GameViewFactory
         private RenovationQuoter $quoter = new RenovationQuoter(),
         private Scenario $scenario = new Scenario(),
         private WeatherGenerator $weather = new WeatherGenerator(),
+        private AnnualOutcomeEstimator $estimator = new AnnualOutcomeEstimator(),
         private BuildingCalibration $building = new BuildingCalibration(),
         private EnergyCalibration $energy = new EnergyCalibration(),
     ) {
@@ -210,6 +215,7 @@ final readonly class GameViewFactory
                 number_format($this->finance->fuelOilPricePerLitre()->value, 2, ',', ' '),
             ),
             'netIncome' => 'Revenu net du foyer (INSEE) moins les dépenses de vie hors énergie, crédité le 1er du mois. L\'énergie, elle, est payée jour par jour par la simulation.',
+            'worksEstimate' => 'Effets estimés en simulant une année météo type complète avec et sans les travaux, via le moteur du jeu lui-même. L\'effet réel dépendra de la météo de VOTRE partie et de la date des travaux.',
             'propertyValue' => sprintf(
                 'Prix d\'achat de la maison (Notaires de France) revalorisé de +%.0f %% par classe DPE gagnée. Cette valeur n\'est réalisable qu\'à la revente — elle ne s\'additionne jamais à l\'épargne.',
                 $this->finance->dpeClassValueStep()->value * 100,
@@ -274,12 +280,18 @@ final readonly class GameViewFactory
     {
         $loanCap = Money::fromEuros($this->finance->loanCap()->value);
         $actions = [];
+        $before = null;
 
         foreach (Renovation::cases() as $work) {
             $quote = $this->quoter->quote($work, $state->household);
             if (null === $quote) {
                 continue;
             }
+
+            // Estimated lazily: one reference year for the current house…
+            $before ??= $this->estimator->estimate($state->household);
+            // …and one per available work.
+            $after = $this->estimator->estimate($quote->resultingHousehold);
 
             $net = $quote->netCost();
 
@@ -292,10 +304,48 @@ final readonly class GameViewFactory
                 cashAllowed: $state->savings->cents >= $net->cents,
                 loanAllowed: $work->isLoanEligible()
                     && $state->loan->borrowedTotal->plus($net)->cents <= $loanCap->cents,
+                effectLabels: self::effectLabels($before, $after),
             );
         }
 
         return $actions;
+    }
+
+    /**
+     * The differences a work makes over the reference year, as player-facing
+     * lines — only the axes it actually moves.
+     *
+     * @return list<string>
+     */
+    private static function effectLabels(AnnualOutcome $before, AnnualOutcome $after): array
+    {
+        $labels = [];
+
+        // Nearest 10 € — quoting cents would be false precision for an estimate.
+        $billDeltaEuros = 10 * (int) round(($after->netEnergyCost->cents - $before->netEnergyCost->cents) / 1000);
+        if (0 !== $billDeltaEuros) {
+            $labels[] = sprintf(
+                'Facture énergie : ≈ %s%s €/an',
+                $billDeltaEuros < 0 ? '−' : '+',
+                number_format(abs($billDeltaEuros), 0, ',', ' '),
+            );
+        }
+
+        if ($after->averageComfortScore !== $before->averageComfortScore) {
+            $labels[] = sprintf('Confort moyen : %d %% → %d %%', $before->averageComfortScore, $after->averageComfortScore);
+        }
+
+        if ($after->productionKwh > $before->productionKwh) {
+            $labels[] = sprintf('Production solaire : ≈ %d kWh/an', (int) round($after->productionKwh, -1));
+        }
+
+        $selfBefore = (int) round($before->selfSufficiencyRatio * 100);
+        $selfAfter = (int) round($after->selfSufficiencyRatio * 100);
+        if ($selfAfter !== $selfBefore) {
+            $labels[] = sprintf('Autosuffisance : %d %% → %d %%', $selfBefore, $selfAfter);
+        }
+
+        return $labels;
     }
 
     private function frenchDate(GameDate $date): string

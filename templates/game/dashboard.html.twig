@@ -198,7 +198,7 @@
 
     {% if game.actions is not empty and not game.finished %}
         <section>
-            <h2 class="section">Travaux disponibles</h2>
+            <h2 class="section">Travaux disponibles{{ _self.tip(game.help.worksEstimate) }}</h2>
             <div class="grid">
                 {% for action in game.actions %}
                     <div class="card">
@@ -208,6 +208,15 @@
                             <div class="row"><span class="k">Prime</span><span class="pos">−{{ action.subsidyLabel }}</span></div>
                         {% endif %}
                         <div class="row"><span class="k">Reste à charge</span><span><strong>{{ action.netCostLabel }}</strong></span></div>
+                        {% if action.effectLabels is not empty %}
+                            <div class="effects">
+                                {% for effect in action.effectLabels %}
+                                    <div>{{ effect }}</div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="effects effects-none">Aucun effet mesurable sur votre installation actuelle.</div>
+                        {% endif %}
                         <div class="quote-actions">
                             <form method="post" action="{{ path('app_game_renovate') }}">
                                 <input type="hidden" name="_token" value="{{ csrf_token('game') }}">
