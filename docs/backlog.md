@@ -170,6 +170,41 @@ Déjà traité ailleurs : les 365 clics « Jour suivant » relèvent du tick tem
 réel / LiveComponent `data-poll` (décision actée : `SECONDS_PER_GAME_DAY`
 ~30 s, politique `PausesWhileAway`), plus bas dans la feuille de route.
 
+## Confort d'été & rénovation granulaire (réflexion joueur, juillet 2026)
+
+Constat : le jeu ne modélise que l'hiver. La plage de confort 19-26 °C existe,
+mais en été la maison suit la moyenne extérieure (pas d'apports solaires, pas
+de canicule dans la météo) → le confort d'été est « gratuit ». Et l'isolation
+à 3 paliers abstraits épuise les décisions en ~4 choix pour 365 jours.
+Déclencheur global : **après la Phase 5** (la météo à événements extrêmes est
+le prérequis physique : sans canicule, aucun de ces investissements ne sert),
+ou un jalon dédié « V1.x confort d'été » avec un générateur de canicules
+minimal si on veut l'avancer.
+
+- **Éclater l'isolation en éléments** : combles (~25-30 % des pertes), murs
+  (~20-25 %), fenêtres/huisseries (~10-15 %), plancher bas (~7-10 %) — la
+  répartition ADEME des déperditions. Chaque geste = coût/gain/prime propres →
+  plus de décisions dans la durée, budget étalé, et l'effet de séquencement du
+  game-design §8 (isoler avant de dimensionner la PAC) devient tangible.
+- **Matériaux à double caractéristique hiver/été** : conductivité (R) pour
+  l'hiver, **déphasage/inertie** pour l'été (fibre de bois ~10-15 h de
+  déphasage vs laine minérale ~4-6 h à R égal — CSTB/ADEME). Pédagogie rare :
+  deux isolants « équivalents » l'hiver ne le sont pas l'été.
+- **Protections solaires** : volets/brise-soleil/films (facteur solaire g),
+  petites dépenses à gros effet été — des « quick wins » de gameplay.
+- **Rafraîchissement passif** : surventilation nocturne, brasseurs d'air
+  (+2-3 °C de ressenti pour ~30 W), puits provençal/canadien, VMC double flux.
+  L'échelle des solutions AVANT le compresseur.
+- **Climatisation, arbitrage honnête (jamais moralisateur, §1)** : confort
+  gagné vs kWh d'été (dont la synergie réelle clim ↔ solaire : le pic de clim
+  coïncide avec le pic PV), CO₂ selon le contenu carbone du réseau, fuites de
+  fluides frigorigènes (PRG élevé), rejet de chaleur. La PAC air/eau réversible
+  raccorde ça à l'équipement existant.
+- **Confort adaptatif été** : la borne haute de confort n'est pas 19 °C — en
+  été on est bien jusqu'à ~26-28 °C (EN 16798) ; la plage 19-26 actuelle
+  l'encode grossièrement, à raffiner quand l'été devient un vrai sujet
+  (bornes saisonnières).
+
 ## Robustesse
 
 - ~~Versionner le format de session~~ : fait (champ `version` + reset si mismatch).
