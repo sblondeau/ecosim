@@ -24,6 +24,8 @@ final readonly class Household
         public float $batteryKwh,
         public InsulationLevel $insulation,
         public HeatingSystem $heatingSystem,
+        /** The fuel-oil boiler died (scripted event) and delivers no heat until repaired or replaced. */
+        public bool $boilerBroken = false,
     ) {
         if ($solarKwc < 0.0) {
             throw new InvalidArgumentException("Solar power cannot be negative: {$solarKwc}.");
@@ -32,10 +34,43 @@ final readonly class Household
         if ($batteryKwh < 0.0) {
             throw new InvalidArgumentException("Battery capacity cannot be negative: {$batteryKwh}.");
         }
+
+        if ($boilerBroken && HeatingSystem::FuelOilBoiler !== $heatingSystem) {
+            throw new InvalidArgumentException('Only the fuel-oil boiler can be broken.');
+        }
     }
 
     public function dpeClass(): DpeClass
     {
+        // The DPE assesses the installed system, working or not.
         return DpeClass::fromBuilding($this->insulation, $this->heatingSystem);
+    }
+
+    public function withSolarKwc(float $solarKwc): self
+    {
+        return new self($solarKwc, $this->batteryKwh, $this->insulation, $this->heatingSystem, $this->boilerBroken);
+    }
+
+    public function withBatteryKwh(float $batteryKwh): self
+    {
+        return new self($this->solarKwc, $batteryKwh, $this->insulation, $this->heatingSystem, $this->boilerBroken);
+    }
+
+    public function withInsulation(InsulationLevel $insulation): self
+    {
+        return new self($this->solarKwc, $this->batteryKwh, $insulation, $this->heatingSystem, $this->boilerBroken);
+    }
+
+    /**
+     * Replacing the heating system removes the old boiler — broken or not.
+     */
+    public function withHeatingSystem(HeatingSystem $heatingSystem): self
+    {
+        return new self($this->solarKwc, $this->batteryKwh, $this->insulation, $heatingSystem, boilerBroken: false);
+    }
+
+    public function withBoilerBroken(bool $boilerBroken): self
+    {
+        return new self($this->solarKwc, $this->batteryKwh, $this->insulation, $this->heatingSystem, $boilerBroken);
     }
 }

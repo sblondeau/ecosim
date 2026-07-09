@@ -68,15 +68,28 @@ Persistance   src/Entity/ + src/Repository/  (Doctrine, entités anémiques = é
   services de domaine sans état.
 - La présentation ne voit **que** `GameView` (objet de lecture plat) → c'est ce
   qui permet de swapper l'UI (Twig → canvas/three.js) sans toucher au métier.
-- État présent : domaine `src/Domain/{Time,Weather,Energy,Building,Math,Simulation,Calibration}`
-  (tick, météo semée, production solaire/batterie/bilan, chauffage fioul/PAC +
-  besoin degrés-jours + confort thermique + DPE, `Household`, `SimulationEngine`,
-  registre `Coefficient`) ; `src/Application/` (`GameView` + `GameViewFactory`,
-  `GameStore`/`SessionGameStore`, `Game`) ; présentation `src/Controller/GameController`
-  + `templates/game/dashboard.html.twig` (tranche web jouable en session, sans DB
-  ni JS, CSRF par attribut) ; `app:simulate:demo` (démo terminal, configurations
-  bâtiment comparables). Persistance Doctrine (`src/Entity`), LiveComponent
-  `data-poll`, actions joueur : pas encore posés.
+- État présent : domaine `src/Domain/{Time,Weather,Energy,Building,Finance,Math,Simulation,Scenario,Calibration}`
+  (tick, météo semée à régimes persistants, production solaire/batterie/bilan,
+  chauffage fioul/PAC + confort + DPE, `Household` avec panne `boilerBroken`,
+  argent — `Money` en centimes, facture 2 lignes, revenu mensuel, prime par
+  tranches, éco-PTZ `Loan`, `RenovationQuoter` (dont réparation chaudière,
+  comptant seul), valeur du bien DPE — `SimulationEngine` qui applique
+  génériquement les **événements scriptés** du scénario ; `Domain/Scenario/` :
+  interfaces `Scenario` (état initial, horizon, événements) + `ScriptedEvent`
+  (`shouldFire`/`fire`, prédicat libre et déterministe), `BoilerBreakdownEvent`
+  (20 janvier, seulement si encore au fioul ; maison non chauffée = équilibre
+  apports internes/déperditions), `PrimoAccedantScenario` (départ verrouillé :
+  nu, fioul, 7 750 € d'épargne calibrée sur le choix de la panne), registre
+  `Coefficient`) ; `src/Application/`
+  (`GameView`/`ActionView`/`EndReportView` + factory — **bilan de fin par axes,
+  jamais d'agrégat** (§1) —, `RenovationHandler`, `GameStore`/`SessionGameStore`
+  v8, `Game`) ; présentation `GameController` (dashboard, jour-suivant,
+  **travaux**, nouvelle-partie, CSRF par attribut, flashs) + dashboard Twig
+  (Finances avec revenu/dépenses/reste à vivre, Patrimoine, Confort, zones,
+  bandeau panne, bilan de fin, travaux avec devis et double financement) ;
+  `app:simulate:demo`. **La boucle §15 est complète.** Restent : passe UX
+  (backlog « Interface / pédagogie »), LiveComponent `data-poll` (tick temps
+  réel), persistance Doctrine.
 
 Migration future possible vers du DDD plus strict (agrégats + mapping) sans tout
 casser, si l'échelle ville/pays l'exige — mais **pas maintenant**.

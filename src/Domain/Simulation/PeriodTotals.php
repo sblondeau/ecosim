@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Simulation;
 
-use App\Domain\Energy\EnergyBalance;
+use App\Domain\Finance\Money;
 
 use function round;
 
@@ -19,9 +19,9 @@ final readonly class PeriodTotals
 {
     /**
      * @param float       $fuelOilLitres total fuel oil burnt by the boiler since day 1 —
-     *                                   feeds the fioul line of the bill (étape finances)
-     *                                   and the end-of-game report; stops growing once
-     *                                   the player switches to the heat pump
+     *                                   feeds the fioul line of the bill and the
+     *                                   end-of-game report; stops growing once the
+     *                                   player switches to the heat pump
      * @param int<0, max> $days
      */
     public function __construct(
@@ -31,19 +31,25 @@ final readonly class PeriodTotals
         public float $exportKwh = 0.0,
         public float $fuelOilLitres = 0.0,
         public float $comfortScoreSum = 0.0,
+        public Money $electricityCost = new Money(0),
+        public Money $fuelOilCost = new Money(0),
+        public Money $surplusRevenue = new Money(0),
         public int $days = 0,
     ) {
     }
 
-    public function add(EnergyBalance $balance, float $fuelOilLitres, int $comfortScore): self
+    public function add(DailySnapshot $day): self
     {
         return new self(
-            productionKwh: $this->productionKwh + $balance->productionKwh,
-            demandKwh: $this->demandKwh + $balance->demandKwh,
-            importKwh: $this->importKwh + $balance->gridImportKwh,
-            exportKwh: $this->exportKwh + $balance->gridExportKwh,
-            fuelOilLitres: $this->fuelOilLitres + $fuelOilLitres,
-            comfortScoreSum: $this->comfortScoreSum + $comfortScore,
+            productionKwh: $this->productionKwh + $day->balance->productionKwh,
+            demandKwh: $this->demandKwh + $day->balance->demandKwh,
+            importKwh: $this->importKwh + $day->balance->gridImportKwh,
+            exportKwh: $this->exportKwh + $day->balance->gridExportKwh,
+            fuelOilLitres: $this->fuelOilLitres + $day->heating->fuelOilLitres,
+            comfortScoreSum: $this->comfortScoreSum + $day->comfort->score,
+            electricityCost: $this->electricityCost->plus($day->bill->electricityCost),
+            fuelOilCost: $this->fuelOilCost->plus($day->bill->fuelOilCost),
+            surplusRevenue: $this->surplusRevenue->plus($day->bill->surplusRevenue),
             days: $this->days + 1,
         );
     }
@@ -70,5 +76,13 @@ final readonly class PeriodTotals
         }
 
         return (int) round($this->comfortScoreSum / $this->days);
+    }
+
+    /**
+     * Total energy money out (both bill lines, resale credit deducted).
+     */
+    public function netEnergyCost(): Money
+    {
+        return $this->electricityCost->plus($this->fuelOilCost)->minus($this->surplusRevenue);
     }
 }

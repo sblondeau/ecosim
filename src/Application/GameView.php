@@ -23,14 +23,34 @@ final readonly class GameView
         // Weather
         public int $cloudPct,
         public float $temperatureC,
+        /** The last ≤30 days of weather, recomputed from the seed (no storage). */
+        public SparklineView $weatherSparkline,
         // Today's energy balance
         public float $productionKwh,
         public float $demandKwh,
         public int $selfSufficiencyPct,
         public float $gridImportKwh,
         public float $gridExportKwh,
+        // Finances (today's ledger + savings)
+        public string $savingsLabel,
+        public bool $savingsNegative,
+        public string $electricityCostLabel,
+        public string $fuelOilCostLabel,
+        public string $surplusRevenueLabel,
+        public bool $incomeCreditedToday,
+        public string $monthlyIncomeLabel,
+        public string $monthlyExpensesLabel,
+        public string $monthlyNetIncomeLabel,
+        // Patrimoine (non-liquid, realisable on resale only — §8)
+        public string $propertyValueLabel,
+        // Loan (éco-PTZ account)
+        public bool $loanActive,
+        public string $loanMonthlyPaymentLabel,
+        public string $loanRemainingLabel,
         // Heating & comfort
         public string $heatingLabel,
+        /** The scripted breakdown happened and the boiler is still dead (no heating). */
+        public bool $boilerBroken,
         public string $insulationLabel,
         public string $dpeLetter,
         public float $heatingElectricityKwh,
@@ -43,6 +63,8 @@ final readonly class GameView
         public float $batteryLevelKwh,
         public float $batteryCapacityKwh,
         public int $batteryPct,
+        /** Energy the battery delivered to the home today (its visible usefulness). */
+        public float $batteryDischargedKwh,
         // Cumulative period totals
         public float $totalProductionKwh,
         public float $totalImportKwh,
@@ -50,6 +72,26 @@ final readonly class GameView
         public int $totalSelfSufficiencyPct,
         public float $totalFuelOilLitres,
         public int $averageComfortPct,
+        public string $totalElectricityCostLabel,
+        public string $totalFuelOilCostLabel,
+        public string $totalSurplusRevenueLabel,
+        public string $totalNetEnergyCostLabel,
+        /**
+         * Player-facing explanations of the metrics, keyed by topic. Built
+         * from the calibration registry so every number quoted in a tooltip
+         * is the one actually simulated (§13 traceability as a feature).
+         *
+         * @var array<string, string>
+         */
+        public array $help = [],
+        /**
+         * Renovations available right now, keyed by work slug.
+         *
+         * @var array<string, ActionView>
+         */
+        public array $actions = [],
+        /** The factual per-axis report — only once the horizon is reached. */
+        public ?EndReportView $endReport = null,
     ) {
     }
 }

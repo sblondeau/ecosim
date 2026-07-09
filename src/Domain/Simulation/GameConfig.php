@@ -21,6 +21,8 @@ final readonly class GameConfig
     /**
      * @param int          $seed        weather seed (same seed = same weather)
      * @param positive-int $horizonDays number of days the game runs before the final report
+     *                                  (copied from the scenario at creation — the config is
+     *                                  the frozen instance, the scenario is the model)
      */
     public function __construct(
         public int $seed,

@@ -6,8 +6,12 @@ namespace App\Controller;
 
 use App\Application\GameStore;
 use App\Application\GameViewFactory;
+use App\Application\RenovationHandler;
+use App\Domain\Finance\Renovation;
+use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\SimulationEngine;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsCsrfTokenValid;
@@ -25,6 +29,7 @@ final class GameController extends AbstractController
         private readonly GameStore $store,
         private readonly GameViewFactory $viewFactory,
         private readonly SimulationEngine $engine,
+        private readonly RenovationHandler $renovations,
     ) {
     }
 
@@ -44,6 +49,36 @@ final class GameController extends AbstractController
     {
         $game = $this->store->current();
         $this->store->save($game->withState($this->engine->advance($game->config, $game->state)));
+
+        return $this->redirectToRoute('app_game');
+    }
+
+    #[IsCsrfTokenValid('game', tokenKey: '_token')]
+    #[Route('/travaux', name: 'app_game_renovate', methods: ['POST'])]
+    public function renovate(Request $request): Response
+    {
+        $work = Renovation::tryFrom($request->getPayload()->getString('work'));
+        if (null === $work) {
+            $this->addFlash('error', 'Travaux inconnus.');
+
+            return $this->redirectToRoute('app_game');
+        }
+
+        $game = $this->store->current();
+        $result = $this->renovations->order(
+            $game->state,
+            $work,
+            $request->getPayload()->getString('financing'),
+        );
+
+        if (!$result instanceof GameState) {
+            $this->addFlash('error', $result);
+
+            return $this->redirectToRoute('app_game');
+        }
+
+        $this->store->save($game->withState($result));
+        $this->addFlash('success', 'Travaux réalisés !');
 
         return $this->redirectToRoute('app_game');
     }

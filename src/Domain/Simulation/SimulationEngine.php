@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Simulation;
 
+use App\Domain\Building\HeatingConsumption;
 use App\Domain\Building\HeatingEnergyCalculator;
 use App\Domain\Building\HeatingNeedCalculator;
 use App\Domain\Building\ThermalComfortCalculator;
@@ -12,23 +13,38 @@ use App\Domain\Energy\EnergyBalanceCalculator;
 use App\Domain\Energy\EnergyCalibration;
 use App\Domain\Energy\EnergyDemandCalculator;
 use App\Domain\Energy\SolarProductionCalculator;
+use App\Domain\Finance\BillCalculator;
+use App\Domain\Finance\FinanceCalibration;
+use App\Domain\Finance\Money;
+use App\Domain\Scenario\PrimoAccedantScenario;
+use App\Domain\Scenario\ScriptedEvent;
 use App\Domain\Time\GameDate;
 use App\Domain\Weather\WeatherGenerator;
 
 /**
  * The heart of the simulation: turning one day into the next (game-design §3).
  *
- * Pure and deterministic — it wires the weather, energy and building models
- * together and folds a settled day into the game state. No framework, no
- * database, no clock: a game is entirely reproducible from its
+ * Pure and deterministic — it wires the weather, energy, building and finance
+ * models together and folds a settled day into the game state. No framework,
+ * no database, no clock: a game is entirely reproducible from its
  * {@see GameConfig} and the sequence of {@see self::advance()} calls.
  *
  * Heating joins the loop by carrier (game-design §12): a heat pump adds its
  * electricity to the household demand (and thus interacts with solar, battery
  * and grid), while the fuel-oil boiler burns litres outside the electric loop.
+ * Money follows the same flows: the day's bill prices the settled energy, and
+ * the household's net income lands on the 1st of each month.
  */
 final readonly class SimulationEngine
 {
+    /** @var list<ScriptedEvent> */
+    private array $events;
+
+    /**
+     * @param list<ScriptedEvent>|null $events scripted events applied after each
+     *                                         settled day; null = the Phase 0-1
+     *                                         scenario's, [] = none (estimates)
+     */
     public function __construct(
         private WeatherGenerator $weather = new WeatherGenerator(),
         private SolarProductionCalculator $solar = new SolarProductionCalculator(),
@@ -37,13 +53,17 @@ final readonly class SimulationEngine
         private HeatingEnergyCalculator $heatingEnergy = new HeatingEnergyCalculator(),
         private ThermalComfortCalculator $comfort = new ThermalComfortCalculator(),
         private EnergyBalanceCalculator $balancer = new EnergyBalanceCalculator(),
+        private BillCalculator $bill = new BillCalculator(),
         private EnergyCalibration $calibration = new EnergyCalibration(),
+        private FinanceCalibration $finance = new FinanceCalibration(),
+        ?array $events = null,
     ) {
+        $this->events = $events ?? new PrimoAccedantScenario()->events();
     }
 
     /**
-     * The current day's weather, energy balance, heating and comfort, without
-     * advancing the game.
+     * The current day's weather, energy balance, heating, comfort and ledger
+     * (bill + income), without advancing the game.
      */
     public function snapshot(GameConfig $config, GameState $state): DailySnapshot
     {
@@ -54,15 +74,47 @@ final readonly class SimulationEngine
 
         $production = $this->solar->dailyProductionKwh($household->solarKwc, $weather, $date);
 
-        $need = $this->heatingNeed->dailyNeedKwh($household->insulation, $weather->temperatureC);
-        $heating = $this->heatingEnergy->consumptionFor($household->heatingSystem, $need);
+        // A broken boiler delivers nothing: no heat, no fuel burnt (étape 7 event).
+        $heating = $household->boilerBroken
+            ? HeatingConsumption::none()
+            : $this->heatingEnergy->consumptionFor(
+                $household->heatingSystem,
+                $this->heatingNeed->dailyNeedKwh($household->insulation, $weather->temperatureC),
+            );
 
-        $demand = $this->baseDemand->dailyDemandKwh($config->seed, $date) + $heating->electricityKwh;
+        $baseDemand = $this->baseDemand->dailyDemandKwh($config->seed, $date);
+        $demand = $baseDemand + $heating->electricityKwh;
         $balance = $this->balancer->settle($production, $demand, $this->battery($state), $state->batteryLevelKwh);
 
-        $comfort = $this->comfort->comfortFor($household->insulation, $weather->temperatureC);
+        $comfort = $household->boilerBroken
+            ? $this->comfort->unheatedComfortFor($household->insulation, $weather->temperatureC, $baseDemand)
+            : $this->comfort->comfortFor($household->insulation, $weather->temperatureC);
 
-        return new DailySnapshot($date, $weather, $balance, $heating, $comfort);
+        return new DailySnapshot(
+            $date,
+            $weather,
+            $balance,
+            $heating,
+            $comfort,
+            $this->bill->billFor($balance, $heating),
+            $this->incomeFor($date),
+            $date->isFirstOfMonth() ? $state->loan->installmentDue() : Money::zero(),
+        );
+    }
+
+    /**
+     * Net monthly income (income minus non-energy living expenses), credited
+     * on the 1st of each month; zero on every other day.
+     */
+    private function incomeFor(GameDate $date): Money
+    {
+        if (!$date->isFirstOfMonth()) {
+            return Money::zero();
+        }
+
+        return Money::fromEuros(
+            $this->finance->monthlyNetIncome()->value - $this->finance->monthlyLivingExpenses()->value,
+        );
     }
 
     /**
@@ -75,7 +127,24 @@ final readonly class SimulationEngine
             return $state;
         }
 
-        return $state->advanced($this->snapshot($config, $state));
+        return $this->withScriptedEvents($config, $state->advanced($this->snapshot($config, $state)));
+    }
+
+    /**
+     * Applies the scenario's scripted events to the settled morning. The
+     * engine knows nothing about what an event does or when it triggers —
+     * the scenario does (game-design §15;
+     * e.g. {@see \App\Domain\Scenario\BoilerBreakdownEvent}).
+     */
+    private function withScriptedEvents(GameConfig $config, GameState $state): GameState
+    {
+        foreach ($this->events as $event) {
+            if ($event->shouldFire($config, $state)) {
+                $state = $event->fire($state);
+            }
+        }
+
+        return $state;
     }
 
     public function isFinished(GameConfig $config, GameState $state): bool
