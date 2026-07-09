@@ -484,6 +484,36 @@ un bilan de fin — la boucle complète, du début à la fin, avant toute extens
 - Après chaque phase, valider que le livrable est bien démontrable avant de passer à la
   suivante — cohérent avec le principe "toujours quelque chose de jouable".
 
+## 16. Confort d'été et rénovation granulaire (pan acté, à planifier)
+
+Pan de jeu identifié après la première partie complète du MVP (juillet 2026) : le modèle
+thermique ne connaît que l'hiver, et l'isolation à 3 paliers abstraits épuise les décisions
+en quelques choix. Acté sur le principe ; **à planifier quand deux prérequis seront là** :
+la météo à événements extrêmes (canicules, Phase 5 — sans canicule aucun investissement
+d'été n'a d'effet mesurable) et la refonte de l'affichage en rendu « jeu » plutôt que
+tableau de bord (§17, Phase 3+) — multiplier les gestes de rénovation n'a de sens que si
+l'interface sait les montrer sur la maison, pas en empilant des cartes de devis.
+
+- **Éclater l'isolation en éléments** : combles (~25-30 % des déperditions), murs
+  (~20-25 %), fenêtres/huisseries (~10-15 %), plancher bas (~7-10 %) — répartition ADEME.
+  Chaque geste = coût/gain/prime propres → plus de décisions dans la durée, budget étalé,
+  et l'effet de séquencement du §8 (isoler avant de dimensionner la PAC) devient tangible.
+- **Matériaux à double caractéristique hiver/été** : résistance thermique (R) pour l'hiver,
+  **déphasage/inertie** pour l'été — à R égal, fibre de bois ~10-15 h de déphasage vs laine
+  minérale ~4-6 h (CSTB/ADEME). Leçon rare : deux isolants « équivalents » l'hiver ne le
+  sont pas l'été.
+- **L'échelle des solutions AVANT le compresseur** (chaque palier a un coût et un effet
+  sourcés) : protections solaires (volets, brise-soleil, films — facteur solaire g, petit
+  coût/gros effet), surventilation nocturne, brasseurs d'air (+2-3 °C de ressenti pour
+  ~30 W), puits provençal/canadien, VMC double flux — puis seulement la climatisation.
+- **Climatisation en arbitrage honnête, jamais moralisateur (§1)** : confort gagné vs kWh
+  d'été (avec la synergie réelle clim ↔ solaire : le pic de clim coïncide avec le pic PV),
+  CO₂ selon le contenu carbone du réseau, fluides frigorigènes à fort PRG, rejet de chaleur.
+  La PAC air/eau **réversible** raccorde ce pan à l'équipement déjà en jeu.
+- **Confort adaptatif** : la plage de confort n'est pas symétrique ni fixe — 19 °C est une
+  borne d'hiver (réglementaire), en été le confort tient jusqu'à ~26-28 °C (EN 16798).
+  Bornes saisonnières à introduire quand l'été devient un vrai sujet.
+
 ## 17. Interface graphique et rendu (décisions validées, pour la Phase 3+)
 
 Hors scope du MVP (§15 Phase 0-1), à activer à partir de l'arrivée de la carte (Phase 3).
