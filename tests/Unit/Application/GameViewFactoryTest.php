@@ -77,6 +77,17 @@ final class GameViewFactoryTest extends TestCase
         self::assertTrue(new GameViewFactory()->build($config, $atHorizon)->finished);
     }
 
+    public function testHelpTextsQuoteTheCalibratedFigures(): void
+    {
+        $help = new GameViewFactory()->build(self::config(), GameState::start(self::passoire(), Money::fromEuros(4000.0)))->help;
+
+        self::assertStringContainsString('19 et 26 °C', $help['comfort'], 'The comfort range comes from the registry.');
+        self::assertStringContainsString('20 fois moins', $help['surplus'], 'The §8 buy/sell ratio, computed, not hardcoded.');
+        self::assertStringContainsString('0,22 €/kWh', $help['electricity']);
+        self::assertStringContainsString('CRE', $help['electricity'], 'Sources are named to the player (§13).');
+        self::assertStringContainsString('+8 %', $help['propertyValue']);
+    }
+
     public function testWeatherSparklineCoversTheRollingWindow(): void
     {
         $factory = new GameViewFactory();

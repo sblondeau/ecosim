@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Domain\Building\BuildingCalibration;
+use App\Domain\Energy\EnergyCalibration;
 use App\Domain\Finance\FinanceCalibration;
 use App\Domain\Finance\Money;
 use App\Domain\Finance\PropertyValuator;
@@ -22,6 +24,7 @@ use function count;
 use function implode;
 use function max;
 use function min;
+use function number_format;
 use function range;
 use function sprintf;
 
@@ -52,6 +55,8 @@ final readonly class GameViewFactory
         private RenovationQuoter $quoter = new RenovationQuoter(),
         private Scenario $scenario = new Scenario(),
         private WeatherGenerator $weather = new WeatherGenerator(),
+        private BuildingCalibration $building = new BuildingCalibration(),
+        private EnergyCalibration $energy = new EnergyCalibration(),
     ) {
     }
 
@@ -116,6 +121,7 @@ final readonly class GameViewFactory
             totalFuelOilCostLabel: $totals->fuelOilCost->format(),
             totalSurplusRevenueLabel: $totals->surplusRevenue->format(),
             totalNetEnergyCostLabel: $totals->netEnergyCost()->format(),
+            help: $this->helpTexts(),
             actions: $this->actionsFor($state),
             endReport: $this->engine->isFinished($config, $state) ? $this->endReport($state) : null,
         );
@@ -163,6 +169,52 @@ final readonly class GameViewFactory
     private static function signed(Money $delta): string
     {
         return $delta->isNegative() ? $delta->format() : '+'.$delta->format();
+    }
+
+    /**
+     * Player-facing explanations, phrased from the calibration registry: the
+     * quoted figures are the simulated ones, and their sources are named.
+     *
+     * @return array<string, string>
+     */
+    private function helpTexts(): array
+    {
+        $priceKwh = $this->finance->electricityPricePerKwh()->value;
+        $sellKwh = $this->finance->surplusSellPricePerKwh()->value;
+
+        return [
+            'comfort' => sprintf(
+                '100 %% tant que la température ressentie reste entre %.0f et %.0f °C (repères ADEME) ; −%.0f points par °C en dehors. Le ressenti descend sous la température de l\'air quand les murs sont mal isolés (effet parois froides).',
+                $this->building->comfortMinC()->value,
+                $this->building->comfortMaxC()->value,
+                $this->building->comfortLossPerDegree()->value,
+            ),
+            'selfSufficiency' => 'Part de votre consommation électrique couverte par votre propre production (directement ou via la batterie) au lieu d\'être achetée au réseau.',
+            'cloud' => sprintf(
+                'Couverture nuageuse du jour : sous un ciel totalement couvert, les panneaux perdent jusqu\'à %.0f %% de leur production (calibration sourcée).',
+                $this->energy->solarCloudLossFactor()->value * 100,
+            ),
+            'electricity' => sprintf(
+                'Électricité achetée au réseau à %s €/kWh (tarif réglementé, CRE).',
+                number_format($priceKwh, 2, ',', ' '),
+            ),
+            'surplus' => sprintf(
+                'Le surplus injecté est racheté %s €/kWh (contrat type EDF OA) — environ %d fois moins que le prix d\'achat. Autoconsommer vaut bien plus que revendre.',
+                number_format($sellKwh, 3, ',', ' '),
+                (int) round($priceKwh / $sellKwh),
+            ),
+            'fuelOil' => sprintf(
+                'Litres brûlés pour couvrir le besoin de chauffage du jour : rendement de chaudière ~%.0f %%, %s kWh par litre (ADEME / DGEC), à %s €/L.',
+                $this->energy->fuelOilBoilerEfficiency()->value * 100,
+                number_format($this->energy->fuelOilEnergyKwhPerLitre()->value, 2, ',', ' '),
+                number_format($this->finance->fuelOilPricePerLitre()->value, 2, ',', ' '),
+            ),
+            'netIncome' => 'Revenu net du foyer (INSEE) moins les dépenses de vie hors énergie, crédité le 1er du mois. L\'énergie, elle, est payée jour par jour par la simulation.',
+            'propertyValue' => sprintf(
+                'Prix d\'achat de la maison (Notaires de France) revalorisé de +%.0f %% par classe DPE gagnée. Cette valeur n\'est réalisable qu\'à la revente — elle ne s\'additionne jamais à l\'épargne.',
+                $this->finance->dpeClassValueStep()->value * 100,
+            ),
+        ];
     }
 
     private const int SPARKLINE_DAYS = 30;

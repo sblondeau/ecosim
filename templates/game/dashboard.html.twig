@@ -2,6 +2,10 @@
 
 {% block title %}EcoSim — Ma maison{% endblock %}
 
+{% macro tip(text) %}
+    <span class="tip" tabindex="0">ⓘ<span class="tipbox">{{ text }}</span></span>
+{%- endmacro %}
+
 {# JavaScript-free slice: skip the importmap entirely. #}
 {% block javascripts %}{% endblock %}
 
@@ -75,12 +79,12 @@
         <div class="card">
             <h2>Finances</h2>
             <div class="big {{ game.savingsNegative ? 'neg' }}">{{ game.savingsLabel }}</div>
-            <div class="row"><span class="k">Électricité (jour)</span><span class="neg">−{{ game.electricityCostLabel }}</span></div>
+            <div class="row"><span class="k">Électricité (jour){{ _self.tip(game.help.electricity) }}</span><span class="neg">−{{ game.electricityCostLabel }}</span></div>
             <div class="row"><span class="k">Fioul (jour)</span><span class="neg">−{{ game.fuelOilCostLabel }}</span></div>
-            <div class="row"><span class="k">Revente surplus</span><span class="pos">+{{ game.surplusRevenueLabel }}</span></div>
+            <div class="row"><span class="k">Revente surplus{{ _self.tip(game.help.surplus) }}</span><span class="pos">+{{ game.surplusRevenueLabel }}</span></div>
             <div class="row"><span class="k">Revenu mensuel</span><span class="pos">+{{ game.monthlyIncomeLabel }}</span></div>
             <div class="row"><span class="k">Dépenses du foyer</span><span class="neg">−{{ game.monthlyExpensesLabel }}</span></div>
-            <div class="row"><span class="k">Reste à vivre mensuel</span><span>{{ game.monthlyNetIncomeLabel }}{% if game.incomeCreditedToday %} <span class="pos">(crédité aujourd'hui)</span>{% endif %}</span></div>
+            <div class="row"><span class="k">Reste à vivre mensuel{{ _self.tip(game.help.netIncome) }}</span><span>{{ game.monthlyNetIncomeLabel }}{% if game.incomeCreditedToday %} <span class="pos">(crédité aujourd'hui)</span>{% endif %}</span></div>
             {% if game.loanActive %}
                 <div class="row"><span class="k">Mensualité éco-PTZ</span><span class="neg">−{{ game.loanMonthlyPaymentLabel }}</span></div>
                 <div class="row"><span class="k">Dette restante</span><span>{{ game.loanRemainingLabel }}</span></div>
@@ -90,7 +94,7 @@
         <div class="card">
             <h2>Météo du jour</h2>
             <div class="big">{{ game.temperatureC|number_format(1, ',', ' ') }}&nbsp;°C</div>
-            <div class="row"><span class="k">Nébulosité</span><span>{{ game.cloudPct }} %</span></div>
+            <div class="row"><span class="k">Nébulosité{{ _self.tip(game.help.cloud) }}</span><span>{{ game.cloudPct }} %</span></div>
             <div class="gauge"><span style="width: {{ game.cloudPct }}%; background: var(--cold);"></span></div>
             {% set spark = game.weatherSparkline %}
             {% if spark.days > 1 %}
@@ -116,7 +120,7 @@
             <div class="row"><span class="k">Production solaire</span><span>{{ game.productionKwh|number_format(1, ',', ' ') }} kWh</span></div>
             <div class="row"><span class="k">Consommation élec.</span><span>{{ game.demandKwh|number_format(1, ',', ' ') }} kWh</span></div>
             {% if game.fuelOilLitres > 0 %}
-                <div class="row"><span class="k">Fioul brûlé</span><span>{{ game.fuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
+                <div class="row"><span class="k">Fioul brûlé{{ _self.tip(game.help.fuelOil) }}</span><span>{{ game.fuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
             {% endif %}
             <div class="row"><span class="k">Réseau</span>
                 <span>
@@ -130,7 +134,7 @@
         </div>
 
         <div class="card">
-            <h2>Confort thermique</h2>
+            <h2>Confort thermique{{ _self.tip(game.help.comfort) }}</h2>
             <div class="big">{{ game.comfortScorePct }} %</div>
             <div class="gauge"><span style="width: {{ game.comfortScorePct }}%; background: var(--accent);"></span></div>
             <div class="row" style="margin-top:.6rem"><span class="k">Ressenti</span><span>{{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
@@ -138,7 +142,7 @@
         </div>
 
         <div class="card">
-            <h2>Autosuffisance (jour)</h2>
+            <h2>Autosuffisance (jour){{ _self.tip(game.help.selfSufficiency) }}</h2>
             <div class="big">{{ game.selfSufficiencyPct }} %</div>
             <div class="gauge"><span style="width: {{ game.selfSufficiencyPct }}%; background: var(--accent);"></span></div>
             {% if game.batteryCapacityKwh > 0 %}
@@ -148,7 +152,7 @@
         </div>
 
         <div class="card">
-            <h2>Patrimoine</h2>
+            <h2>Patrimoine{{ _self.tip(game.help.propertyValue) }}</h2>
             <div class="row"><span class="k">Valeur du bien (DPE {{ game.dpeLetter }})</span><span>{{ game.propertyValueLabel }}</span></div>
             <div class="row"><span class="k">Nature</span><span class="k">réalisable à la revente uniquement</span></div>
         </div>

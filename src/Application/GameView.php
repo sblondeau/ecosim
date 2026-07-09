@@ -77,6 +77,14 @@ final readonly class GameView
         public string $totalSurplusRevenueLabel,
         public string $totalNetEnergyCostLabel,
         /**
+         * Player-facing explanations of the metrics, keyed by topic. Built
+         * from the calibration registry so every number quoted in a tooltip
+         * is the one actually simulated (§13 traceability as a feature).
+         *
+         * @var array<string, string>
+         */
+        public array $help = [],
+        /**
          * Renovations available right now, keyed by work slug.
          *
          * @var array<string, ActionView>
