@@ -28,3 +28,7 @@
 /.phpstan.cache/
 /.twig-cs-fixer.cache
 ###< ecosim quality tooling ###
+
+# Local test artifacts
+cookies*.txt
+final.html
