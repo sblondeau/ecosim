@@ -60,6 +60,10 @@ h1 { font-size: 1.4rem; margin: 0; letter-spacing: .5px; }
 
 .actions { display: flex; gap: .8rem; margin-top: 1.2rem; flex-wrap: wrap; }
 
+.time-controls { display: flex; gap: .8rem; align-items: center; flex-wrap: wrap; }
+.speed { display: flex; gap: .3rem; }
+.speed button.active { background: var(--accent); color: #06231a; border-color: transparent; }
+
 button { font: inherit; cursor: pointer; border: 0; border-radius: 10px; padding: .7rem 1.3rem; font-weight: 600; }
 .btn-primary { background: var(--accent); color: #06231a; }
 .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }

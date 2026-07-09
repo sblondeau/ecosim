@@ -87,9 +87,14 @@ Persistance   src/Entity/ + src/Repository/  (Doctrine, entités anémiques = é
   **travaux**, nouvelle-partie, CSRF par attribut, flashs) + dashboard Twig
   (Finances avec revenu/dépenses/reste à vivre, Patrimoine, Confort, zones,
   bandeau panne, bilan de fin, travaux avec devis et double financement) ;
-  `app:simulate:demo`. **La boucle §15 est complète.** Restent : passe UX
-  (backlog « Interface / pédagogie »), LiveComponent `data-poll` (tick temps
-  réel), persistance Doctrine.
+  `app:simulate:demo` ; **tick temps réel posé** : `Domain/Time`
+  `TickSpeed` (⏸/×1/×2/×3) + `TimeProgression` (30 s réelles = 1 jour,
+  `PausesWhileAway` via fenêtre de grâce, reste reporté, horloge toujours
+  injectée), `TimeKeeper` (rattrapage borné à l'horizon, porte unique du
+  temps), LiveComponent `GameDashboard` (`data-poll` 4 s, boutons de vitesse),
+  contrôleur = coquille + POST (`/vitesse`, jour-suivant manuel qui remet
+  l'horloge à zéro). **La boucle §15 est complète.** Reste : persistance
+  Doctrine.
 
 Migration future possible vers du DDD plus strict (agrégats + mapping) sans tout
 casser, si l'échelle ville/pays l'exige — mais **pas maintenant**.

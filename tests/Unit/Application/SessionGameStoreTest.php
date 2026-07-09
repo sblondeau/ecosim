@@ -14,6 +14,8 @@ use App\Domain\Simulation\DailySnapshot;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\SimulationEngine;
+use App\Domain\Time\TickSpeed;
+use App\Domain\Time\TimeProgression;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -59,12 +61,15 @@ final class SessionGameStoreTest extends TestCase
         $household = new Household(3.0, 5.0, InsulationLevel::Retrofitted, HeatingSystem::HeatPump);
         $state = GameState::start($household, Money::fromEuros(8000.0))->advanced($this->someDay($config, $household));
 
-        $this->store->save(new Game($config, $state));
+        $progression = new TimeProgression(new DateTimeImmutable('@1750000000'), TickSpeed::Triple);
+        $this->store->save(new Game($config, $state, $progression));
         $loaded = $this->store->current();
 
         self::assertSame(42, $loaded->config->seed);
         self::assertSame('2025-01-01', $loaded->config->epoch->format('Y-m-d'));
         self::assertSame(10, $loaded->config->horizonDays);
+        self::assertSame(TickSpeed::Triple, $loaded->progression->speed);
+        self::assertSame(1750000000, $loaded->progression->lastTickAt->getTimestamp());
         self::assertSame(1, $loaded->state->currentDay);
         self::assertSame(3.0, $loaded->state->household->solarKwc);
         self::assertSame(5.0, $loaded->state->household->batteryKwh);
@@ -83,7 +88,8 @@ final class SessionGameStoreTest extends TestCase
         $config = new GameConfig(seed: 42, epoch: new DateTimeImmutable('2025-01-01'), horizonDays: 10);
         $broken = new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler, boilerBroken: true);
 
-        $this->store->save(new Game($config, GameState::start($broken, Money::fromEuros(4000.0))));
+        $progression = new TimeProgression(new DateTimeImmutable('@1750000000'), TickSpeed::Normal);
+        $this->store->save(new Game($config, GameState::start($broken, Money::fromEuros(4000.0)), $progression));
 
         self::assertTrue($this->store->current()->state->household->boilerBroken);
     }
