@@ -7,7 +7,6 @@ namespace App\Domain\Simulation;
 use App\Domain\Building\HeatingConsumption;
 use App\Domain\Building\HeatingEnergyCalculator;
 use App\Domain\Building\HeatingNeedCalculator;
-use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\ThermalComfortCalculator;
 use App\Domain\Energy\Battery;
 use App\Domain\Energy\EnergyBalanceCalculator;
@@ -17,6 +16,8 @@ use App\Domain\Energy\SolarProductionCalculator;
 use App\Domain\Finance\BillCalculator;
 use App\Domain\Finance\FinanceCalibration;
 use App\Domain\Finance\Money;
+use App\Domain\Scenario\PrimoAccedantScenario;
+use App\Domain\Scenario\ScriptedEvent;
 use App\Domain\Time\GameDate;
 use App\Domain\Weather\WeatherGenerator;
 
@@ -36,6 +37,14 @@ use App\Domain\Weather\WeatherGenerator;
  */
 final readonly class SimulationEngine
 {
+    /** @var list<ScriptedEvent> */
+    private array $events;
+
+    /**
+     * @param list<ScriptedEvent>|null $events scripted events applied after each
+     *                                         settled day; null = the Phase 0-1
+     *                                         scenario's, [] = none (estimates)
+     */
     public function __construct(
         private WeatherGenerator $weather = new WeatherGenerator(),
         private SolarProductionCalculator $solar = new SolarProductionCalculator(),
@@ -47,7 +56,9 @@ final readonly class SimulationEngine
         private BillCalculator $bill = new BillCalculator(),
         private EnergyCalibration $calibration = new EnergyCalibration(),
         private FinanceCalibration $finance = new FinanceCalibration(),
+        ?array $events = null,
     ) {
+        $this->events = $events ?? new PrimoAccedantScenario()->events();
     }
 
     /**
@@ -120,23 +131,20 @@ final readonly class SimulationEngine
     }
 
     /**
-     * The one scripted event of the phase (game-design §15): on the configured
-     * morning the old fuel-oil boiler dies — but only if it is still there.
-     * A player who already switched to the heat pump never lives it, and a
-     * repaired boiler holds for the rest of the game (strict day equality:
-     * the event fires once, it is a scene, not a wear model).
+     * Applies the scenario's scripted events to the settled morning. The
+     * engine knows nothing about what an event does or when it triggers —
+     * the scenario does (game-design §15;
+     * e.g. {@see \App\Domain\Scenario\BoilerBreakdownEvent}).
      */
     private function withScriptedEvents(GameConfig $config, GameState $state): GameState
     {
-        $household = $state->household;
+        foreach ($this->events as $event) {
+            if ($event->shouldFire($config, $state)) {
+                $state = $event->fire($state);
+            }
+        }
 
-        $boilerDies = $state->currentDay === $config->boilerBreakdownDay
-            && HeatingSystem::FuelOilBoiler === $household->heatingSystem
-            && !$household->boilerBroken;
-
-        return $boilerDies
-            ? $state->withHousehold($household->withBoilerBroken(true))
-            : $state;
+        return $state;
     }
 
     public function isFinished(GameConfig $config, GameState $state): bool

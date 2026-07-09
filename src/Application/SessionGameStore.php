@@ -9,10 +9,11 @@ use App\Domain\Building\Household;
 use App\Domain\Building\InsulationLevel;
 use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
+use App\Domain\Scenario\PrimoAccedantScenario;
+use App\Domain\Scenario\Scenario;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\PeriodTotals;
-use App\Domain\Simulation\Scenario;
 use DateTimeImmutable;
 
 use function is_array;
@@ -37,11 +38,11 @@ final readonly class SessionGameStore implements GameStore
      * format is thrown away and the game restarts, instead of being silently
      * rebuilt into a valid-looking but absurd state by the hydrate fallbacks.
      */
-    private const int FORMAT_VERSION = 7;
+    private const int FORMAT_VERSION = 8;
 
     public function __construct(
         private RequestStack $requestStack,
-        private Scenario $scenario = new Scenario(),
+        private Scenario $scenario = new PrimoAccedantScenario(),
     ) {
     }
 
@@ -76,7 +77,7 @@ final readonly class SessionGameStore implements GameStore
         $config = new GameConfig(
             seed: random_int(1, 1_000_000),
             epoch: new DateTimeImmutable(self::DEFAULT_EPOCH),
-            horizonDays: Scenario::HORIZON_DAYS,
+            horizonDays: $this->scenario->horizonDays(),
         );
 
         $game = new Game($config, $this->scenario->initialState());
@@ -93,8 +94,7 @@ final readonly class SessionGameStore implements GameStore
         $config = new GameConfig(
             seed: (int) ($data['seed'] ?? 0),
             epoch: new DateTimeImmutable((string) ($data['epoch'] ?? self::DEFAULT_EPOCH)),
-            horizonDays: max(1, (int) ($data['horizonDays'] ?? Scenario::HORIZON_DAYS)),
-            boilerBreakdownDay: (int) ($data['breakdownDay'] ?? Scenario::BOILER_BREAKDOWN_DAY),
+            horizonDays: max(1, (int) ($data['horizonDays'] ?? $this->scenario->horizonDays())),
         );
 
         $household = new Household(
@@ -142,7 +142,6 @@ final readonly class SessionGameStore implements GameStore
             'seed' => $game->config->seed,
             'epoch' => $game->config->epoch->format('Y-m-d'),
             'horizonDays' => $game->config->horizonDays,
-            'breakdownDay' => $game->config->boilerBreakdownDay,
             'currentDay' => $game->state->currentDay,
             'solarKwc' => $game->state->household->solarKwc,
             'batteryKwh' => $game->state->household->batteryKwh,

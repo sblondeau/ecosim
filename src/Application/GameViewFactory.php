@@ -13,11 +13,12 @@ use App\Domain\Finance\Money;
 use App\Domain\Finance\PropertyValuator;
 use App\Domain\Finance\Renovation;
 use App\Domain\Finance\RenovationQuoter;
+use App\Domain\Scenario\PrimoAccedantScenario;
+use App\Domain\Scenario\Scenario;
 use App\Domain\Simulation\AnnualOutcome;
 use App\Domain\Simulation\AnnualOutcomeEstimator;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
-use App\Domain\Simulation\Scenario;
 use App\Domain\Simulation\SimulationEngine;
 use App\Domain\Time\GameDate;
 use App\Domain\Weather\Weather;
@@ -57,7 +58,7 @@ final readonly class GameViewFactory
         private FinanceCalibration $finance = new FinanceCalibration(),
         private PropertyValuator $property = new PropertyValuator(),
         private RenovationQuoter $quoter = new RenovationQuoter(),
-        private Scenario $scenario = new Scenario(),
+        private Scenario $scenario = new PrimoAccedantScenario(),
         private WeatherGenerator $weather = new WeatherGenerator(),
         private AnnualOutcomeEstimator $estimator = new AnnualOutcomeEstimator(),
         private BuildingCalibration $building = new BuildingCalibration(),
@@ -139,8 +140,9 @@ final readonly class GameViewFactory
      */
     private function endReport(GameState $state): EndReportView
     {
-        $initialSavings = $this->scenario->startingSavings();
-        $initialDpe = $this->scenario->initialHousehold()->dpeClass();
+        $initial = $this->scenario->initialState();
+        $initialSavings = $initial->savings;
+        $initialDpe = $initial->household->dpeClass();
         $finalDpe = $state->household->dpeClass();
 
         $initialProperty = $this->property->valueFor($initialDpe);

@@ -2,20 +2,21 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\Domain\Simulation;
+namespace App\Tests\Unit\Domain\Scenario;
 
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\InsulationLevel;
 use App\Domain\Finance\Renovation;
 use App\Domain\Finance\RenovationQuoter;
-use App\Domain\Simulation\Scenario;
+use App\Domain\Scenario\BoilerBreakdownEvent;
+use App\Domain\Scenario\PrimoAccedantScenario;
 use PHPUnit\Framework\TestCase;
 
-final class ScenarioTest extends TestCase
+final class PrimoAccedantScenarioTest extends TestCase
 {
     public function testTheLockedScenarioStartsBareOnFuelOil(): void
     {
-        $household = new Scenario()->initialHousehold();
+        $household = new PrimoAccedantScenario()->initialHousehold();
 
         self::assertSame(0.0, $household->solarKwc);
         self::assertSame(0.0, $household->batteryKwh);
@@ -27,7 +28,7 @@ final class ScenarioTest extends TestCase
 
     public function testTheInitialStateCarriesTheCalibratedSavings(): void
     {
-        $state = new Scenario()->initialState();
+        $state = new PrimoAccedantScenario()->initialState();
 
         self::assertSame(0, $state->currentDay);
         self::assertSame(7750_00, $state->savings->cents);
@@ -36,7 +37,7 @@ final class ScenarioTest extends TestCase
 
     public function testTheHeatPumpIsNotCashAffordableOnDayOne(): void
     {
-        $scenario = new Scenario();
+        $scenario = new PrimoAccedantScenario();
         $quote = new RenovationQuoter()->quote(Renovation::HeatPump, $scenario->initialHousehold());
 
         self::assertNotNull($quote);
@@ -47,11 +48,15 @@ final class ScenarioTest extends TestCase
         );
     }
 
-    public function testTheBreakdownFallsInsideTheHorizon(): void
+    public function testTheScenarioScriptsTheBoilerBreakdownInsideTheHorizon(): void
     {
+        $scenario = new PrimoAccedantScenario();
+
+        self::assertCount(1, $scenario->events(), 'One scripted event in Phase 0-1 (§15).');
+        self::assertInstanceOf(BoilerBreakdownEvent::class, $scenario->events()[0]);
         self::assertLessThan(
-            Scenario::HORIZON_DAYS,
-            Scenario::BOILER_BREAKDOWN_DAY,
+            $scenario->horizonDays(),
+            PrimoAccedantScenario::BOILER_BREAKDOWN_DAY,
             'A scripted event beyond the horizon would never happen.',
         );
     }

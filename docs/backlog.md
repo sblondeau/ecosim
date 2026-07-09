@@ -200,6 +200,30 @@ minimal si on veut l'avancer.
   l'encode grossièrement, à raffiner quand l'été devient un vrai sujet
   (bornes saisonnières).
 
+## Scénarios
+
+Le socle est posé (`Domain/Scenario/` : interfaces `Scenario` + `ScriptedEvent`,
+événements réutilisables et paramétrables, `PrimoAccedantScenario`). Reste
+volontairement différé :
+
+- **Modes de jeu (local/régional/national) et lien scénario↔mode**
+  (déclencheur : Phase 6, échelle ville). L'état, le moteur et la boucle de jeu
+  des échelles supérieures sont inconnus aujourd'hui — concevoir le mapping ou
+  le **chaînage de scénarios** (un `GameConfig` qui enchaîne plusieurs
+  scénarios, horizon global ≠ horizon du scénario) serait deviner. Le découplage
+  déjà en place (le scénario fournit le défaut, la config fige l'instance de la
+  partie) est précisément ce qui permettra le chaînage le jour venu.
+- **`scenarioId` en session + registre de scénarios** (déclencheur : le
+  2ᵉ scénario jouable). Un seul scénario aujourd'hui → rien à persister.
+- **Conditions de fin par seuil** (déclencheur : un scénario qui en a besoin ;
+  le §15 évoque « DPE amélioré + budget stable »). L'horizon fixe est la seule
+  fin actée pour la Phase 0-1 ; une méthode `isFinished()` rejoindra
+  l'interface `Scenario` à ce moment-là, pas avant (pas de code mort).
+- **Scénarios « en donnée » (YAML/DSL de déclencheurs)** (déclencheur : V2+,
+  quand écrire des scénarios devient un travail de contenu, pas de code). Les
+  événements sont des classes PHP : tout prédicat exprimable en code se
+  branche déjà sur `shouldFire()` sans DSL.
+
 ## Robustesse
 
 - ~~Versionner le format de session~~ : fait (champ `version` + reset si mismatch).

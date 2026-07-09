@@ -55,7 +55,7 @@ final class SessionGameStoreTest extends TestCase
 
     public function testRoundTripsAGameThroughTheSession(): void
     {
-        $config = new GameConfig(seed: 42, epoch: new DateTimeImmutable('2025-01-01'), horizonDays: 10, boilerBreakdownDay: 5);
+        $config = new GameConfig(seed: 42, epoch: new DateTimeImmutable('2025-01-01'), horizonDays: 10);
         $household = new Household(3.0, 5.0, InsulationLevel::Retrofitted, HeatingSystem::HeatPump);
         $state = GameState::start($household, Money::fromEuros(8000.0))->advanced($this->someDay($config, $household));
 
@@ -65,7 +65,6 @@ final class SessionGameStoreTest extends TestCase
         self::assertSame(42, $loaded->config->seed);
         self::assertSame('2025-01-01', $loaded->config->epoch->format('Y-m-d'));
         self::assertSame(10, $loaded->config->horizonDays);
-        self::assertSame(5, $loaded->config->boilerBreakdownDay);
         self::assertSame(1, $loaded->state->currentDay);
         self::assertSame(3.0, $loaded->state->household->solarKwc);
         self::assertSame(5.0, $loaded->state->household->batteryKwh);

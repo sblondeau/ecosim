@@ -25,7 +25,8 @@ final readonly class AnnualOutcomeEstimator
     private const int REFERENCE_SEED = 20250101;
 
     public function __construct(
-        private SimulationEngine $engine = new SimulationEngine(),
+        // No scripted events: they belong to the game, not to the estimate.
+        private SimulationEngine $engine = new SimulationEngine(events: []),
     ) {
     }
 
@@ -35,7 +36,6 @@ final readonly class AnnualOutcomeEstimator
             seed: self::REFERENCE_SEED,
             epoch: new DateTimeImmutable('2025-01-01'),
             horizonDays: 365,
-            boilerBreakdownDay: 366, // The scripted event belongs to the game, not to the estimate.
         );
 
         $state = GameState::start($household, Money::zero());

@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Simulation;
+namespace App\Domain\Scenario;
 
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
 use App\Domain\Building\InsulationLevel;
 use App\Domain\Finance\FinanceCalibration;
 use App\Domain\Finance\Money;
+use App\Domain\Simulation\GameState;
 
 /**
  * The single locked Phase 0-1 scenario (game-design §15, §18): a primo-accédant
@@ -16,11 +17,11 @@ use App\Domain\Finance\Money;
  * production equipment — installing solar, a battery, insulation or a heat
  * pump are the game's decisions.
  *
- * One place defines where a game starts and which scripted events it holds, so
- * the store that creates games and the end report that measures the journey
- * against day 0 can never drift apart.
+ * One place defines where the game starts and what is scripted to happen, so
+ * the store that creates games, the engine that fires the events and the end
+ * report that measures the journey against day 0 can never drift apart.
  */
-final readonly class Scenario
+final readonly class PrimoAccedantScenario implements Scenario
 {
     /** Fixed horizon: one full year, then the factual end report (§15). */
     public const int HORIZON_DAYS = 365;
@@ -37,6 +38,21 @@ final readonly class Scenario
     ) {
     }
 
+    public function initialState(): GameState
+    {
+        return GameState::start($this->initialHousehold(), $this->startingSavings());
+    }
+
+    public function horizonDays(): int
+    {
+        return self::HORIZON_DAYS;
+    }
+
+    public function events(): array
+    {
+        return [new BoilerBreakdownEvent(self::BOILER_BREAKDOWN_DAY)];
+    }
+
     public function initialHousehold(): Household
     {
         return new Household(
@@ -50,10 +66,5 @@ final readonly class Scenario
     public function startingSavings(): Money
     {
         return Money::fromEuros($this->finance->startingSavings()->value);
-    }
-
-    public function initialState(): GameState
-    {
-        return GameState::start($this->initialHousehold(), $this->startingSavings());
     }
 }
