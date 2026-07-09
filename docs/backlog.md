@@ -137,28 +137,20 @@ Constat après une partie d'un an jouée en entier : le tableau de bord est
 exact mais peu pédagogue — on voit les chiffres sans toujours comprendre ce
 qu'ils signifient ni ce qu'un choix va changer.
 
-- **Layout compact** (déclencheur : passe UX post-étape 6). Les informations
-  sont trop étalées verticalement, il faut scroller pour tout voir — resserrer
-  la grille (plus de colonnes, cartes plus denses, sections regroupées).
-- **Infobulles pédagogiques sourcées** (déclencheur : passe UX). Chaque
-  métrique (confort thermique, autosuffisance…) doit être explicable sur
-  place. Réutiliser le registre de calibration : chaque `Coefficient` porte
-  déjà sa source — exposer explication + source dans `GameView` et l'afficher
-  en infobulle (CSS pur, pas de JS). La traçabilité §13 devient une feature
-  joueur, pas seulement une discipline de code.
-- **Effets attendus sur les devis de travaux** (déclencheur : passe UX). Le
-  devis n'affiche que coût/prime/reste à charge — le joueur ne sait pas ce que
-  les panneaux vont *changer* (production attendue, baisse de facture, revente,
-  sensibilité à la nébulosité). Ajouter au devis une estimation honnête en
-  fourchette (« ≈ 2 700-3 100 kWh/an, ≈ −600 €/an de facture »), calculée
-  depuis la calibration — jamais de promesse au chiffre exact (§13, ROI jamais
-  forcé §8).
-- **Historique météo/production en graphe** (déclencheur : passe UX, ou
-  persistance Doctrine si la taille de session coince). Aujourd'hui seuls les
-  cumuls (`PeriodTotals`) survivent au tick — aucune série journalière.
-  Conserver une fenêtre glissante compacte (ex. 30 derniers jours :
-  température, nébulosité, production) et la rendre en sparkline SVG côté
-  Twig, sans JS. Attention au poids de la session (format v7 à versionner).
+- ~~Layout compact~~ : fait (grille 1200 px, cartes denses, tout au-dessus de
+  la ligne de flottaison).
+- ~~Infobulles pédagogiques sourcées~~ : fait (`GameView::$help` construit
+  depuis le registre de calibration — chiffres cités = chiffres simulés,
+  sources nommées ; infobulles CSS pur).
+- ~~Effets attendus sur les devis de travaux~~ : fait (`AnnualOutcomeEstimator` :
+  le VRAI moteur tourne un an de météo type — seed de référence fixe, jamais
+  celle de la partie (pas d'oracle) — facture ≈ ±10 €, confort, production,
+  autosuffisance ; batterie sans panneaux = « aucun effet », honnête).
+- ~~Historique météo en graphe~~ : fait en mieux — la météo étant semée et
+  déterministe, les 30 derniers jours sont **recalculés** à l'affichage
+  (aucun stockage, pas de bump de session) et rendus en sparkline SVG sans JS.
+  La production, elle, dépend de l'équipement passé → série à stocker le jour
+  où on la voudra dans le graphe (persistance Doctrine).
 - **Dashboard visuel à l'arrivée de la grille** (déclencheur : Phase 3). Le
   tableau de bord Twig austère est un choix assumé du MVP ; l'architecture le
   prévoit déjà (§3 : la présentation ne lit que `GameView`, donc remplaçable
