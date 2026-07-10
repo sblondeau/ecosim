@@ -25,6 +25,8 @@ final readonly class GameView
         public float $temperatureC,
         /** The last ≤30 days of weather, recomputed from the seed (no storage). */
         public SparklineView $weatherSparkline,
+        /** The semantic scene model driving the SVG house (game-design §17). */
+        public HouseSceneView $scene,
         // Today's energy balance
         public float $productionKwh,
         public float $demandKwh,

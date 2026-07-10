@@ -7,6 +7,9 @@ namespace App\Application;
 use function abs;
 
 use App\Domain\Building\BuildingCalibration;
+use App\Domain\Building\HeatingSystem;
+use App\Domain\Building\Household;
+use App\Domain\Building\InsulationLevel;
 use App\Domain\Energy\EnergyCalibration;
 use App\Domain\Finance\FinanceCalibration;
 use App\Domain\Finance\Money;
@@ -17,6 +20,7 @@ use App\Domain\Scenario\PrimoAccedantScenario;
 use App\Domain\Scenario\Scenario;
 use App\Domain\Simulation\AnnualOutcome;
 use App\Domain\Simulation\AnnualOutcomeEstimator;
+use App\Domain\Simulation\DailySnapshot;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\SimulationEngine;
@@ -83,6 +87,7 @@ final readonly class GameViewFactory
             cloudPct: (int) round($snapshot->weather->cloudCover * 100),
             temperatureC: $snapshot->weather->temperatureC,
             weatherSparkline: $this->weatherSparkline($config, $state),
+            scene: $this->houseScene($snapshot, $household),
             productionKwh: $balance->productionKwh,
             demandKwh: $balance->demandKwh,
             selfSufficiencyPct: (int) round($balance->selfSufficiencyRatio() * 100),
@@ -223,6 +228,50 @@ final readonly class GameViewFactory
                 $this->finance->dpeClassValueStep()->value * 100,
             ),
         ];
+    }
+
+    /** Comfort-score buckets driving the living-room tint (presentation-only). */
+    private const int COMFORT_WARM_FROM = 90;
+    private const int COMFORT_COOL_FROM = 60;
+
+    /**
+     * Translates the simulation facts into the semantic scene model — states
+     * and buckets only, never geometry (game-design §17).
+     */
+    private function houseScene(DailySnapshot $snapshot, Household $household): HouseSceneView
+    {
+        return new HouseSceneView(
+            season: $snapshot->date->season()->value,
+            cloudPct: (int) round($snapshot->weather->cloudCover * 100),
+            frost: $snapshot->weather->temperatureC <= 0.0,
+            producing: $snapshot->balance->productionKwh > 0.0,
+            chimneySmoking: $snapshot->heating->fuelOilLitres > 0.0,
+            roofState: $household->solarKwc > 0.0 ? 'installed' : 'empty',
+            roofLabel: $household->solarKwc > 0.0
+                ? sprintf('%.0f kWc', $household->solarKwc)
+                : 'Pas de panneaux',
+            insulationTier: match ($household->insulation) {
+                InsulationLevel::Original => 0,
+                InsulationLevel::Retrofitted => 1,
+                InsulationLevel::Reinforced => 2,
+            },
+            insulationLabel: $household->insulation->label(),
+            heatingState: match (true) {
+                $household->boilerBroken => 'fioul-broken',
+                HeatingSystem::HeatPump === $household->heatingSystem => 'heat-pump',
+                default => 'fioul',
+            },
+            heatingLabel: $household->heatingSystem->label(),
+            garageState: $household->batteryKwh > 0.0 ? 'installed' : 'empty',
+            garageLabel: $household->batteryKwh > 0.0
+                ? sprintf('%.0f kWh', $household->batteryKwh)
+                : 'Pas de batterie',
+            comfortState: match (true) {
+                $snapshot->comfort->score >= self::COMFORT_WARM_FROM => 'warm',
+                $snapshot->comfort->score >= self::COMFORT_COOL_FROM => 'cool',
+                default => 'cold',
+            },
+        );
     }
 
     private const int SPARKLINE_DAYS = 30;

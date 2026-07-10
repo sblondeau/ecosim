@@ -96,6 +96,39 @@ final class GameViewFactoryTest extends TestCase
         );
     }
 
+    public function testTheSceneModelSpeaksInSemanticStates(): void
+    {
+        $factory = new GameViewFactory();
+        $config = self::config(); // January 15th epoch: winter, fuel burning.
+
+        $bare = new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler);
+        $scene = $factory->build($config, GameState::start($bare, Money::fromEuros(4000.0)))->scene;
+
+        self::assertSame('winter', $scene->season);
+        self::assertSame('empty', $scene->roofState);
+        self::assertSame(0, $scene->insulationTier);
+        self::assertSame('fioul', $scene->heatingState);
+        self::assertSame('empty', $scene->garageState);
+        self::assertTrue($scene->chimneySmoking, 'The boiler burns fuel in January — the chimney shows it.');
+        self::assertFalse($scene->producing, 'No panels, no glint.');
+        self::assertSame('cool', $scene->comfortState, 'Heated passoire: 16.2 °C felt — chilly, not freezing.');
+
+        $renovated = new Household(3.0, 5.0, InsulationLevel::Reinforced, HeatingSystem::HeatPump);
+        $scene = $factory->build($config, GameState::start($renovated, Money::fromEuros(4000.0)))->scene;
+
+        self::assertSame('installed', $scene->roofState);
+        self::assertSame(2, $scene->insulationTier);
+        self::assertSame('heat-pump', $scene->heatingState);
+        self::assertFalse($scene->chimneySmoking, 'A heat pump never smokes.');
+        self::assertSame('warm', $scene->comfortState);
+
+        $broken = new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler, boilerBroken: true);
+        $scene = $factory->build($config, GameState::start($broken, Money::fromEuros(4000.0)))->scene;
+
+        self::assertSame('fioul-broken', $scene->heatingState);
+        self::assertFalse($scene->chimneySmoking, 'A dead boiler burns nothing.');
+    }
+
     public function testHelpTextsQuoteTheCalibratedFigures(): void
     {
         $help = new GameViewFactory()->build(self::config(), GameState::start(self::passoire(), Money::fromEuros(4000.0)))->help;
