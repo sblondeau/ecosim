@@ -156,6 +156,13 @@ inline sans le rattacher au registre + un commentaire de source.
   `final readonly`.
 - Identifiants/commentaires de code en **anglais** ; libellés destinés au joueur
   en **français** (`Season::label()` → « Été »…).
+- **CSS : variables plutôt que valeurs en dur.** Couleurs, espacements ou
+  dimensions réutilisés passent par des custom properties (`:root` de
+  `game.css` : `--accent`, `--warn`…), jamais dupliqués en littéral — c'est
+  aussi ce qui rend le thème et les états de la future scène SVG pilotables
+  (`--charge`, paliers de confort). Une valeur ponctuelle et locale peut rester
+  en dur ; dès qu'elle se répète ou porte du sens (couleur d'état, palette),
+  c'est une variable.
 - Commits : messages clairs, en anglais, format `type(scope): subject`
   (`feat(sim):`, `chore:`…). `make qa` vert avant de committer.
 
