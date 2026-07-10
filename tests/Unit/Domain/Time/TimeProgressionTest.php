@@ -20,30 +20,30 @@ final class TimeProgressionTest extends TestCase
     {
         $progression = new TimeProgression(self::at('12:00:00'), TickSpeed::Normal);
 
-        $result = $progression->tick(self::at('12:00:29'));
+        $result = $progression->tick(self::at('12:00:11'));
 
         self::assertSame(0, $result->days);
         self::assertSame($progression, $result->progression, 'Nothing consumed, nothing changes.');
     }
 
-    public function testOneDayEveryThirtySecondsAtNormalSpeed(): void
+    public function testOneDayEveryTwelveSecondsAtNormalSpeed(): void
     {
-        $result = new TimeProgression(self::at('12:00:00'), TickSpeed::Normal)->tick(self::at('12:00:30'));
+        $result = new TimeProgression(self::at('12:00:00'), TickSpeed::Normal)->tick(self::at('12:00:12'));
 
         self::assertSame(1, $result->days);
-        self::assertSame('12:00:30', $result->progression->lastTickAt->format('H:i:s'));
+        self::assertSame('12:00:12', $result->progression->lastTickAt->format('H:i:s'));
     }
 
     public function testTheRemainderCarriesOverBetweenTicks(): void
     {
-        // 65 s at ×1 = 2 days consumed (60 s), 5 s kept for the next tick.
-        $result = new TimeProgression(self::at('12:00:00'), TickSpeed::Normal)->tick(self::at('12:01:05'));
+        // 29 s at ×1 = 2 days consumed (24 s), 5 s kept for the next tick.
+        $result = new TimeProgression(self::at('12:00:00'), TickSpeed::Normal)->tick(self::at('12:00:29'));
 
         self::assertSame(2, $result->days);
-        self::assertSame('12:01:00', $result->progression->lastTickAt->format('H:i:s'), 'Only whole days are consumed.');
+        self::assertSame('12:00:24', $result->progression->lastTickAt->format('H:i:s'), 'Only whole days are consumed.');
 
-        // 25 more seconds: the carried 5 s complete a third day.
-        $next = $result->progression->tick(self::at('12:01:30'));
+        // 7 more seconds: the carried 5 s complete a third day.
+        $next = $result->progression->tick(self::at('12:00:36'));
         self::assertSame(1, $next->days);
     }
 
@@ -51,8 +51,8 @@ final class TimeProgressionTest extends TestCase
     {
         $start = self::at('12:00:00');
 
-        self::assertSame(2, new TimeProgression($start, TickSpeed::Double)->tick(self::at('12:00:30'))->days, '×2: a day every 15 s.');
-        self::assertSame(3, new TimeProgression($start, TickSpeed::Triple)->tick(self::at('12:00:30'))->days, '×3: a day every 10 s.');
+        self::assertSame(2, new TimeProgression($start, TickSpeed::Double)->tick(self::at('12:00:12'))->days, '×2: a day every 6 s.');
+        self::assertSame(3, new TimeProgression($start, TickSpeed::Triple)->tick(self::at('12:00:12'))->days, '×3: a day every 4 s.');
     }
 
     public function testPausedCreditsNothingAndFollowsTheClock(): void

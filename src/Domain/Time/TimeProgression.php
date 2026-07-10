@@ -34,8 +34,12 @@ use function sprintf;
  */
 final readonly class TimeProgression
 {
-    /** Base pace, in real seconds per game day (~30 s = 1 day, adjustable). */
-    public const int SECONDS_PER_GAME_DAY = 30;
+    /**
+     * Base pace, in real seconds per game day (adjustable; divisible by every
+     * speed multiplier). 12 s = 1 day plays a full year in ~73 min at ×1,
+     * ~24 min at ×3 — first-playtest balance: 30 s felt far too slow.
+     */
+    public const int SECONDS_PER_GAME_DAY = 12;
 
     /**
      * A gap longer than this between two ticks means the tab was closed (open

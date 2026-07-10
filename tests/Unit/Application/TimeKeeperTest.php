@@ -35,11 +35,11 @@ final class TimeKeeperTest extends TestCase
 
     public function testLivesTheDueDaysThroughTheEngine(): void
     {
-        // 65 s at ×1 = 2 due days.
+        // 65 s at ×1 = 5 due days (60 s consumed).
         $caughtUp = new TimeKeeper()->catchUp(self::game(TickSpeed::Normal), new DateTimeImmutable('2026-01-01 12:01:05'));
 
-        self::assertSame(2, $caughtUp->state->currentDay);
-        self::assertSame(2, $caughtUp->state->totals->days, 'The days were lived, not skipped.');
+        self::assertSame(5, $caughtUp->state->currentDay);
+        self::assertSame(5, $caughtUp->state->totals->days, 'The days were lived, not skipped.');
         self::assertSame('12:01:00', $caughtUp->progression->lastTickAt->format('H:i:s'), 'The 5 s remainder carries over.');
     }
 
@@ -79,7 +79,7 @@ final class TimeKeeperTest extends TestCase
         $resumed = $broken->withProgression($broken->progression->withSpeed(TickSpeed::Normal, new DateTimeImmutable('2026-01-01 12:05:00')));
         $later = new TimeKeeper()->catchUp($resumed, new DateTimeImmutable('2026-01-01 12:06:00'));
 
-        self::assertSame(21, $later->state->currentDay);
+        self::assertSame(24, $later->state->currentDay, '60 s at ×1 = 5 more cold days.');
         self::assertSame(TickSpeed::Normal, $later->progression->speed);
     }
 

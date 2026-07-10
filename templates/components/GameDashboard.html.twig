@@ -15,9 +15,9 @@
                 <form method="post" action="{{ path('app_game_speed') }}" class="speed">
                     <input type="hidden" name="_token" value="{{ csrf_token('game') }}">
                     <button type="submit" name="speed" value="0" class="btn-ghost btn-small {{ speed == 0 ? 'active' }}" title="Pause">⏸</button>
-                    <button type="submit" name="speed" value="1" class="btn-ghost btn-small {{ speed == 1 ? 'active' }}" title="Vitesse normale (1 jour / 30 s)">▶ ×1</button>
-                    <button type="submit" name="speed" value="2" class="btn-ghost btn-small {{ speed == 2 ? 'active' }}" title="1 jour / 15 s">×2</button>
-                    <button type="submit" name="speed" value="3" class="btn-ghost btn-small {{ speed == 3 ? 'active' }}" title="1 jour / 10 s">×3</button>
+                    <button type="submit" name="speed" value="1" class="btn-ghost btn-small {{ speed == 1 ? 'active' }}" title="Vitesse normale (1 jour / 12 s)">▶ ×1</button>
+                    <button type="submit" name="speed" value="2" class="btn-ghost btn-small {{ speed == 2 ? 'active' }}" title="1 jour / 6 s">×2</button>
+                    <button type="submit" name="speed" value="3" class="btn-ghost btn-small {{ speed == 3 ? 'active' }}" title="1 jour / 4 s">×3</button>
                 </form>
                 <form method="post" action="{{ path('app_game_advance') }}">
                     <input type="hidden" name="_token" value="{{ csrf_token('game') }}">

@@ -37,7 +37,7 @@ bien (formule DPE simple). Fin = horizon fixe → bilan factuel.
 - **Véhicule électrique : HORS SCOPE** cette phase (revient en V1.1).
 - **Fin de partie : horizon fixe** (durée bornée en jours), pas open-ended.
 - **Tick** : moteur découplé du déclencheur. Avancée fondée sur le temps écoulé
-  réel (`SECONDS_PER_GAME_DAY`, ~30 s = 1 jour, ajustable). Politique
+  réel (`SECONDS_PER_GAME_DAY`, 12 s = 1 jour — ×2 = 6 s, ×3 = 4 s —, ajustable). Politique
   `TimeProgressionPolicy` = flag → défaut **PausesWhileAway** (le temps ne tourne
   pas hors ligne ; `ContinuesWhileAway` réactivable quand les politiques
   automatiques existeront, hors scope MVP).
@@ -88,7 +88,7 @@ Persistance   src/Entity/ + src/Repository/  (Doctrine, entités anémiques = é
   (Finances avec revenu/dépenses/reste à vivre, Patrimoine, Confort, zones,
   bandeau panne, bilan de fin, travaux avec devis et double financement) ;
   `app:simulate:demo` ; **tick temps réel posé** : `Domain/Time`
-  `TickSpeed` (⏸/×1/×2/×3) + `TimeProgression` (30 s réelles = 1 jour,
+  `TickSpeed` (⏸/×1/×2/×3) + `TimeProgression` (12 s réelles = 1 jour,
   `PausesWhileAway` via fenêtre de grâce, reste reporté, horloge toujours
   injectée), `TimeKeeper` (rattrapage borné à l'horizon, porte unique du
   temps, **pause auto au matin de la panne** — décider mérite une horloge
