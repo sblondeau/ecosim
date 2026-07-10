@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Application\GameStore;
-use App\Application\GameViewFactory;
 use App\Application\RenovationHandler;
+use App\Application\TimeKeeper;
 use App\Domain\Finance\Renovation;
 use App\Domain\Simulation\GameState;
-use App\Domain\Simulation\SimulationEngine;
+use App\Domain\Time\TickSpeed;
+use DateTimeImmutable;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,18 +18,18 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsCsrfTokenValid;
 
 /**
- * The Phase 0-1 dashboard: one household, one day at a time.
+ * The Phase 0-1 dashboard: one household, real-time days.
  *
- * Server-rendered, session-backed and JavaScript-free — the playable vertical
- * slice. The controller only ever hands a {@see \App\Application\GameView} to
- * the template, keeping the presentation decoupled from the simulation.
+ * The page is a thin shell around the {@see \App\Twig\Components\GameDashboard}
+ * live component (which polls and catches the game up with the clock); the
+ * POST routes handle the player's actions. Every mutation first catches up via
+ * {@see TimeKeeper} so game time only flows through one door.
  */
 final class GameController extends AbstractController
 {
     public function __construct(
         private readonly GameStore $store,
-        private readonly GameViewFactory $viewFactory,
-        private readonly SimulationEngine $engine,
+        private readonly TimeKeeper $timeKeeper,
         private readonly RenovationHandler $renovations,
     ) {
     }
@@ -36,19 +37,29 @@ final class GameController extends AbstractController
     #[Route('/', name: 'app_game', methods: ['GET'])]
     public function dashboard(): Response
     {
-        $game = $this->store->current();
-
-        return $this->render('game/dashboard.html.twig', [
-            'game' => $this->viewFactory->build($game->config, $game->state),
-        ]);
+        return $this->render('game/dashboard.html.twig');
     }
 
     #[IsCsrfTokenValid('game', tokenKey: '_token')]
     #[Route('/jour-suivant', name: 'app_game_advance', methods: ['POST'])]
     public function advance(): Response
     {
-        $game = $this->store->current();
-        $this->store->save($game->withState($this->engine->advance($game->config, $game->state)));
+        $this->store->save($this->timeKeeper->step($this->store->current(), new DateTimeImmutable()));
+
+        return $this->redirectToRoute('app_game');
+    }
+
+    #[IsCsrfTokenValid('game', tokenKey: '_token')]
+    #[Route('/vitesse', name: 'app_game_speed', methods: ['POST'])]
+    public function speed(Request $request): Response
+    {
+        $speed = TickSpeed::tryFrom($request->getPayload()->getInt('speed'));
+
+        if (null !== $speed) {
+            $now = new DateTimeImmutable();
+            $game = $this->timeKeeper->catchUp($this->store->current(), $now);
+            $this->store->save($game->withProgression($game->progression->withSpeed($speed, $now)));
+        }
 
         return $this->redirectToRoute('app_game');
     }
@@ -64,7 +75,7 @@ final class GameController extends AbstractController
             return $this->redirectToRoute('app_game');
         }
 
-        $game = $this->store->current();
+        $game = $this->timeKeeper->catchUp($this->store->current(), new DateTimeImmutable());
         $result = $this->renovations->order(
             $game->state,
             $work,
@@ -72,6 +83,7 @@ final class GameController extends AbstractController
         );
 
         if (!$result instanceof GameState) {
+            $this->store->save($game);
             $this->addFlash('error', $result);
 
             return $this->redirectToRoute('app_game');

@@ -14,6 +14,8 @@ use App\Domain\Scenario\Scenario;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\PeriodTotals;
+use App\Domain\Time\TickSpeed;
+use App\Domain\Time\TimeProgression;
 use DateTimeImmutable;
 
 use function is_array;
@@ -38,7 +40,7 @@ final readonly class SessionGameStore implements GameStore
      * format is thrown away and the game restarts, instead of being silently
      * rebuilt into a valid-looking but absurd state by the hydrate fallbacks.
      */
-    private const int FORMAT_VERSION = 8;
+    private const int FORMAT_VERSION = 9;
 
     public function __construct(
         private RequestStack $requestStack,
@@ -80,7 +82,11 @@ final readonly class SessionGameStore implements GameStore
             horizonDays: $this->scenario->horizonDays(),
         );
 
-        $game = new Game($config, $this->scenario->initialState());
+        $game = new Game(
+            $config,
+            $this->scenario->initialState(),
+            TimeProgression::startingAt(new DateTimeImmutable()),
+        );
         $this->save($game);
 
         return $game;
@@ -129,7 +135,13 @@ final readonly class SessionGameStore implements GameStore
             ),
         );
 
-        return new Game($config, $state);
+        $lastTickAt = new DateTimeImmutable('@'.(int) ($data['lastTickAt'] ?? 0));
+        $progression = new TimeProgression(
+            $lastTickAt,
+            TickSpeed::tryFrom((int) ($data['speed'] ?? TickSpeed::Normal->value)) ?? TickSpeed::Normal,
+        );
+
+        return new Game($config, $state, $progression);
     }
 
     /**
@@ -142,6 +154,8 @@ final readonly class SessionGameStore implements GameStore
             'seed' => $game->config->seed,
             'epoch' => $game->config->epoch->format('Y-m-d'),
             'horizonDays' => $game->config->horizonDays,
+            'speed' => $game->progression->speed->value,
+            'lastTickAt' => $game->progression->lastTickAt->getTimestamp(),
             'currentDay' => $game->state->currentDay,
             'solarKwc' => $game->state->household->solarKwc,
             'batteryKwh' => $game->state->household->batteryKwh,

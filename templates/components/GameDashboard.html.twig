@@ -1,0 +1,246 @@
+{% macro tip(text) %}
+    <span class="tip" tabindex="0">ⓘ<span class="tipbox">{{ text }}</span></span>
+{%- endmacro %}
+
+{% set game = this.game %}
+{% set speed = this.speedValue %}
+<div{{ attributes }} {% if not game.finished %}data-poll="delay(4000)|$render"{% endif %}>
+    <header class="top">
+        <div>
+            <h1>🏠 EcoSim — Ma maison</h1>
+            <div class="sub">Jour {{ game.dayNumber }} / {{ game.horizonDays }} · {{ game.dateLabel }} · {{ game.seasonLabel }}</div>
+        </div>
+        {% if not game.finished %}
+            <div class="time-controls">
+                <form method="post" action="{{ path('app_game_speed') }}" class="speed">
+                    <input type="hidden" name="_token" value="{{ csrf_token('game') }}">
+                    <button type="submit" name="speed" value="0" class="btn-ghost btn-small {{ speed == 0 ? 'active' }}" title="Pause">⏸</button>
+                    <button type="submit" name="speed" value="1" class="btn-ghost btn-small {{ speed == 1 ? 'active' }}" title="Vitesse normale (1 jour / 12 s)">▶ ×1</button>
+                    <button type="submit" name="speed" value="2" class="btn-ghost btn-small {{ speed == 2 ? 'active' }}" title="1 jour / 6 s">×2</button>
+                    <button type="submit" name="speed" value="3" class="btn-ghost btn-small {{ speed == 3 ? 'active' }}" title="1 jour / 4 s">×3</button>
+                </form>
+                <form method="post" action="{{ path('app_game_advance') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('game') }}">
+                    <button type="submit" class="btn-primary btn-small">Jour suivant →</button>
+                </form>
+            </div>
+        {% endif %}
+    </header>
+    <div class="progress"><span style="width: {{ game.progressPct }}%"></span></div>
+
+    {% if game.endReport %}
+        {% set report = game.endReport %}
+        <section class="end-report">
+            <div class="banner banner-ok">🏁 Fin de partie — un an dans votre maison. Voici les faits, axe par axe.</div>
+            <div class="grid">
+                <div class="card">
+                    <h2>Finances</h2>
+                    <div class="row"><span class="k">Épargne au départ</span><span>{{ report.savingsStartLabel }}</span></div>
+                    <div class="row"><span class="k">Épargne à la fin</span><span>{{ report.savingsEndLabel }}</span></div>
+                    <div class="row"><span class="k">Évolution</span><span class="{{ report.savingsDeltaNegative ? 'neg' : 'pos' }}"><strong>{{ report.savingsDeltaLabel }}</strong></span></div>
+                </div>
+                <div class="card">
+                    <h2>Patrimoine</h2>
+                    <div class="row"><span class="k">DPE</span><span>{{ report.dpeStartLetter }} → <strong>{{ report.dpeEndLetter }}</strong></span></div>
+                    <div class="row"><span class="k">Valeur du bien</span><span>{{ report.propertyStartLabel }} → {{ report.propertyEndLabel }}</span></div>
+                    <div class="row"><span class="k">Évolution</span><span><strong>{{ report.propertyDeltaLabel }}</strong> <span class="k">(réalisable à la revente uniquement)</span></span></div>
+                    {% if report.loanActive %}
+                        <div class="row"><span class="k">Éco-PTZ restant à rembourser</span><span class="neg">{{ report.loanRemainingLabel }}</span></div>
+                    {% endif %}
+                </div>
+                <div class="card">
+                    <h2>Confort</h2>
+                    <div class="big">{{ report.averageComfortPct }} %</div>
+                    <div class="row"><span class="k">Confort thermique moyen sur l'année</span><span></span></div>
+                </div>
+                <div class="card">
+                    <h2>Énergie</h2>
+                    <div class="row"><span class="k">Fioul consommé</span><span>{{ report.totalFuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
+                    <div class="row"><span class="k">Autosuffisance électrique</span><span>{{ report.totalSelfSufficiencyPct }} %</span></div>
+                    <div class="row"><span class="k">Coût énergie net sur l'année</span><span>{{ report.totalNetEnergyCostLabel }}</span></div>
+                </div>
+            </div>
+        </section>
+    {% endif %}
+
+    {% if game.boilerBroken and not game.finished %}
+        <div class="banner">🚨 La chaudière fioul est en panne. Vos chauffages d'appoint électriques maintiennent péniblement ~16 °C — et l'électricité flambe (effet Joule : 1 kWh consommé = 1 kWh de chaleur, le pire des chauffages). Réparez ou remplacez (voir « Travaux disponibles »).{% if speed == 0 %} Le temps est en pause, décidez sereinement — puis relancez (▶).{% endif %}</div>
+    {% endif %}
+
+    <div class="grid">
+        <div class="card">
+            <h2>Finances</h2>
+            <div class="big {{ game.savingsNegative ? 'neg' }}">{{ game.savingsLabel }}</div>
+            <div class="row"><span class="k">Électricité (jour){{ _self.tip(game.help.electricity) }}</span><span class="neg">−{{ game.electricityCostLabel }}</span></div>
+            <div class="row"><span class="k">Fioul (jour)</span><span class="neg">−{{ game.fuelOilCostLabel }}</span></div>
+            <div class="row"><span class="k">Revente surplus{{ _self.tip(game.help.surplus) }}</span><span class="pos">+{{ game.surplusRevenueLabel }}</span></div>
+            <div class="row"><span class="k">Revenu mensuel</span><span class="pos">+{{ game.monthlyIncomeLabel }}</span></div>
+            <div class="row"><span class="k">Dépenses du foyer</span><span class="neg">−{{ game.monthlyExpensesLabel }}</span></div>
+            <div class="row"><span class="k">Reste à vivre mensuel{{ _self.tip(game.help.netIncome) }}</span><span>{{ game.monthlyNetIncomeLabel }}{% if game.incomeCreditedToday %} <span class="pos">(crédité aujourd'hui)</span>{% endif %}</span></div>
+            {% if game.loanActive %}
+                <div class="row"><span class="k">Mensualité éco-PTZ (le 1ᵉʳ)</span><span class="neg">−{{ game.loanMonthlyPaymentLabel }}</span></div>
+                <div class="row"><span class="k">Dette éco-PTZ restante</span><span>{{ game.loanRemainingLabel }}</span></div>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h2>Météo du jour</h2>
+            <div class="big">{{ game.temperatureC|number_format(1, ',', ' ') }}&nbsp;°C</div>
+            <div class="row"><span class="k">Nébulosité{{ _self.tip(game.help.cloud) }}</span><span>{{ game.cloudPct }} %</span></div>
+            <div class="gauge"><span style="width: {{ game.cloudPct }}%; background: var(--cold);"></span></div>
+            {% set spark = game.weatherSparkline %}
+            {% if spark.days > 1 %}
+                <div class="spark">
+                    <div class="spark-head">
+                        <span class="k">{{ spark.days }} derniers jours</span>
+                        <span class="k">{{ spark.temperatureMinLabel }} … {{ spark.temperatureMaxLabel }}</span>
+                    </div>
+                    <svg viewBox="0 0 100 28" preserveAspectRatio="none" role="img" aria-label="Température et nébulosité des {{ spark.days }} derniers jours">
+                        <polyline points="{{ spark.cloudPoints }}" fill="none" stroke="var(--cold)" stroke-width="0.7" opacity="0.55"/>
+                        <polyline points="{{ spark.temperaturePoints }}" fill="none" stroke="var(--warn)" stroke-width="1"/>
+                    </svg>
+                    <div class="spark-legend">
+                        <span><i style="background: var(--warn);"></i> température</span>
+                        <span><i style="background: var(--cold);"></i> nébulosité</span>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h2>Énergie du jour</h2>
+            <div class="row"><span class="k">Production solaire</span><span>{{ game.productionKwh|number_format(1, ',', ' ') }} kWh</span></div>
+            <div class="row"><span class="k">Consommation élec.</span><span>{{ game.demandKwh|number_format(1, ',', ' ') }} kWh</span></div>
+            {% if game.fuelOilLitres > 0 %}
+                <div class="row"><span class="k">Fioul brûlé{{ _self.tip(game.help.fuelOil) }}</span><span>{{ game.fuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
+            {% endif %}
+            <div class="row"><span class="k">Réseau</span>
+                <span>
+                    {% if game.gridExportKwh > game.gridImportKwh %}
+                        <span class="pos">+{{ (game.gridExportKwh - game.gridImportKwh)|number_format(1, ',', ' ') }} kWh injectés</span>
+                    {% else %}
+                        <span class="neg">−{{ (game.gridImportKwh - game.gridExportKwh)|number_format(1, ',', ' ') }} kWh soutirés</span>
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Confort thermique{{ _self.tip(game.help.comfort) }}</h2>
+            <div class="big">{{ game.comfortScorePct }} %</div>
+            <div class="gauge"><span style="width: {{ game.comfortScorePct }}%; background: var(--accent);"></span></div>
+            <div class="row" style="margin-top:.6rem"><span class="k">Ressenti</span><span>{{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
+            <div class="row"><span class="k">Air intérieur</span><span>{{ game.indoorTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
+        </div>
+
+        <div class="card">
+            <h2>Autosuffisance (jour){{ _self.tip(game.help.selfSufficiency) }}</h2>
+            <div class="big">{{ game.selfSufficiencyPct }} %</div>
+            <div class="gauge"><span style="width: {{ game.selfSufficiencyPct }}%; background: var(--accent);"></span></div>
+            {% if game.batteryCapacityKwh > 0 %}
+                <div class="row" style="margin-top:.6rem"><span class="k">Batterie → maison ce soir</span><span>{{ game.batteryDischargedKwh|number_format(1, ',', ' ') }} kWh</span></div>
+                <div class="gauge"><span style="width: {{ game.batteryCapacityKwh > 0 ? (100 * game.batteryDischargedKwh / game.batteryCapacityKwh)|round : 0 }}%; background: var(--warn);"></span></div>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h2>Patrimoine{{ _self.tip(game.help.propertyValue) }}</h2>
+            <div class="row"><span class="k">Valeur du bien (DPE {{ game.dpeLetter }})</span><span>{{ game.propertyValueLabel }}</span></div>
+            <div class="row"><span class="k">Nature</span><span class="k">réalisable à la revente uniquement</span></div>
+        </div>
+
+        <div class="card">
+            <h2>Ma maison — isolation {{ game.insulationLabel|lower }}</h2>
+            <div class="zones">
+                <div class="zone">
+                    <div class="emo">🔆</div>
+                    <div class="lbl">Toit</div>
+                    <div class="val">{{ game.solarKwc > 0 ? game.solarKwc|number_format(1, ',', ' ') ~ ' kWc' : '—' }}</div>
+                </div>
+                <div class="zone">
+                    <div class="emo">{{ game.boilerBroken ? '🚨' : '🔥' }}</div>
+                    <div class="lbl">Chauffage</div>
+                    <div class="val">{{ game.heatingLabel }}{% if game.boilerBroken %} — en panne{% endif %}</div>
+                </div>
+                <div class="zone">
+                    <div class="emo">🔋</div>
+                    <div class="lbl">Garage</div>
+                    <div class="val">{{ game.batteryCapacityKwh > 0 ? game.batteryCapacityKwh|number_format(0, ',', ' ') ~ ' kWh' : '—' }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Depuis le début — énergie</h2>
+            <div class="row"><span class="k">Production cumulée</span><span>{{ game.totalProductionKwh|number_format(1, ',', ' ') }} kWh</span></div>
+            <div class="row"><span class="k">Importé / exporté</span><span>{{ game.totalImportKwh|number_format(1, ',', ' ') }} / {{ game.totalExportKwh|number_format(1, ',', ' ') }} kWh</span></div>
+            <div class="row"><span class="k">Autosuffisance globale</span><span>{{ game.totalSelfSufficiencyPct }} %</span></div>
+            <div class="row"><span class="k">Fioul consommé</span><span>{{ game.totalFuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
+            <div class="row"><span class="k">Confort moyen</span><span>{{ game.averageComfortPct }} %</span></div>
+        </div>
+
+        <div class="card">
+            <h2>Depuis le début — factures</h2>
+            <div class="row"><span class="k">Électricité</span><span class="neg">−{{ game.totalElectricityCostLabel }}</span></div>
+            <div class="row"><span class="k">Fioul</span><span class="neg">−{{ game.totalFuelOilCostLabel }}</span></div>
+            <div class="row"><span class="k">Revente cumulée</span><span class="pos">+{{ game.totalSurplusRevenueLabel }}</span></div>
+            <div class="row"><span class="k">Coût énergie net</span><span><strong>{{ game.totalNetEnergyCostLabel }}</strong></span></div>
+        </div>
+    </div>
+
+    {% if game.actions is not empty and not game.finished %}
+        <section>
+            <h2 class="section">Travaux disponibles{{ _self.tip(game.help.worksEstimate) }}</h2>
+            <div class="grid">
+                {% for action in game.actions %}
+                    <div class="card">
+                        <h2>{{ action.title }}</h2>
+                        <div class="row"><span class="k">Coût</span><span>{{ action.costLabel }}</span></div>
+                        {% if action.subsidyLabel is not empty %}
+                            <div class="row"><span class="k">Prime</span><span class="pos">−{{ action.subsidyLabel }}</span></div>
+                        {% endif %}
+                        <div class="row"><span class="k">Reste à charge</span><span><strong>{{ action.netCostLabel }}</strong></span></div>
+                        {% if action.effectLabels is not empty %}
+                            <div class="effects">
+                                {% for effect in action.effectLabels %}
+                                    <div>{{ effect }}</div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="effects effects-none">Aucun effet mesurable sur votre installation actuelle.</div>
+                        {% endif %}
+                        <div class="quote-actions">
+                            <form method="post" action="{{ path('app_game_renovate') }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('game') }}">
+                                <input type="hidden" name="work" value="{{ action.work }}">
+                                <input type="hidden" name="financing" value="cash">
+                                <button type="submit" class="btn-primary btn-small" {{ action.cashAllowed ? '' : 'disabled' }}>Payer comptant</button>
+                            </form>
+                            {% if action.loanAllowed %}
+                                <form method="post" action="{{ path('app_game_renovate') }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('game') }}">
+                                    <input type="hidden" name="work" value="{{ action.work }}">
+                                    <input type="hidden" name="financing" value="loan">
+                                    <button type="submit" class="btn-ghost btn-small">Éco-PTZ (0 %)</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+    <div class="actions">
+        {% if not game.finished %}
+            <form method="post" action="{{ path('app_game_advance') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('game') }}">
+                <button type="submit" class="btn-primary">Jour suivant →</button>
+            </form>
+        {% endif %}
+        <form method="post" action="{{ path('app_game_reset') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('game') }}">
+            <button type="submit" class="btn-ghost">Nouvelle partie</button>
+        </form>
+    </div>
+</div>

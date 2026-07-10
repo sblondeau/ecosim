@@ -184,12 +184,16 @@ final class SimulationEngineTest extends TestCase
 
         self::assertTrue($state->household->boilerBroken, 'January 20th morning: the boiler is dead.');
 
-        $coldDay = $engine->snapshot($config, $state);
-        self::assertSame(0.0, $coldDay->heating->fuelOilLitres, 'A dead boiler burns nothing.');
-        self::assertSame(0.0, $coldDay->heating->needKwh);
-        self::assertLessThan(10.0, $coldDay->comfort->indoorC, 'The unheated January house is freezing.');
-        self::assertSame(0, $coldDay->comfort->score);
-        self::assertSame(0, $coldDay->bill->fuelOilCost->cents, 'No fuel burnt, no fuel billed.');
+        $brokenDay = $engine->snapshot($config, $state);
+        self::assertSame(0.0, $brokenDay->heating->fuelOilLitres, 'A dead boiler burns nothing.');
+        self::assertSame(0, $brokenDay->bill->fuelOilCost->cents, 'No fuel burnt, no fuel billed.');
+
+        // The emergency electric heaters kick in automatically (not a choice).
+        self::assertGreaterThan(50.0, $brokenDay->heating->electricityKwh, 'Joule heating pours into the electric loop.');
+        self::assertGreaterThan(1000, $brokenDay->bill->electricityCost->cents, 'The electricity line explodes — the urgency is financial.');
+        self::assertLessThanOrEqual(16.0, $brokenDay->comfort->indoorC, 'At best the survival setpoint.');
+        self::assertGreaterThan(8.0, $brokenDay->comfort->indoorC, 'But never the freezing unheated house.');
+        self::assertLessThan(70, $brokenDay->comfort->score, 'Still clearly uncomfortable.');
     }
 
     public function testARepairedBoilerDoesNotBreakAgain(): void

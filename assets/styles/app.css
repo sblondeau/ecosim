@@ -1,3 +1,2 @@
-body {
-    background-color: skyblue;
-}
+/* Global styles live in styles/game.css (linked from the page); this file is
+   imported by app.js and must not override them. */

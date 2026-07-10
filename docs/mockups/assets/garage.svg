@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 208 262">
+  <!-- Garage : murs enduits, toit tuiles enneigé, porte à lattes. -->
+  <defs>
+    <linearGradient id="gWall" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#cbb794"/><stop offset="1" stop-color="#b9a582"/>
+    </linearGradient>
+    <linearGradient id="gRoof" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8a4f43"/><stop offset="1" stop-color="#6d3d34"/>
+    </linearGradient>
+    <linearGradient id="gDoor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5f6d7b"/><stop offset="1" stop-color="#47535f"/>
+    </linearGradient>
+    <pattern id="gTiles" width="34" height="16" patternUnits="userSpaceOnUse" patternTransform="skewX(-24)">
+      <rect width="34" height="16" fill="#7a453a"/>
+      <path d="M0 15h34" stroke="#5f342b" stroke-width="2"/>
+      <path d="M17 0v15" stroke="#5f342b" stroke-width="1.4"/>
+    </pattern>
+    <pattern id="gSiding" width="200" height="13" patternUnits="userSpaceOnUse">
+      <path d="M0 12.5h200" stroke="#a08c69" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="14" y="64" width="180" height="192" fill="url(#gWall)"/>
+  <rect x="14" y="64" width="180" height="192" fill="url(#gSiding)" opacity=".5"/>
+  <polygon points="2,72 104,4 206,72" fill="url(#gRoof)"/>
+  <polygon points="16,66 104,12 192,66" fill="url(#gTiles)"/>
+  <path d="M24 62 q40 -34 78 -48 q-30 4 -52 20 q-18 14 -26 28z" fill="#f2f6fa" opacity=".95"/>
+  <rect x="36" y="112" width="136" height="144" rx="6" fill="url(#gDoor)"/>
+  <g stroke="#39434e" stroke-width="3">
+    <path d="M42 136h124 M42 162h124 M42 188h124 M42 214h124 M42 240h124"/>
+  </g>
+  <rect x="30" y="250" width="148" height="8" rx="2" fill="#c9d6e2"/>
+</svg>

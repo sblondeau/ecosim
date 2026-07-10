@@ -390,6 +390,13 @@ dans les phases suivantes.
 - **Bâtiment** : état de départ fixe (vieille chaudière fioul, isolation nulle/DPE F-G).
   Isolation à 3 paliers discrets (aucune/correcte/performante), chauffage à 2 choix (garder le
   fioul / passer à la PAC). 1 seul événement scripté : panne de chaudière qui force la décision.
+  Pendant la panne : **chauffage d'appoint électrique automatique et non désactivable**
+  (personne ne vit à 4 °C — le foyer possède déjà des convecteurs) — effet Joule plafonné par
+  la puissance des appareils, consigne de survie 16 °C (R241-26) rarement tenue par grand
+  froid. L'urgence est systémique, pas scriptée : l'électricité explose (~×9 sur la ligne),
+  le confort reste mauvais (~30 %), et le joueur paie le prix du fioul pour geler — décider
+  vite vaut de l'argent ET du confort, sans malus arbitraire (§1). Leçon §12 en creux :
+  l'électrique direct est le pire chauffage, la PAC son opposé exact.
 - **Finances** : revenu fixe, épargne simple, 1 système de prime générique (taux selon revenu,
   plafond), 1 type de prêt (taux zéro, durée fixe), facture à 2 lignes (électricité + fioul),
   1 contrat de revente à tarif fixe (pas d'évolution tarifaire dans le temps).
@@ -517,6 +524,105 @@ l'interface sait les montrer sur la maison, pas en empilant des cartes de devis.
 ## 17. Interface graphique et rendu (décisions validées, pour la Phase 3+)
 
 Hors scope du MVP (§15 Phase 0-1), à activer à partir de l'arrivée de la carte (Phase 3).
+
+### Vue locale (échelle foyer) — la maison en coupe interactive
+
+Réflexion actée (juillet 2026, maquette : `docs/mockups/vue-locale.html`) : l'échelle foyer
+n'a PAS besoin de la grille hexagonale — celle-ci sert la carte régionale/ville (sections
+suivantes). La maison est une **scène à emplacements** (« slots »), pas un terrain à tuiles.
+
+- **Forme retenue : la coupe latérale** (« dollhouse » façon Fallout Shelter / Les Sims en
+  section) plutôt que l'isométrique : lisibilité pédagogique maximale (on voit TOUT l'état du
+  foyer d'un regard), assets 2D plats bien plus simples, et correspondance 1:1 avec les zones
+  déjà en jeu (toit, chauffage, garage) qui deviennent des emplacements cliquables. S'y
+  ajoutent : murs/isolation (l'épaisseur/couleur du liseré = le palier), séjour (la teinte
+  intérieure = le confort), jardin (réserve pour plus tard). L'isométrique reste le langage de
+  la carte Phase 3+ ; les deux échelles partagent la palette pour rester un seul jeu.
+- **L'état EST le rendu** (le principe central) : chaque équipement se dessine selon le
+  `GameView` — les panneaux apparaissent sur le toit une fois posés, la chaudière en panne
+  fume avec un halo rouge pulsant, la pièce vire au bleu quand le ressenti chute, le ciel
+  suit la nébulosité et la saison. Les indicateurs quittent les cartes-tableaux pour devenir
+  **diégétiques** ; il ne reste qu'un bandeau HUD fin (date, épargne, confort, vitesse).
+- **Clic = panneau contextuel** : cliquer un emplacement ouvre le panneau d'action existant
+  (devis coût/prime/reste à charge + effets estimés + double financement). La panne de
+  chaudière devient le cas d'école : l'élément crie visuellement, le clic propose
+  réparer/remplacer, le temps est déjà en pause automatique.
+- **Technologie : SVG inline + classes CSS, pas de sprites** pour cette échelle. Précision de
+  vocabulaire : chaque équipement demande bien un *dessin* (chaudière, PAC, panneaux,
+  batterie…), mais un dessin = **~15-30 formes SVG**, pas un binaire à exporter/licencier.
+  Le catalogue Phase 0-1 tient en ~10 petits dessins. **Organisation en bibliothèque** (maquette
+  v3) : *un fichier `.svg` autonome par élément* (`house-shell`, `boiler-fioul`,
+  `boiler-fioul-broken`, `heat-pump`, `solar-panels`, `battery`, `tree-winter`, `cloud`…),
+  chacun ouvrable/retouchable tel quel dans Inkscape/Illustrator, ses micro-animations
+  embarquées (style interne). La scène ne possède que l'ambiance (ciel, sol, lumière) et
+  ASSEMBLE les assets ; en jeu le renderer Twig les inclut **inline**
+  (`{{ include('scene/assets/x.svg') }}`) pour garder le pilotage des états par classes CSS —
+  les maquettes composent par `<image href>`. Retravailler un asset à la main ne touche ni la
+  scène ni le code. Un changement d'état = une classe (pas
+  un asset de plus), les animations légères sont du CSS pur (`transform`/`opacity` : fumée,
+  pulsation, rotation du ventilateur de PAC, nuages — cohérent avec la règle d'animations de
+  la carte), net à toutes tailles, thémable par variables CSS. Le pipeline d'assets illustrés
+  (§ production d'assets ci-dessous) reste pour la carte Phase 3+. La présentation ne lisant
+  QUE `GameView` (§3), la migration est purement présentationnelle — le LiveComponent et le
+  `data-poll` restent tels quels, le SVG remplace les cartes dans le template.
+- **Rendu de l'isolation** (le cas le moins évident, résolu par la coupe elle-même) : la coupe
+  montre l'épaisseur des parois → la **couche d'isolant est visible** dans la tranche du mur
+  et du toit (liseré coloré qui apparaît/s'épaissit par palier), complétée par deux signaux
+  d'ambiance : la **neige qui tient sur le toit** d'une maison bien isolée (déperditions
+  faibles — métaphore réaliste et parlante) et la teinte intérieure chaude/froide déjà pilotée
+  par le confort. Pendant les travaux (quand les délais existeront, post-MVP) : échafaudage.
+- **Cohérence entre échelles (risque identifié, à trancher en Phase 3)** : deux échelles ≠
+  deux identités visuelles. Ce qui doit être UNIQUE : palette, typographie, iconographie,
+  ton « flat » ; ce qui peut différer : la disposition (scène à slots au foyer, grille hexa
+  sur la carte) — invisible pour le joueur, qui vit ça comme un **zoom** (cliquer sa parcelle
+  sur la carte ouvre la coupe, comme l'inspecteur de bâtiment d'un city-builder). Point de
+  vigilance : la carte prévoit de « vraies textures illustrées » (§ ci-dessous) alors que la
+  coupe est en flat vector — AU moment de la carte, trancher une direction artistique unique
+  (illustrer la coupe OU aplatir la carte) ; d'ici là le flat vector CSS-thémable est
+  précisément le choix qui reste re-stylable à moindre coût.
+- **Progressivité** (l'ordre à suivre, chaque pas jouable) : ① la scène SVG remplace la
+  section « Ma maison » (états visuels, zones cliquables qui scrollent vers les devis
+  existants) — les cartes chiffrées restent à côté ; ② les indicateurs migrent dans la scène
+  (confort en teinte, batterie en jauge dans le garage, météo dans le ciel) et les clics
+  ouvrent de vrais panneaux contextuels, le dashboard se réduit au HUD ; ③ le jardin devient
+  une **grille de parcelle grossière** le jour où un gameplay l'exige (potager, arbres
+  d'ombrage, panneaux au sol, borne VE — V1.1+), sans hexagones : quelques cases suffisent.
+- **Météo & ambiance (l'état simulé pilote le ciel — jamais de déco mensongère)** : seul ce
+  que la simulation SAIT s'affiche. Dès la Phase 0-1 : nébulosité continue (`--cloud` :
+  densité des nuages, halo du soleil, gris du ciel), saison (teinte du ciel, **hauteur du
+  soleil** — bas l'hiver, la vraie cause de la production faible —, arbre en 4 états),
+  température (givre/neige d'ambiance sous ~0 °C — habillage *déduit*, assumé tant qu'aucun
+  gameplay n'en dépend : pas de précipitations dans le modèle), **cheminée qui fume
+  proportionnellement au fioul brûlé** (et plus du tout en PAC — la leçon §12 rendue
+  visible), scintillement des panneaux les jours de production, teinte intérieure = confort.
+  En Phase 2/5, quand les données arrivent : éolienne qui tourne à sa vitesse réelle
+  (cut-in/cut-out visibles — l'intermittence incarnée), vent (arbres, fumée couchée),
+  canicule (ciel blanc, herbe jaunie — pan §16), pluie/orages seulement quand le générateur
+  les produira. Mécanique : faits météo dans le `SceneView` → classes/custom properties sur
+  les `<g>` → `scene.css` ; le `data-poll` fait vivre le ciel jour après jour.
+- **Structure de rendu (pour changer de DA sans refonte)** : la scène est séparée en
+  *modèle de scène* et *renderer*. Un `HouseSceneView` (application) décrit le « quoi
+  montrer » en termes purement sémantiques — liste de slots `{key, state, label, action,
+  jauges}` + ciel `{nébulosité, saison, neige}` — avec l'interdit d'hygiène : **jamais de
+  coordonnées d'ÉCRAN, couleurs ou formes** dans ce modèle (`broken`, pas « halo rouge »).
+  Précision importante : les faits SPATIAUX qui changent la simulation restent des données de
+  domaine et passent dans le modèle — l'orientation N/S/E/O d'un panneau (module la
+  production, ADEME) comme, en Phase 3+, la coordonnée de tuile hexagonale d'une installation
+  (voisins, vent, distances — coordonnées *logiques* axiales, cf. Red Blob Games). Le test :
+  « cette valeur change-t-elle un résultat de simulation ? » Oui → modèle ; non (pixels,
+  projection, tri en profondeur) → renderer. Le
+  « comment dessiner » vit dans UN template de renderer (`_scene_cutaway.html.twig` : formes
+  SVG, coordonnées, classes CSS). Changer de direction artistique = changer de renderer :
+  plus belles textures = le CSS/`<defs>` du renderer seul ; vue isométrique = un second
+  template lisant les mêmes données (+ redessiner les ~10 dessins en perspective — le vrai
+  coût de l'iso est du dessin, pas du code) ; canvas/three.js un jour = le même
+  `HouseSceneView` sérialisé en JSON vers un contrôleur Stimulus. Les interactions sont des
+  *intentions* (« ce slot ouvre l'action heat_pump ») — le renderer décide seulement où est
+  la zone cliquable. C'est le principe du §3 (la présentation ne voit que `GameView`) répété
+  un cran plus bas.
+- **Hors périmètre de cette vue** : pièces multiples détaillées / meubles (aucun gameplay
+  attaché), vraie 3D, personnages animés. La coupe reste un tableau de bord incarné, pas un
+  jeu de poupées.
 
 - **Style retenu** : isométrique **plate** façon SimCity 2000/Cities Skylines — camera fixe,
   jamais de rotation. **Pas de vraie 3D CSS** (`perspective`/`preserve-3d`) sur la grille : sans

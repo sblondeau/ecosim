@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>EcoSim — maquette vue locale v2 (passe artistique)</title>
+<!-- Même scène que vue-locale.html (matin de la panne, hiver), une vraie
+     passe artistique : dégradés, matières en <pattern>, profondeur, lumière.
+     Toujours zéro asset externe — tout est SVG + CSS. -->
+<style>
+  body { margin: 0; background: #0f1720; display: grid; place-items: center; min-height: 100vh; }
+  .frame { width: min(1100px, 96vw); border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+  svg { display: block; width: 100%; height: auto; }
+  .smoke { animation: drift 4s infinite linear; }
+  .smoke.s2 { animation-delay: -1.3s; }
+  .smoke.s3 { animation-delay: -2.6s; }
+  @keyframes drift { from { transform: translate(0,0); opacity: .55; } to { transform: translate(8px,-26px); opacity: 0; } }
+  .alarm { animation: pulse 1.4s infinite ease-in-out; }
+  @keyframes pulse { 50% { opacity: .12; } }
+</style>
+</head>
+<body>
+<div class="frame">
+<svg viewBox="0 0 1100 620" role="img" aria-label="Votre maison un matin d'hiver — la chaudière est en panne">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3d5a7a"/><stop offset=".55" stop-color="#7590ab"/><stop offset="1" stop-color="#c8d3dc"/>
+    </linearGradient>
+    <linearGradient id="snow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4f7fa"/><stop offset="1" stop-color="#c9d6e2"/>
+    </linearGradient>
+    <linearGradient id="wallL" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#cbb794"/><stop offset="1" stop-color="#b9a582"/>
+    </linearGradient>
+    <linearGradient id="roofG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8a4f43"/><stop offset="1" stop-color="#6d3d34"/>
+    </linearGradient>
+    <linearGradient id="glowWin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5a748e"/><stop offset="1" stop-color="#42586e"/>
+    </linearGradient>
+    <linearGradient id="boilerBody" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7c8b99"/><stop offset=".5" stop-color="#a7b4c0"/><stop offset="1" stop-color="#68767f"/>
+    </linearGradient>
+    <linearGradient id="garageDoor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5f6d7b"/><stop offset="1" stop-color="#47535f"/>
+    </linearGradient>
+    <radialGradient id="sun" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#fdf3d0" stop-opacity=".9"/><stop offset="1" stop-color="#fdf3d0" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="tiles" width="34" height="16" patternUnits="userSpaceOnUse" patternTransform="skewX(-24)">
+      <rect width="34" height="16" fill="#7a453a"/>
+      <path d="M0 15h34" stroke="#5f342b" stroke-width="2"/>
+      <path d="M17 0v15" stroke="#5f342b" stroke-width="1.4"/>
+    </pattern>
+    <pattern id="siding" width="200" height="13" patternUnits="userSpaceOnUse">
+      <rect width="200" height="13" fill="none"/>
+      <path d="M0 12.5h200" stroke="#a08c69" stroke-width="1"/>
+    </pattern>
+    <pattern id="bricks" width="42" height="20" patternUnits="userSpaceOnUse">
+      <rect width="42" height="20" fill="#9a8a72"/>
+      <path d="M0 9.5h42 M0 19.5h42" stroke="#87775f" stroke-width="1.4"/>
+      <path d="M21 0v9 M10 10v9 M32 10v9" stroke="#87775f" stroke-width="1.4"/>
+    </pattern>
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="6"/>
+    </filter>
+  </defs>
+
+  <!-- ================= CIEL ================= -->
+  <rect width="1100" height="520" fill="url(#sky)"/>
+  <circle cx="930" cy="110" r="120" fill="url(#sun)"/>
+  <circle cx="930" cy="110" r="34" fill="#f8ecc4" opacity=".85"/>
+  <!-- nuages en couches (nébulosité 90 %) -->
+  <g fill="#dfe7ee" opacity=".9">
+    <path d="M120 90 q18 -26 52 -22 q10 -20 38 -16 q26 -4 34 16 q30 -2 34 22 q-4 14 -30 14 h-104 q-22 -2 -24 -14z"/>
+    <path d="M640 130 q16 -22 46 -19 q9 -17 33 -14 q23 -3 30 14 q26 -2 30 19 q-3 12 -26 12 h-91 q-19 -2 -22 -12z" opacity=".75"/>
+  </g>
+  <g fill="#cfd9e2" opacity=".7">
+    <ellipse cx="330" cy="150" rx="70" ry="14"/>
+    <ellipse cx="840" cy="200" rx="90" ry="12"/>
+  </g>
+  <!-- collines lointaines -->
+  <path d="M0 400 q140 -70 300 -34 q200 44 400 -12 q220 -56 400 22 v144 H0z" fill="#8fa3b5" opacity=".55"/>
+  <path d="M0 430 q180 -50 380 -14 q240 40 420 -8 q160 -38 300 18 v94 H0z" fill="#a9bccb" opacity=".6"/>
+
+  <!-- ================= SOL ENNEIGÉ ================= -->
+  <rect y="470" width="1100" height="150" fill="url(#snow)"/>
+  <path d="M0 470 q160 14 340 4 q240 -12 460 6 q180 12 300 -4 v20 q-240 16 -560 6 q-320 -8 -540 2z" fill="#ffffff" opacity=".8"/>
+  <ellipse cx="560" cy="560" rx="380" ry="26" fill="#adbfd0" opacity=".5"/>
+
+  <!-- ================= ARBRE D'HIVER ================= -->
+  <g>
+    <ellipse cx="120" cy="540" rx="70" ry="12" fill="#adbfd0" opacity=".6"/>
+    <path d="M116 540 q-4 -60 -8 -96 q-16 -22 -30 -30 q18 4 30 18 q-2 -30 4 -52 q6 26 8 52 q14 -18 30 -22 q-16 12 -28 34 q0 50 -6 96z" fill="#4c3a2c"/>
+    <g fill="#2e4a38">
+      <circle cx="112" cy="330" r="46"/><circle cx="76" cy="366" r="36"/><circle cx="150" cy="362" r="38"/><circle cx="112" cy="392" r="40"/>
+    </g>
+    <g fill="#3d5c46">
+      <circle cx="100" cy="346" r="30"/><circle cx="134" cy="372" r="26"/>
+    </g>
+    <!-- neige posée sur la canopée -->
+    <path d="M70 340 q40 -34 84 -6 q-18 -10 -40 -8 q-26 0 -44 14z" fill="#eef4f9" opacity=".9"/>
+  </g>
+
+  <!-- ================= MAISON ================= -->
+  <g>
+    <ellipse cx="560" cy="556" rx="300" ry="20" fill="#9fb2c4" opacity=".6"/>
+
+    <!-- corps : soubassement brique + étage enduit -->
+    <rect x="330" y="452" width="420" height="100" fill="url(#bricks)"/>
+    <rect x="330" y="262" width="420" height="196" fill="url(#wallL)"/>
+    <rect x="330" y="262" width="420" height="196" fill="url(#siding)" opacity=".5"/>
+    <!-- ombre portée du toit sur la façade -->
+    <rect x="330" y="262" width="420" height="18" fill="#000" opacity=".14"/>
+    <!-- chaînages d'angle -->
+    <rect x="330" y="262" width="14" height="290" fill="#d8c7a4"/>
+    <rect x="736" y="262" width="14" height="290" fill="#a08c69"/>
+
+    <!-- toit : tuiles + NEIGE QUI FOND (isolation d'origine : déperditions) -->
+    <g>
+      <polygon points="300,270 540,128 780,270" fill="url(#roofG)"/>
+      <polygon points="322,262 540,138 758,262" fill="url(#tiles)"/>
+      <!-- plaques de neige résiduelles, fondues au centre (la chaleur s'échappe) -->
+      <path d="M330 258 q30 -22 62 -38 q-6 22 -18 40 q-24 4 -44 -2z" fill="#f2f6fa"/>
+      <path d="M700 250 q-26 -24 -54 -40 q8 24 20 42 q18 4 34 -2z" fill="#f2f6fa"/>
+      <!-- faîtage + cheminée droite, posée sur le versant -->
+      <rect x="534" y="124" width="12" height="10" rx="3" fill="#5f342b"/>
+      <g>
+        <rect x="628" y="164" width="30" height="52" fill="#8a7460"/>
+        <rect x="623" y="156" width="40" height="12" rx="2" fill="#6e5c4c"/>
+        <path d="M628 216 l30 -18 v18 z" fill="#75604e"/>
+      </g>
+    </g>
+
+    <!-- fenêtre du séjour : intérieur FROID (bleu), cadre, croisillons, appui -->
+    <g>
+      <rect x="380" y="300" width="130" height="112" rx="4" fill="#8a7458"/>
+      <rect x="388" y="308" width="114" height="96" fill="url(#glowWin)"/>
+      <path d="M388 308 l114 96 M502 308 l-114 96" stroke="#fff" stroke-width="1" opacity=".12"/>
+      <path d="M445 308v96 M388 356h114" stroke="#8a7458" stroke-width="6"/>
+      <rect x="372" y="410" width="146" height="10" rx="3" fill="#d8c7a4"/>
+      <text x="398" y="342" font-family="system-ui" font-size="17" fill="#cfe2f2">❄ 4,6 °C</text>
+      <!-- neige sur l'appui -->
+      <path d="M372 410 q73 -8 146 0 v4 h-146z" fill="#f2f6fa"/>
+    </g>
+
+    <!-- porte d'entrée -->
+    <g>
+      <rect x="545" y="330" width="76" height="122" rx="4" fill="#6e4f3a"/>
+      <rect x="553" y="338" width="60" height="106" rx="3" fill="#7d5b44"/>
+      <rect x="560" y="346" width="46" height="40" rx="2" fill="#6a4c38"/>
+      <circle cx="604" cy="398" r="4" fill="#d9c07a"/>
+      <rect x="537" y="452" width="92" height="8" rx="2" fill="#c9d6e2"/>
+    </g>
+
+    <!-- LOCAL CHAUDIÈRE en coupe : mur ouvert, pénombre, chaudière EN PANNE -->
+    <g>
+      <rect x="638" y="300" width="112" height="152" fill="#1d2732"/>
+      <rect x="638" y="300" width="112" height="152" fill="url(#glowWin)" opacity=".15"/>
+      <!-- halo d'alerte -->
+      <circle class="alarm" cx="694" cy="368" r="46" fill="#e05341" opacity=".28" filter="url(#soft)"/>
+      <!-- tuyauterie -->
+      <path d="M654 310 v30 h18" stroke="#55636f" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <path d="M738 310 v50 h-16" stroke="#55636f" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <!-- corps de chaudière -->
+      <rect x="668" y="336" width="52" height="92" rx="8" fill="url(#boilerBody)"/>
+      <rect x="668" y="336" width="52" height="14" rx="7" fill="#8d9aa6"/>
+      <circle cx="694" cy="370" r="11" fill="#2b3642"/>
+      <circle cx="694" cy="370" r="11" fill="none" stroke="#4a5866" stroke-width="3"/>
+      <path d="M688 370 a6 6 0 0 1 12 0" stroke="#e05341" stroke-width="2.5" fill="none"/>
+      <rect x="680" y="394" width="28" height="18" rx="3" fill="#394756"/>
+      <!-- fumée -->
+      <g fill="#b9c4ce">
+        <circle class="smoke" cx="694" cy="326" r="6"/>
+        <circle class="smoke s2" cx="704" cy="320" r="4.5"/>
+        <circle class="smoke s3" cx="686" cy="318" r="3.5"/>
+      </g>
+      <!-- pancarte -->
+      <g transform="translate(646 428)">
+        <rect width="96" height="20" rx="6" fill="#e05341"/>
+        <text x="8" y="14.5" font-family="system-ui" font-size="12" font-weight="700" fill="#2b0f0b">⚠ EN PANNE</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ================= GARAGE ================= -->
+  <g>
+    <ellipse cx="880" cy="556" rx="130" ry="14" fill="#9fb2c4" opacity=".6"/>
+    <rect x="790" y="360" width="180" height="192" fill="url(#wallL)"/>
+    <rect x="790" y="360" width="180" height="192" fill="url(#siding)" opacity=".5"/>
+    <polygon points="778,368 880,300 982,368" fill="url(#roofG)"/>
+    <polygon points="792,362 880,308 968,362" fill="url(#tiles)"/>
+    <path d="M800 358 q40 -34 78 -48 q-30 4 -52 20 q-18 14 -26 28z" fill="#f2f6fa" opacity=".95"/>
+    <rect x="812" y="408" width="136" height="144" rx="6" fill="url(#garageDoor)"/>
+    <g stroke="#39434e" stroke-width="3">
+      <path d="M818 432h124 M818 458h124 M818 484h124 M818 510h124 M818 536h124"/>
+    </g>
+    <rect x="806" y="546" width="148" height="8" rx="2" fill="#c9d6e2"/>
+  </g>
+
+  <!-- oiseaux + clôture -->
+  <g stroke="#38506a" stroke-width="2.5" fill="none" stroke-linecap="round">
+    <path d="M240 200 q7 -7 14 0 q7 -7 14 0"/>
+    <path d="M292 180 q6 -6 12 0 q6 -6 12 0"/>
+  </g>
+  <g fill="#7d6b52">
+    <rect x="180" y="486" width="8" height="46" rx="2"/><rect x="222" y="482" width="8" height="50" rx="2"/>
+    <rect x="264" y="486" width="8" height="46" rx="2"/>
+    <rect x="172" y="494" width="106" height="7" rx="3"/><rect x="172" y="514" width="106" height="7" rx="3"/>
+  </g>
+  <path d="M176 486 h116 v5 h-116z" fill="#f2f6fa"/>
+
+  <!-- étiquette -->
+  <g font-family="system-ui">
+    <rect x="20" y="576" width="640" height="30" rx="9" fill="#0f1720" opacity=".82"/>
+    <text x="34" y="596" font-size="15" fill="#c8d4e0">Maison ancienne · DPE G · la neige fond sur le toit — cliquez un élément pour agir</text>
+  </g>
+</svg>
+</div>
+</body>
+</html>

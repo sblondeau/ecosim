@@ -183,6 +183,24 @@ final class EnergyCalibration
     }
 
     /**
+     * Daily output ceiling of the household's portable electric heaters
+     * (already owned — every household has some; they plug them in the day
+     * the boiler dies). Direct Joule heating: 1 kWh electricity = 1 kWh heat,
+     * the worst-performing heating there is (game-design §12, the anti-PAC).
+     */
+    public function emergencyHeatersMaxKwhPerDay(): Coefficient
+    {
+        return new Coefficient(
+            value: 96.0,
+            unit: 'kWh/day',
+            min: 48.0,
+            max: 144.0,
+            source: 'Ordre de grandeur : 2 convecteurs mobiles de ~2 kW en fonctionnement continu (parc d\'appoint domestique typique, ADEME)',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
+    /**
      * Seasonal efficiency of the scenario's ageing fuel-oil boiler.
      */
     public function fuelOilBoilerEfficiency(): Coefficient

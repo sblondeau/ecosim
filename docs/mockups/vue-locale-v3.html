@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>EcoSim — vue locale v3 : assemblage d'assets SVG séparés</title>
+<!--
+  Même scène que la v2, mais chaque élément est un fichier SVG AUTONOME dans
+  assets/ (ouvrable/retouchable tel quel dans Inkscape ou Illustrator, ses
+  animations embarquées). Ici la scène les compose par <image href> ; dans le
+  jeu, le renderer Twig les inclura INLINE ({{ include('scene/assets/x.svg') }})
+  pour garder le pilotage des états par classes CSS.
+-->
+<style>
+  body { margin: 0; background: #0f1720; color: #e8eef5; font-family: system-ui, sans-serif; padding: 1.2rem; }
+  .frame { max-width: 1100px; margin: 0 auto; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+  svg.scene { display: block; width: 100%; height: auto; }
+  h2 { max-width: 1100px; margin: 1.6rem auto .6rem; font-size: .85rem; text-transform: uppercase; letter-spacing: .8px; color: #90a2b8; }
+  .gallery { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .8rem; }
+  .gallery figure { margin: 0; background: #172231; border: 1px solid #24303f; border-radius: 12px; padding: .8rem; text-align: center; }
+  .gallery img { max-width: 100%; height: 84px; object-fit: contain; }
+  .gallery figcaption { font-size: .72rem; color: #90a2b8; margin-top: .5rem; font-family: monospace; }
+</style>
+</head>
+<body>
+
+<div class="frame">
+<svg class="scene" viewBox="0 0 1100 620" role="img" aria-label="Votre maison un matin d'hiver — assemblage d'assets">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3d5a7a"/><stop offset=".55" stop-color="#7590ab"/><stop offset="1" stop-color="#c8d3dc"/>
+    </linearGradient>
+    <linearGradient id="snow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4f7fa"/><stop offset="1" stop-color="#c9d6e2"/>
+    </linearGradient>
+    <radialGradient id="sun" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#fdf3d0" stop-opacity=".9"/><stop offset="1" stop-color="#fdf3d0" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- fond : la scène possède l'ambiance (ciel, saison) ; les objets sont des assets -->
+  <rect width="1100" height="520" fill="url(#sky)"/>
+  <circle cx="930" cy="110" r="120" fill="url(#sun)"/>
+  <circle cx="930" cy="110" r="34" fill="#f8ecc4" opacity=".85"/>
+  <path d="M0 400 q140 -70 300 -34 q200 44 400 -12 q220 -56 400 22 v144 H0z" fill="#8fa3b5" opacity=".55"/>
+  <path d="M0 430 q180 -50 380 -14 q240 40 420 -8 q160 -38 300 18 v94 H0z" fill="#a9bccb" opacity=".6"/>
+  <rect y="470" width="1100" height="150" fill="url(#snow)"/>
+  <path d="M0 470 q160 14 340 4 q240 -12 460 6 q180 12 300 -4 v20 q-240 16 -560 6 q-320 -8 -540 2z" fill="#ffffff" opacity=".8"/>
+  <ellipse cx="560" cy="560" rx="380" ry="26" fill="#adbfd0" opacity=".5"/>
+
+  <!-- le même asset nuage, réutilisé à 3 tailles/opacités -->
+  <image href="assets/cloud.svg" x="118" y="50" width="180"/>
+  <image href="assets/cloud.svg" x="630" y="108" width="130" opacity=".75"/>
+  <image href="assets/cloud.svg" x="790" y="212" width="170" opacity=".5"/>
+
+  <!-- oiseaux (ambiance, reste à la scène) -->
+  <g stroke="#38506a" stroke-width="2.5" fill="none" stroke-linecap="round">
+    <path d="M240 200 q7 -7 14 0 q7 -7 14 0"/>
+    <path d="M292 180 q6 -6 12 0 q6 -6 12 0"/>
+  </g>
+
+  <!-- décor -->
+  <image href="assets/tree-winter.svg" x="48" y="280" width="150"/>
+  <image href="assets/fence.svg" x="170" y="478" width="124"/>
+
+  <!-- la maison (coque) + son ombre au sol -->
+  <ellipse cx="560" cy="556" rx="300" ry="20" fill="#9fb2c4" opacity=".6"/>
+  <image href="assets/house-shell.svg" x="298" y="122" width="484"/>
+  <!-- l'équipement du slot chauffage, posé dans la découpe du local -->
+  <image href="assets/boiler-fioul-broken.svg" x="646" y="306" width="108"/>
+
+  <!-- le garage + son ombre -->
+  <ellipse cx="880" cy="556" rx="130" ry="14" fill="#9fb2c4" opacity=".6"/>
+  <image href="assets/garage.svg" x="776" y="296" width="208"/>
+
+  <!-- étiquette -->
+  <g font-family="system-ui">
+    <rect x="20" y="576" width="640" height="30" rx="9" fill="#0f1720" opacity=".82"/>
+    <text x="34" y="596" font-size="15" fill="#c8d4e0">Maison ancienne · DPE G · la neige fond sur le toit — cliquez un élément pour agir</text>
+  </g>
+</svg>
+</div>
+
+<h2>Bibliothèque d'assets (un fichier = un élément, retouchable à la main)</h2>
+<div class="gallery">
+  <figure><img src="assets/house-shell.svg" alt=""><figcaption>house-shell.svg</figcaption></figure>
+  <figure><img src="assets/garage.svg" alt=""><figcaption>garage.svg</figcaption></figure>
+  <figure><img src="assets/boiler-fioul.svg" alt=""><figcaption>boiler-fioul.svg</figcaption></figure>
+  <figure><img src="assets/boiler-fioul-broken.svg" alt=""><figcaption>boiler-fioul-broken.svg</figcaption></figure>
+  <figure><img src="assets/heat-pump.svg" alt=""><figcaption>heat-pump.svg</figcaption></figure>
+  <figure><img src="assets/solar-panels.svg" alt=""><figcaption>solar-panels.svg</figcaption></figure>
+  <figure><img src="assets/battery.svg" alt=""><figcaption>battery.svg</figcaption></figure>
+  <figure><img src="assets/tree-winter.svg" alt=""><figcaption>tree-winter.svg</figcaption></figure>
+  <figure><img src="assets/cloud.svg" alt=""><figcaption>cloud.svg</figcaption></figure>
+  <figure><img src="assets/fence.svg" alt=""><figcaption>fence.svg</figcaption></figure>
+</div>
+
+</body>
+</html>

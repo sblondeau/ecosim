@@ -54,6 +54,23 @@ final class BuildingCalibration
     }
 
     /**
+     * Indoor target while the heating system is DOWN and portable electric
+     * heaters take over (survival mode): households heat the living rooms to
+     * a reduced setpoint, not to full comfort.
+     */
+    public function emergencySetpointC(): Coefficient
+    {
+        return new Coefficient(
+            value: 16.0,
+            unit: '°C',
+            min: 14.0,
+            max: 17.0,
+            source: 'Code de l\'énergie, art. R241-26 : 16 °C, palier réglementaire d\'absence courte — repère du chauffage réduit',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
+    /**
      * Heat loss of the unrenovated scenario house, per degree-day.
      */
     public function heatLossKwhPerDegreeDay(): Coefficient

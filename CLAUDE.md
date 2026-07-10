@@ -37,7 +37,7 @@ bien (formule DPE simple). Fin = horizon fixe → bilan factuel.
 - **Véhicule électrique : HORS SCOPE** cette phase (revient en V1.1).
 - **Fin de partie : horizon fixe** (durée bornée en jours), pas open-ended.
 - **Tick** : moteur découplé du déclencheur. Avancée fondée sur le temps écoulé
-  réel (`SECONDS_PER_GAME_DAY`, ~30 s = 1 jour, ajustable). Politique
+  réel (`SECONDS_PER_GAME_DAY`, 12 s = 1 jour — ×2 = 6 s, ×3 = 4 s —, ajustable). Politique
   `TimeProgressionPolicy` = flag → défaut **PausesWhileAway** (le temps ne tourne
   pas hors ligne ; `ContinuesWhileAway` réactivable quand les politiques
   automatiques existeront, hors scope MVP).
@@ -87,9 +87,15 @@ Persistance   src/Entity/ + src/Repository/  (Doctrine, entités anémiques = é
   **travaux**, nouvelle-partie, CSRF par attribut, flashs) + dashboard Twig
   (Finances avec revenu/dépenses/reste à vivre, Patrimoine, Confort, zones,
   bandeau panne, bilan de fin, travaux avec devis et double financement) ;
-  `app:simulate:demo`. **La boucle §15 est complète.** Restent : passe UX
-  (backlog « Interface / pédagogie »), LiveComponent `data-poll` (tick temps
-  réel), persistance Doctrine.
+  `app:simulate:demo` ; **tick temps réel posé** : `Domain/Time`
+  `TickSpeed` (⏸/×1/×2/×3) + `TimeProgression` (12 s réelles = 1 jour,
+  `PausesWhileAway` via fenêtre de grâce, reste reporté, horloge toujours
+  injectée), `TimeKeeper` (rattrapage borné à l'horizon, porte unique du
+  temps, **pause auto au matin de la panne** — décider mérite une horloge
+  arrêtée), LiveComponent `GameDashboard` (`data-poll` 4 s, boutons de
+  vitesse), contrôleur = coquille + POST (`/vitesse`, jour-suivant manuel via
+  `TimeKeeper::step`). **La boucle §15 est complète.** Reste : persistance
+  Doctrine.
 
 Migration future possible vers du DDD plus strict (agrégats + mapping) sans tout
 casser, si l'échelle ville/pays l'exige — mais **pas maintenant**.
@@ -150,6 +156,13 @@ inline sans le rattacher au registre + un commentaire de source.
   `final readonly`.
 - Identifiants/commentaires de code en **anglais** ; libellés destinés au joueur
   en **français** (`Season::label()` → « Été »…).
+- **CSS : variables plutôt que valeurs en dur.** Couleurs, espacements ou
+  dimensions réutilisés passent par des custom properties (`:root` de
+  `game.css` : `--accent`, `--warn`…), jamais dupliqués en littéral — c'est
+  aussi ce qui rend le thème et les états de la future scène SVG pilotables
+  (`--charge`, paliers de confort). Une valeur ponctuelle et locale peut rester
+  en dur ; dès qu'elle se répète ou porte du sens (couleur d'état, palette),
+  c'est une variable.
 - Commits : messages clairs, en anglais, format `type(scope): subject`
   (`feat(sim):`, `chore:`…). `make qa` vert avant de committer.
 

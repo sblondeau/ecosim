@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 484 434">
+  <!-- Coque de la maison : murs (brique + enduit), toit tuiles avec neige
+       fondante (isolation d'origine), cheminée, fenêtre du séjour (intérieur
+       froid), porte. Le local chaudière est une découpe VIDE (x340 y178
+       w112 h152 dans ce viewBox) : la scène y place l'asset chaudière. -->
+  <defs>
+    <linearGradient id="wallL" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#cbb794"/><stop offset="1" stop-color="#b9a582"/>
+    </linearGradient>
+    <linearGradient id="roofG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8a4f43"/><stop offset="1" stop-color="#6d3d34"/>
+    </linearGradient>
+    <linearGradient id="glowWin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5a748e"/><stop offset="1" stop-color="#42586e"/>
+    </linearGradient>
+    <pattern id="tiles" width="34" height="16" patternUnits="userSpaceOnUse" patternTransform="skewX(-24)">
+      <rect width="34" height="16" fill="#7a453a"/>
+      <path d="M0 15h34" stroke="#5f342b" stroke-width="2"/>
+      <path d="M17 0v15" stroke="#5f342b" stroke-width="1.4"/>
+    </pattern>
+    <pattern id="siding" width="200" height="13" patternUnits="userSpaceOnUse">
+      <path d="M0 12.5h200" stroke="#a08c69" stroke-width="1"/>
+    </pattern>
+    <pattern id="bricks" width="42" height="20" patternUnits="userSpaceOnUse">
+      <rect width="42" height="20" fill="#9a8a72"/>
+      <path d="M0 9.5h42 M0 19.5h42" stroke="#87775f" stroke-width="1.4"/>
+      <path d="M21 0v9 M10 10v9 M32 10v9" stroke="#87775f" stroke-width="1.4"/>
+    </pattern>
+  </defs>
+
+  <!-- corps : soubassement brique + étage enduit -->
+  <rect x="32" y="330" width="420" height="100" fill="url(#bricks)"/>
+  <rect x="32" y="140" width="420" height="190" fill="url(#wallL)"/>
+  <rect x="32" y="140" width="420" height="190" fill="url(#siding)" opacity=".5"/>
+  <rect x="32" y="140" width="420" height="18" fill="#000" opacity=".14"/>
+  <rect x="32" y="140" width="14" height="290" fill="#d8c7a4"/>
+  <rect x="438" y="140" width="14" height="290" fill="#a08c69"/>
+
+  <!-- toit -->
+  <polygon points="2,148 242,6 482,148" fill="url(#roofG)"/>
+  <polygon points="24,140 242,16 460,140" fill="url(#tiles)"/>
+  <path d="M32 136 q30 -22 62 -38 q-6 22 -18 40 q-24 4 -44 -2z" fill="#f2f6fa"/>
+  <path d="M402 128 q-26 -24 -54 -40 q8 24 20 42 q18 4 34 -2z" fill="#f2f6fa"/>
+  <rect x="236" y="2" width="12" height="10" rx="3" fill="#5f342b"/>
+  <rect x="330" y="42" width="30" height="52" fill="#8a7460"/>
+  <rect x="325" y="34" width="40" height="12" rx="2" fill="#6e5c4c"/>
+  <path d="M330 94 l30 -18 v18 z" fill="#75604e"/>
+
+  <!-- fenêtre du séjour (état "froid" : vitres bleues) -->
+  <rect x="82" y="178" width="130" height="112" rx="4" fill="#8a7458"/>
+  <rect x="90" y="186" width="114" height="96" fill="url(#glowWin)"/>
+  <path d="M90 186 l114 96 M204 186 l-114 96" stroke="#fff" stroke-width="1" opacity=".12"/>
+  <path d="M147 186v96 M90 234h114" stroke="#8a7458" stroke-width="6"/>
+  <rect x="74" y="288" width="146" height="10" rx="3" fill="#d8c7a4"/>
+  <path d="M74 288 q73 -8 146 0 v4 h-146z" fill="#f2f6fa"/>
+
+  <!-- porte d'entrée -->
+  <rect x="247" y="208" width="76" height="122" rx="4" fill="#6e4f3a"/>
+  <rect x="255" y="216" width="60" height="106" rx="3" fill="#7d5b44"/>
+  <rect x="262" y="224" width="46" height="40" rx="2" fill="#6a4c38"/>
+  <circle cx="306" cy="276" r="4" fill="#d9c07a"/>
+  <rect x="239" y="330" width="92" height="8" rx="2" fill="#c9d6e2"/>
+
+  <!-- découpe du local technique (pénombre) — l'équipement se pose par-dessus -->
+  <rect x="340" y="178" width="112" height="152" fill="#1d2732"/>
+  <rect x="340" y="178" width="112" height="152" fill="url(#glowWin)" opacity=".15"/>
+</svg>
