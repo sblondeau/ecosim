@@ -540,13 +540,32 @@ suivantes). La maison est une **scène à emplacements** (« slots »), pas un t
   (devis coût/prime/reste à charge + effets estimés + double financement). La panne de
   chaudière devient le cas d'école : l'élément crie visuellement, le clic propose
   réparer/remplacer, le temps est déjà en pause automatique.
-- **Technologie : SVG inline + classes CSS, pas de sprites** pour cette échelle. Un
-  changement d'état = une classe (pas un asset de plus), les animations légères sont du CSS
-  pur (`transform`/`opacity` : fumée, pulsation, nuages — cohérent avec la règle d'animations
-  de la carte), net à toutes tailles, thémable par variables CSS. Le pipeline d'assets
-  illustrés (§ production d'assets ci-dessous) reste pour la carte Phase 3+. La présentation
-  ne lisant QUE `GameView` (§3), la migration est purement présentationnelle — le LiveComponent
-  et le `data-poll` restent tels quels, le SVG remplace les cartes dans le template.
+- **Technologie : SVG inline + classes CSS, pas de sprites** pour cette échelle. Précision de
+  vocabulaire : chaque équipement demande bien un *dessin* (chaudière, PAC, panneaux,
+  batterie…), mais un dessin = **~15-30 formes SVG écrites dans le template** (la maquette
+  contient déjà les deux états complets), pas un fichier image à produire/exporter/licencier.
+  Le catalogue Phase 0-1 tient en ~10 petits dessins. Un changement d'état = une classe (pas
+  un asset de plus), les animations légères sont du CSS pur (`transform`/`opacity` : fumée,
+  pulsation, rotation du ventilateur de PAC, nuages — cohérent avec la règle d'animations de
+  la carte), net à toutes tailles, thémable par variables CSS. Le pipeline d'assets illustrés
+  (§ production d'assets ci-dessous) reste pour la carte Phase 3+. La présentation ne lisant
+  QUE `GameView` (§3), la migration est purement présentationnelle — le LiveComponent et le
+  `data-poll` restent tels quels, le SVG remplace les cartes dans le template.
+- **Rendu de l'isolation** (le cas le moins évident, résolu par la coupe elle-même) : la coupe
+  montre l'épaisseur des parois → la **couche d'isolant est visible** dans la tranche du mur
+  et du toit (liseré coloré qui apparaît/s'épaissit par palier), complétée par deux signaux
+  d'ambiance : la **neige qui tient sur le toit** d'une maison bien isolée (déperditions
+  faibles — métaphore réaliste et parlante) et la teinte intérieure chaude/froide déjà pilotée
+  par le confort. Pendant les travaux (quand les délais existeront, post-MVP) : échafaudage.
+- **Cohérence entre échelles (risque identifié, à trancher en Phase 3)** : deux échelles ≠
+  deux identités visuelles. Ce qui doit être UNIQUE : palette, typographie, iconographie,
+  ton « flat » ; ce qui peut différer : la disposition (scène à slots au foyer, grille hexa
+  sur la carte) — invisible pour le joueur, qui vit ça comme un **zoom** (cliquer sa parcelle
+  sur la carte ouvre la coupe, comme l'inspecteur de bâtiment d'un city-builder). Point de
+  vigilance : la carte prévoit de « vraies textures illustrées » (§ ci-dessous) alors que la
+  coupe est en flat vector — AU moment de la carte, trancher une direction artistique unique
+  (illustrer la coupe OU aplatir la carte) ; d'ici là le flat vector CSS-thémable est
+  précisément le choix qui reste re-stylable à moindre coût.
 - **Progressivité** (l'ordre à suivre, chaque pas jouable) : ① la scène SVG remplace la
   section « Ma maison » (états visuels, zones cliquables qui scrollent vers les devis
   existants) — les cartes chiffrées restent à côté ; ② les indicateurs migrent dans la scène
