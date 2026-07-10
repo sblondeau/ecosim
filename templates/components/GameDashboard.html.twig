@@ -77,6 +77,10 @@
             <div class="row"><span class="k">Revenu mensuel</span><span class="pos">+{{ game.monthlyIncomeLabel }}</span></div>
             <div class="row"><span class="k">Dépenses du foyer</span><span class="neg">−{{ game.monthlyExpensesLabel }}</span></div>
             <div class="row"><span class="k">Reste à vivre mensuel{{ _self.tip(game.help.netIncome) }}</span><span>{{ game.monthlyNetIncomeLabel }}{% if game.incomeCreditedToday %} <span class="pos">(crédité aujourd'hui)</span>{% endif %}</span></div>
+            {% if game.loanActive %}
+                <div class="row"><span class="k">Mensualité éco-PTZ (le 1ᵉʳ)</span><span class="neg">−{{ game.loanMonthlyPaymentLabel }}</span></div>
+                <div class="row"><span class="k">Dette éco-PTZ restante</span><span>{{ game.loanRemainingLabel }}</span></div>
+            {% endif %}
         </div>
 
         <div class="card">
