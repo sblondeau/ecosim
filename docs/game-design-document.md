@@ -577,7 +577,13 @@ suivantes). La maison est une **scène à emplacements** (« slots »), pas un t
   *modèle de scène* et *renderer*. Un `HouseSceneView` (application) décrit le « quoi
   montrer » en termes purement sémantiques — liste de slots `{key, state, label, action,
   jauges}` + ciel `{nébulosité, saison, neige}` — avec l'interdit d'hygiène : **jamais de
-  coordonnées, couleurs ou formes** dans ce modèle (`broken`, pas « halo rouge »). Le
+  coordonnées d'ÉCRAN, couleurs ou formes** dans ce modèle (`broken`, pas « halo rouge »).
+  Précision importante : les faits SPATIAUX qui changent la simulation restent des données de
+  domaine et passent dans le modèle — l'orientation N/S/E/O d'un panneau (module la
+  production, ADEME) comme, en Phase 3+, la coordonnée de tuile hexagonale d'une installation
+  (voisins, vent, distances — coordonnées *logiques* axiales, cf. Red Blob Games). Le test :
+  « cette valeur change-t-elle un résultat de simulation ? » Oui → modèle ; non (pixels,
+  projection, tri en profondeur) → renderer. Le
   « comment dessiner » vit dans UN template de renderer (`_scene_cutaway.html.twig` : formes
   SVG, coordonnées, classes CSS). Changer de direction artistique = changer de renderer :
   plus belles textures = le CSS/`<defs>` du renderer seul ; vue isométrique = un second
