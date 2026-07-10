@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 124 58">
+  <!-- Clôture bois, neige sur la lisse haute. -->
+  <g fill="#7d6b52">
+    <rect x="10" y="6" width="8" height="46" rx="2"/><rect x="52" y="2" width="8" height="50" rx="2"/>
+    <rect x="94" y="6" width="8" height="46" rx="2"/>
+    <rect x="2" y="14" width="106" height="7" rx="3"/><rect x="2" y="34" width="106" height="7" rx="3"/>
+  </g>
+  <path d="M6 6 h116 v5 h-116z" fill="#f2f6fa"/>
+</svg>

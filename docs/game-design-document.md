@@ -542,9 +542,16 @@ suivantes). La maison est une **scène à emplacements** (« slots »), pas un t
   réparer/remplacer, le temps est déjà en pause automatique.
 - **Technologie : SVG inline + classes CSS, pas de sprites** pour cette échelle. Précision de
   vocabulaire : chaque équipement demande bien un *dessin* (chaudière, PAC, panneaux,
-  batterie…), mais un dessin = **~15-30 formes SVG écrites dans le template** (la maquette
-  contient déjà les deux états complets), pas un fichier image à produire/exporter/licencier.
-  Le catalogue Phase 0-1 tient en ~10 petits dessins. Un changement d'état = une classe (pas
+  batterie…), mais un dessin = **~15-30 formes SVG**, pas un binaire à exporter/licencier.
+  Le catalogue Phase 0-1 tient en ~10 petits dessins. **Organisation en bibliothèque** (maquette
+  v3) : *un fichier `.svg` autonome par élément* (`house-shell`, `boiler-fioul`,
+  `boiler-fioul-broken`, `heat-pump`, `solar-panels`, `battery`, `tree-winter`, `cloud`…),
+  chacun ouvrable/retouchable tel quel dans Inkscape/Illustrator, ses micro-animations
+  embarquées (style interne). La scène ne possède que l'ambiance (ciel, sol, lumière) et
+  ASSEMBLE les assets ; en jeu le renderer Twig les inclut **inline**
+  (`{{ include('scene/assets/x.svg') }}`) pour garder le pilotage des états par classes CSS —
+  les maquettes composent par `<image href>`. Retravailler un asset à la main ne touche ni la
+  scène ni le code. Un changement d'état = une classe (pas
   un asset de plus), les animations légères sont du CSS pur (`transform`/`opacity` : fumée,
   pulsation, rotation du ventilateur de PAC, nuages — cohérent avec la règle d'animations de
   la carte), net à toutes tailles, thémable par variables CSS. Le pipeline d'assets illustrés

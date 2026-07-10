@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 212 78">
+  <!-- 3 modules photovoltaïques inclinés — à poser sur un versant de toit. -->
+  <defs>
+    <linearGradient id="pv" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#28497a"/><stop offset=".6" stop-color="#1d3557"/><stop offset="1" stop-color="#16294a"/>
+    </linearGradient>
+  </defs>
+  <g stroke="#a8c6e8" stroke-width="1.5" fill="url(#pv)">
+    <polygon points="4,59 56,35 88,50 34,75"/>
+    <polygon points="60,33 112,9 144,24 90,48"/>
+    <polygon points="124,50 176,26 208,41 154,65"/>
+  </g>
+  <g stroke="#7aa0cc" stroke-width=".8" opacity=".8">
+    <path d="M21 51 l32 15 M38 43 l32 15 M77 25 l32 15 M94 17 l32 15 M141 42 l32 15 M158 34 l32 15"/>
+  </g>
+  <g fill="#fff" opacity=".25">
+    <polygon points="8,58 24,50 34,55 18,63"/>
+    <polygon points="64,32 80,24 90,29 74,37"/>
+  </g>
+</svg>

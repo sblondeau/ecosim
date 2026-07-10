@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 76 52">
+  <!-- Unité extérieure de PAC air/eau : le ventilateur tourne (CSS embarqué). -->
+  <defs>
+    <style>
+      .fan { animation: spin 2.2s infinite linear; transform-origin: 38px 26px; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+  </defs>
+  <rect x="2" y="2" width="72" height="48" rx="7" fill="#8fa3b8"/>
+  <rect x="2" y="2" width="72" height="48" rx="7" fill="none" stroke="#6d8093" stroke-width="2"/>
+  <circle cx="38" cy="26" r="18" fill="#26313d"/>
+  <g class="fan" stroke="#8fa3b8" stroke-width="3.5" stroke-linecap="round">
+    <line x1="38" y1="12" x2="38" y2="40"/><line x1="24" y1="26" x2="52" y2="26"/>
+  </g>
+  <circle cx="38" cy="26" r="3.5" fill="#a7b8c9"/>
+  <g fill="#6d8093">
+    <rect x="62" y="10" width="6" height="3" rx="1.5"/><rect x="62" y="18" width="6" height="3" rx="1.5"/><rect x="62" y="26" width="6" height="3" rx="1.5"/>
+  </g>
+</svg>
