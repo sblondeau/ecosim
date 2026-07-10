@@ -573,6 +573,20 @@ suivantes). La maison est une **scène à emplacements** (« slots »), pas un t
   ouvrent de vrais panneaux contextuels, le dashboard se réduit au HUD ; ③ le jardin devient
   une **grille de parcelle grossière** le jour où un gameplay l'exige (potager, arbres
   d'ombrage, panneaux au sol, borne VE — V1.1+), sans hexagones : quelques cases suffisent.
+- **Structure de rendu (pour changer de DA sans refonte)** : la scène est séparée en
+  *modèle de scène* et *renderer*. Un `HouseSceneView` (application) décrit le « quoi
+  montrer » en termes purement sémantiques — liste de slots `{key, state, label, action,
+  jauges}` + ciel `{nébulosité, saison, neige}` — avec l'interdit d'hygiène : **jamais de
+  coordonnées, couleurs ou formes** dans ce modèle (`broken`, pas « halo rouge »). Le
+  « comment dessiner » vit dans UN template de renderer (`_scene_cutaway.html.twig` : formes
+  SVG, coordonnées, classes CSS). Changer de direction artistique = changer de renderer :
+  plus belles textures = le CSS/`<defs>` du renderer seul ; vue isométrique = un second
+  template lisant les mêmes données (+ redessiner les ~10 dessins en perspective — le vrai
+  coût de l'iso est du dessin, pas du code) ; canvas/three.js un jour = le même
+  `HouseSceneView` sérialisé en JSON vers un contrôleur Stimulus. Les interactions sont des
+  *intentions* (« ce slot ouvre l'action heat_pump ») — le renderer décide seulement où est
+  la zone cliquable. C'est le principe du §3 (la présentation ne voit que `GameView`) répété
+  un cran plus bas.
 - **Hors périmètre de cette vue** : pièces multiples détaillées / meubles (aucun gameplay
   attaché), vraie 3D, personnages animés. La coupe reste un tableau de bord incarné, pas un
   jeu de poupées.
