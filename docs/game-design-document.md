@@ -580,6 +580,19 @@ suivantes). La maison est une **scène à emplacements** (« slots »), pas un t
   ouvrent de vrais panneaux contextuels, le dashboard se réduit au HUD ; ③ le jardin devient
   une **grille de parcelle grossière** le jour où un gameplay l'exige (potager, arbres
   d'ombrage, panneaux au sol, borne VE — V1.1+), sans hexagones : quelques cases suffisent.
+- **Météo & ambiance (l'état simulé pilote le ciel — jamais de déco mensongère)** : seul ce
+  que la simulation SAIT s'affiche. Dès la Phase 0-1 : nébulosité continue (`--cloud` :
+  densité des nuages, halo du soleil, gris du ciel), saison (teinte du ciel, **hauteur du
+  soleil** — bas l'hiver, la vraie cause de la production faible —, arbre en 4 états),
+  température (givre/neige d'ambiance sous ~0 °C — habillage *déduit*, assumé tant qu'aucun
+  gameplay n'en dépend : pas de précipitations dans le modèle), **cheminée qui fume
+  proportionnellement au fioul brûlé** (et plus du tout en PAC — la leçon §12 rendue
+  visible), scintillement des panneaux les jours de production, teinte intérieure = confort.
+  En Phase 2/5, quand les données arrivent : éolienne qui tourne à sa vitesse réelle
+  (cut-in/cut-out visibles — l'intermittence incarnée), vent (arbres, fumée couchée),
+  canicule (ciel blanc, herbe jaunie — pan §16), pluie/orages seulement quand le générateur
+  les produira. Mécanique : faits météo dans le `SceneView` → classes/custom properties sur
+  les `<g>` → `scene.css` ; le `data-poll` fait vivre le ciel jour après jour.
 - **Structure de rendu (pour changer de DA sans refonte)** : la scène est séparée en
   *modèle de scène* et *renderer*. Un `HouseSceneView` (application) décrit le « quoi
   montrer » en termes purement sémantiques — liste de slots `{key, state, label, action,
