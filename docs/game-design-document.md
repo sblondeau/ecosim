@@ -390,6 +390,13 @@ dans les phases suivantes.
 - **Bâtiment** : état de départ fixe (vieille chaudière fioul, isolation nulle/DPE F-G).
   Isolation à 3 paliers discrets (aucune/correcte/performante), chauffage à 2 choix (garder le
   fioul / passer à la PAC). 1 seul événement scripté : panne de chaudière qui force la décision.
+  Pendant la panne : **chauffage d'appoint électrique automatique et non désactivable**
+  (personne ne vit à 4 °C — le foyer possède déjà des convecteurs) — effet Joule plafonné par
+  la puissance des appareils, consigne de survie 16 °C (R241-26) rarement tenue par grand
+  froid. L'urgence est systémique, pas scriptée : l'électricité explose (~×9 sur la ligne),
+  le confort reste mauvais (~30 %), et le joueur paie le prix du fioul pour geler — décider
+  vite vaut de l'argent ET du confort, sans malus arbitraire (§1). Leçon §12 en creux :
+  l'électrique direct est le pire chauffage, la PAC son opposé exact.
 - **Finances** : revenu fixe, épargne simple, 1 système de prime générique (taux selon revenu,
   plafond), 1 type de prêt (taux zéro, durée fixe), facture à 2 lignes (électricité + fioul),
   1 contrat de revente à tarif fixe (pas d'évolution tarifaire dans le temps).

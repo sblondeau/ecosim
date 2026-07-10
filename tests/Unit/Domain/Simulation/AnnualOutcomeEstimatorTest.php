@@ -69,14 +69,22 @@ final class AnnualOutcomeEstimatorTest extends TestCase
         self::assertGreaterThan(0.0, $panelsOnly->productionKwh);
     }
 
-    public function testABrokenBoilerYearIsCheapAndMiserable(): void
+    public function testABrokenBoilerYearRunsOnRuinousEmergencyHeat(): void
     {
         $estimator = new AnnualOutcomeEstimator();
 
         $running = $estimator->estimate(self::barePassoire());
         $broken = $estimator->estimate(self::barePassoire()->withBoilerBroken(true));
 
-        self::assertLessThan($running->netEnergyCost->cents, $broken->netEnergyCost->cents, 'No fuel burnt.');
-        self::assertLessThan($running->averageComfortScore, $broken->averageComfortScore, 'A freezing house.');
+        self::assertLessThan(
+            $running->averageComfortScore,
+            $broken->averageComfortScore,
+            'Survival setpoint all year: clearly worse comfort.',
+        );
+        self::assertGreaterThan(
+            $running->netEnergyCost->cents / 2,
+            $broken->netEnergyCost->cents,
+            'The emergency heaters keep the energy bill in the same painful league — freezing is never "profitable".',
+        );
     }
 }

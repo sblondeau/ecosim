@@ -200,6 +200,22 @@ minimal si on veut l'avancer.
   l'encode grossièrement, à raffiner quand l'été devient un vrai sujet
   (bornes saisonnières).
 
+## Conséquences réalistes de l'inconfort (suites possibles de la panne)
+
+La panne a son urgence systémique (chauffage d'appoint automatique : électricité
+×9, confort ~30 %). Deux mécanismes réels restent volontairement en réserve :
+
+- **Santé de l'occupant** (déclencheur : V1.x, si un axe santé est acté).
+  Sourçable : OMS (risques sanitaires sous 18 °C), littérature précarité
+  énergétique (surmortalité hivernale, Fondation Abbé Pierre). C'est un
+  système entier (état, frais médicaux, jours d'arrêt) — pas un compteur de
+  « bonheur » décoratif (l'axe Confort EST la mesure du bien-être, §1/§8).
+- **Gel des canalisations** (déclencheur : scénario « hiver rude » ou mode
+  difficile). Maison non chauffée par gel prolongé → rupture + dégât des eaux
+  (milliers d'euros). Réaliste mais punitif ; incohérent tant que l'appoint
+  automatique maintient le hors-gel — ne devient pertinent que si un scénario
+  prive AUSSI le foyer d'électricité (coupure hivernale, résilience §8).
+
 ## Scénarios
 
 Le socle est posé (`Domain/Scenario/` : interfaces `Scenario` + `ScriptedEvent`,

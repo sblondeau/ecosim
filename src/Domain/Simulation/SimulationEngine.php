@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Simulation;
 
-use App\Domain\Building\HeatingConsumption;
+use App\Domain\Building\EmergencyHeatingCalculator;
 use App\Domain\Building\HeatingEnergyCalculator;
 use App\Domain\Building\HeatingNeedCalculator;
 use App\Domain\Building\ThermalComfortCalculator;
@@ -51,6 +51,7 @@ final readonly class SimulationEngine
         private EnergyDemandCalculator $baseDemand = new EnergyDemandCalculator(),
         private HeatingNeedCalculator $heatingNeed = new HeatingNeedCalculator(),
         private HeatingEnergyCalculator $heatingEnergy = new HeatingEnergyCalculator(),
+        private EmergencyHeatingCalculator $emergencyHeating = new EmergencyHeatingCalculator(),
         private ThermalComfortCalculator $comfort = new ThermalComfortCalculator(),
         private EnergyBalanceCalculator $balancer = new EnergyBalanceCalculator(),
         private BillCalculator $bill = new BillCalculator(),
@@ -73,21 +74,25 @@ final readonly class SimulationEngine
         $weather = $this->weather->for($config->seed, $date);
 
         $production = $this->solar->dailyProductionKwh($household->solarKwc, $weather, $date);
+        $baseDemand = $this->baseDemand->dailyDemandKwh($config->seed, $date);
 
-        // A broken boiler delivers nothing: no heat, no fuel burnt (étape 7 event).
+        // A broken boiler forces the emergency electric heaters (not a choice:
+        // nobody lives at 4 °C) — Joule heating pours into the electric loop.
         $heating = $household->boilerBroken
-            ? HeatingConsumption::none()
+            ? $this->emergencyHeating->consumptionFor($household->insulation, $weather->temperatureC, $baseDemand)
             : $this->heatingEnergy->consumptionFor(
                 $household->heatingSystem,
                 $this->heatingNeed->dailyNeedKwh($household->insulation, $weather->temperatureC),
             );
 
-        $baseDemand = $this->baseDemand->dailyDemandKwh($config->seed, $date);
         $demand = $baseDemand + $heating->electricityKwh;
         $balance = $this->balancer->settle($production, $demand, $this->battery($state), $state->batteryLevelKwh);
 
+        // While broken, ALL indoor electricity ends up as heat (appliances +
+        // emergency heaters): the house sits at that equilibrium, at best the
+        // survival setpoint, lower on cold days when the heaters are maxed out.
         $comfort = $household->boilerBroken
-            ? $this->comfort->unheatedComfortFor($household->insulation, $weather->temperatureC, $baseDemand)
+            ? $this->comfort->unheatedComfortFor($household->insulation, $weather->temperatureC, $baseDemand + $heating->electricityKwh)
             : $this->comfort->comfortFor($household->insulation, $weather->temperatureC);
 
         return new DailySnapshot(
