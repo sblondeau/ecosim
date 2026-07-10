@@ -518,6 +518,46 @@ l'interface sait les montrer sur la maison, pas en empilant des cartes de devis.
 
 Hors scope du MVP (§15 Phase 0-1), à activer à partir de l'arrivée de la carte (Phase 3).
 
+### Vue locale (échelle foyer) — la maison en coupe interactive
+
+Réflexion actée (juillet 2026, maquette : `docs/mockups/vue-locale.html`) : l'échelle foyer
+n'a PAS besoin de la grille hexagonale — celle-ci sert la carte régionale/ville (sections
+suivantes). La maison est une **scène à emplacements** (« slots »), pas un terrain à tuiles.
+
+- **Forme retenue : la coupe latérale** (« dollhouse » façon Fallout Shelter / Les Sims en
+  section) plutôt que l'isométrique : lisibilité pédagogique maximale (on voit TOUT l'état du
+  foyer d'un regard), assets 2D plats bien plus simples, et correspondance 1:1 avec les zones
+  déjà en jeu (toit, chauffage, garage) qui deviennent des emplacements cliquables. S'y
+  ajoutent : murs/isolation (l'épaisseur/couleur du liseré = le palier), séjour (la teinte
+  intérieure = le confort), jardin (réserve pour plus tard). L'isométrique reste le langage de
+  la carte Phase 3+ ; les deux échelles partagent la palette pour rester un seul jeu.
+- **L'état EST le rendu** (le principe central) : chaque équipement se dessine selon le
+  `GameView` — les panneaux apparaissent sur le toit une fois posés, la chaudière en panne
+  fume avec un halo rouge pulsant, la pièce vire au bleu quand le ressenti chute, le ciel
+  suit la nébulosité et la saison. Les indicateurs quittent les cartes-tableaux pour devenir
+  **diégétiques** ; il ne reste qu'un bandeau HUD fin (date, épargne, confort, vitesse).
+- **Clic = panneau contextuel** : cliquer un emplacement ouvre le panneau d'action existant
+  (devis coût/prime/reste à charge + effets estimés + double financement). La panne de
+  chaudière devient le cas d'école : l'élément crie visuellement, le clic propose
+  réparer/remplacer, le temps est déjà en pause automatique.
+- **Technologie : SVG inline + classes CSS, pas de sprites** pour cette échelle. Un
+  changement d'état = une classe (pas un asset de plus), les animations légères sont du CSS
+  pur (`transform`/`opacity` : fumée, pulsation, nuages — cohérent avec la règle d'animations
+  de la carte), net à toutes tailles, thémable par variables CSS. Le pipeline d'assets
+  illustrés (§ production d'assets ci-dessous) reste pour la carte Phase 3+. La présentation
+  ne lisant QUE `GameView` (§3), la migration est purement présentationnelle — le LiveComponent
+  et le `data-poll` restent tels quels, le SVG remplace les cartes dans le template.
+- **Progressivité** (l'ordre à suivre, chaque pas jouable) : ① la scène SVG remplace la
+  section « Ma maison » (états visuels, zones cliquables qui scrollent vers les devis
+  existants) — les cartes chiffrées restent à côté ; ② les indicateurs migrent dans la scène
+  (confort en teinte, batterie en jauge dans le garage, météo dans le ciel) et les clics
+  ouvrent de vrais panneaux contextuels, le dashboard se réduit au HUD ; ③ le jardin devient
+  une **grille de parcelle grossière** le jour où un gameplay l'exige (potager, arbres
+  d'ombrage, panneaux au sol, borne VE — V1.1+), sans hexagones : quelques cases suffisent.
+- **Hors périmètre de cette vue** : pièces multiples détaillées / meubles (aucun gameplay
+  attaché), vraie 3D, personnages animés. La coupe reste un tableau de bord incarné, pas un
+  jeu de poupées.
+
 - **Style retenu** : isométrique **plate** façon SimCity 2000/Cities Skylines — camera fixe,
   jamais de rotation. **Pas de vraie 3D CSS** (`perspective`/`preserve-3d`) sur la grille : sans
   rotation caméra, une vraie 3D n'apporte aucun bénéfice visuel et risque une "explosion de

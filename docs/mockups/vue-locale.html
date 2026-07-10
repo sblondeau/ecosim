@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>EcoSim — maquette vue locale (maison en coupe)</title>
+<!--
+  Maquette de réflexion (game-design §17, vue locale) : la maison en coupe
+  remplace le dashboard austère. TOUT est SVG + CSS inline — zéro asset
+  externe : un changement d'état (panne, panneaux posés, confort) est une
+  classe CSS, pas un nouveau sprite. Cliquer un élément ouvrirait le panneau
+  de devis correspondant (ici : la chaudière en panne, panneau ouvert).
+-->
+<style>
+  :root {
+    --bg: #0f1720; --card: #172231; --ink: #e8eef5; --muted: #90a2b8;
+    --line: #24303f; --accent: #35c07f; --warn: #e0a341; --cold: #4aa3df; --danger: #e05341;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: system-ui, sans-serif; }
+  .hud { display: flex; justify-content: space-between; align-items: center; padding: .5rem 1rem;
+         background: var(--card); border-bottom: 1px solid var(--line); font-size: .9rem; }
+  .hud .k { color: var(--muted); }
+  .hud .chip { margin-right: 1.2rem; }
+  .hud .speed button { font: inherit; background: transparent; color: var(--muted); border: 1px solid var(--line);
+                       border-radius: 8px; padding: .2rem .6rem; cursor: pointer; }
+  .hud .speed button.active { background: var(--accent); color: #06231a; border-color: transparent; }
+  .stage { display: flex; gap: 1rem; padding: 1rem; }
+  .scene { flex: 1; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); }
+  svg { display: block; width: 100%; height: auto; }
+
+  /* --- états pilotés par classes : pas d'asset supplémentaire --- */
+  .zone { cursor: pointer; }
+  .zone:hover .hit { stroke: var(--accent); stroke-dasharray: 6 4; }
+  .hit { fill: transparent; stroke: transparent; stroke-width: 2; rx: 8; }
+  .broken .alarm { animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: .15; } }
+  .smoke { animation: drift 3s infinite linear; opacity: .5; }
+  @keyframes drift { from { transform: translateY(0); opacity: .5; } to { transform: translateY(-14px); opacity: 0; } }
+
+  /* --- panneau contextuel (le devis existant, ouvert au clic) --- */
+  .panel { width: 300px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 1rem; }
+  .panel h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .8px; color: var(--danger); margin: 0 0 .6rem; }
+  .panel .row { display: flex; justify-content: space-between; padding: .25rem 0; border-top: 1px solid var(--line); font-size: .9rem; }
+  .panel .row:first-of-type { border-top: 0; }
+  .panel .k { color: var(--muted); }
+  .panel .effects { margin: .5rem 0; padding: .45rem .6rem; background: var(--bg); border-radius: 8px; font-size: .8rem; color: var(--accent); }
+  .panel button { font: inherit; border: 0; border-radius: 10px; padding: .55rem 1rem; font-weight: 600; cursor: pointer; width: 100%; margin-top: .5rem; }
+  .btn-repair { background: var(--warn); color: #241a06; }
+  .btn-replace { background: var(--accent); color: #06231a; }
+  .panel .note { font-size: .75rem; color: var(--muted); margin-top: .6rem; }
+</style>
+</head>
+<body>
+
+<div class="hud">
+  <div>
+    <span class="chip"><span class="k">Jour</span> <strong>20 / 365</strong> · mardi 20 janvier · Hiver</span>
+    <span class="chip"><span class="k">Épargne</span> <strong>7 898 €</strong></span>
+    <span class="chip"><span class="k">Confort</span> <strong style="color:var(--danger)">12 %</strong></span>
+    <span class="chip"><span class="k">Prod.</span> <strong>0,0 kWh</strong></span>
+  </div>
+  <div class="speed">
+    <button class="active">⏸</button><button>▶ ×1</button><button>×2</button><button>×3</button>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="scene">
+  <svg viewBox="0 0 900 460" role="img" aria-label="Votre maison, vue en coupe">
+    <!-- ciel d'hiver, nuageux (nébulosité pilotée par la météo du jour) -->
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#5e7893"/><stop offset="1" stop-color="#93a7bb"/>
+      </linearGradient>
+    </defs>
+    <rect width="900" height="380" fill="url(#sky)"/>
+    <circle cx="760" cy="70" r="26" fill="#f4e9c8" opacity=".5"/>
+    <g fill="#d9e2ea" opacity=".85">
+      <ellipse cx="180" cy="70" rx="60" ry="18"/><ellipse cx="240" cy="60" rx="45" ry="14"/>
+      <ellipse cx="620" cy="100" rx="70" ry="20"/><ellipse cx="690" cy="90" rx="45" ry="14"/>
+    </g>
+    <!-- sol / jardin (plus tard : grille de parcelle — potager, arbres d'ombrage, panneaux au sol) -->
+    <rect y="380" width="900" height="80" fill="#3d4a3a"/>
+    <rect y="376" width="900" height="6" fill="#e8eef5" opacity=".7"/>
+    <!-- arbre -->
+    <rect x="70" y="300" width="12" height="80" fill="#5a4632"/>
+    <circle cx="76" cy="280" r="42" fill="#2f4d38"/>
+
+    <!-- ====== LA MAISON EN COUPE ====== -->
+    <!-- murs / isolation (zone cliquable : l'épaisseur/couleur du liseré = palier d'isolation) -->
+    <g class="zone" aria-label="Isolation : d'origine">
+      <rect x="240" y="180" width="380" height="200" fill="#8a7f6d"/>
+      <rect x="248" y="188" width="364" height="192" fill="#b0a58f"/>
+      <rect class="hit" x="240" y="180" width="380" height="200"/>
+    </g>
+
+    <!-- toit (zone cliquable : les panneaux apparaissent ici une fois posés) -->
+    <g class="zone" aria-label="Toit : pas de panneaux">
+      <polygon points="220,185 430,90 640,185" fill="#6d4c41"/>
+      <polygon points="250,178 430,98 610,178" fill="#7d5a4d"/>
+      <!-- panneaux solaires (masqués : solarKwc = 0) — l'état "posé" est une classe -->
+      <g opacity="0" aria-hidden="true">
+        <rect x="330" y="120" width="52" height="34" fill="#1d3557" stroke="#a8c6e8" transform="skewX(-18)"/>
+      </g>
+      <rect class="hit" x="230" y="92" width="400" height="90"/>
+    </g>
+
+    <!-- séjour : la teinte intérieure = confort (ambre chaud → bleu glacial) -->
+    <g class="zone" aria-label="Séjour : 4,6 °C ressenti">
+      <rect x="256" y="196" width="240" height="176" fill="#31465c"/>
+      <text x="270" y="222" font-size="15" fill="#bcd3e8">❄ 4,6 °C</text>
+      <!-- canapé + fenêtre, silhouettes simples -->
+      <rect x="290" y="330" width="90" height="26" rx="6" fill="#22303f"/>
+      <rect x="420" y="230" width="52" height="60" fill="#93a7bb" opacity=".6"/>
+      <rect class="hit" x="256" y="196" width="240" height="176"/>
+    </g>
+
+    <!-- local chaudière : EN PANNE (fumée + halo rouge pulsant) -->
+    <g class="zone broken" aria-label="Chaudière fioul : en panne">
+      <rect x="500" y="256" width="112" height="116" fill="#26313d"/>
+      <circle class="alarm" cx="556" cy="290" r="34" fill="#e05341" opacity=".3"/>
+      <rect x="532" y="276" width="48" height="76" rx="6" fill="#5c6b7a"/>
+      <rect x="544" y="292" width="24" height="16" rx="3" fill="#26313d"/>
+      <g class="smoke" fill="#9aa7b4">
+        <circle cx="556" cy="266" r="5"/><circle cx="566" cy="258" r="4"/><circle cx="549" cy="256" r="3"/>
+      </g>
+      <text x="522" y="368" font-size="16">⚠️ panne</text>
+      <rect class="hit" x="500" y="256" width="112" height="116"/>
+    </g>
+
+    <!-- garage : la batterie (jauge) vivra ici -->
+    <g class="zone" aria-label="Garage : pas de batterie">
+      <rect x="620" y="240" width="150" height="140" fill="#7a705f"/>
+      <polygon points="612,242 695,196 778,242" fill="#5f4b41"/>
+      <rect x="640" y="268" width="110" height="112" rx="4" fill="#4a5561"/>
+      <line x1="640" y1="290" x2="750" y2="290" stroke="#3a4450" stroke-width="4"/>
+      <line x1="640" y1="316" x2="750" y2="316" stroke="#3a4450" stroke-width="4"/>
+      <line x1="640" y1="342" x2="750" y2="342" stroke="#3a4450" stroke-width="4"/>
+      <rect class="hit" x="612" y="196" width="166" height="184"/>
+    </g>
+
+    <!-- étiquette de la maison -->
+    <text x="240" y="428" font-size="14" fill="#c8d4e0">Maison ancienne · DPE G · isolation d'origine — cliquez un élément pour agir</text>
+  </svg>
+  </div>
+
+  <!-- panneau contextuel ouvert : clic sur la chaudière en panne -->
+  <aside class="panel">
+    <h2>🚨 Chaudière fioul — en panne</h2>
+    <div class="row"><span class="k">Le temps est en pause.</span><span>⏸</span></div>
+    <div class="row"><span class="k">Réparer</span><span><strong>1 500 €</strong></span></div>
+    <button class="btn-repair">Réparer la chaudière</button>
+    <div class="row" style="margin-top:.8rem"><span class="k">Remplacer (PAC)</span><span>13 000 €</span></div>
+    <div class="row"><span class="k">Prime</span><span style="color:var(--accent)">−5 200 €</span></div>
+    <div class="row"><span class="k">Reste à charge</span><span><strong>7 800 €</strong></span></div>
+    <div class="effects">Facture énergie : ≈ −2 020 €/an<br>Fioul : 0 L/an</div>
+    <button class="btn-replace">Passer à la pompe à chaleur</button>
+    <div class="note">Comptant (épargne 7 898 €) ou éco-PTZ 0 % — sources : ADEME, MaPrimeRénov'.</div>
+  </aside>
+</div>
+
+</body>
+</html>
