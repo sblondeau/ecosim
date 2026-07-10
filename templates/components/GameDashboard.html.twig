@@ -64,7 +64,7 @@
     {% endif %}
 
     {% if game.boilerBroken and not game.finished %}
-        <div class="banner">🚨 La chaudière fioul est en panne : la maison n'est plus chauffée. Réparez-la ou remplacez-la (voir « Travaux disponibles »).</div>
+        <div class="banner">🚨 La chaudière fioul est en panne : la maison n'est plus chauffée. Réparez-la ou remplacez-la (voir « Travaux disponibles »).{% if speed == 0 %} Le temps est en pause, décidez sereinement — puis relancez (▶).{% endif %}</div>
     {% endif %}
 
     <div class="grid">

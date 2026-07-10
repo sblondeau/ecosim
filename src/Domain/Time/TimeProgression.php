@@ -17,10 +17,14 @@ use function sprintf;
  * - Base pace: 1 game day per {@see self::SECONDS_PER_GAME_DAY} real seconds,
  *   multiplied by the player's {@see TickSpeed} (×2, ×3 — the constant is
  *   divisible by every multiplier so a day is a whole number of seconds).
- * - Policy `PausesWhileAway` (default, acted): real time only counts while
- *   the game is being watched. An absence longer than the grace window
- *   credits NOTHING — the clock simply restarts at the return. The grace
- *   absorbs normal polling jitter and short tab-switches.
+ * - Policy `PausesWhileAway` (default, acted): a CLOSED tab freezes the game.
+ *   While the page is open the poll requests arrive every few seconds, so the
+ *   gap between two ticks stays tiny — an AFK player in front of an open tab
+ *   still sees time flow ("tant pis pour lui": pausing is his job). A gap
+ *   larger than the grace window can therefore only mean a closed tab or a
+ *   sleeping machine: that stretch credits NOTHING and the clock restarts at
+ *   the return. The grace also absorbs polling jitter, slow requests and
+ *   browser tab-throttling along the way.
  * - Seconds not yet amounting to a full day are carried over (lastTickAt
  *   only advances by the consumed whole days), so no time is lost between
  *   polls.
@@ -34,8 +38,11 @@ final readonly class TimeProgression
     public const int SECONDS_PER_GAME_DAY = 30;
 
     /**
-     * Absences longer than this credit no game time (PausesWhileAway).
-     * Comfortably above the dashboard poll interval, well below a coffee break.
+     * A gap longer than this between two ticks means the tab was closed (open
+     * tabs poll every few seconds): that stretch counts as away time and
+     * credits nothing. Comfortably above the poll interval — so jitter and
+     * background-tab throttling never fake a pause — and small enough that
+     * the worst wrongly-credited gap stays anecdotal.
      */
     public const int AWAY_GRACE_SECONDS = 90;
 

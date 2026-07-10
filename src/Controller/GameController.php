@@ -9,7 +9,6 @@ use App\Application\RenovationHandler;
 use App\Application\TimeKeeper;
 use App\Domain\Finance\Renovation;
 use App\Domain\Simulation\GameState;
-use App\Domain\Simulation\SimulationEngine;
 use App\Domain\Time\TickSpeed;
 use DateTimeImmutable;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -31,7 +30,6 @@ final class GameController extends AbstractController
     public function __construct(
         private readonly GameStore $store,
         private readonly TimeKeeper $timeKeeper,
-        private readonly SimulationEngine $engine,
         private readonly RenovationHandler $renovations,
     ) {
     }
@@ -42,21 +40,11 @@ final class GameController extends AbstractController
         return $this->render('game/dashboard.html.twig');
     }
 
-    /**
-     * Manual step: live the current day now, whatever the clock says. The
-     * real-time clock restarts so the manual day is not double-counted.
-     */
     #[IsCsrfTokenValid('game', tokenKey: '_token')]
     #[Route('/jour-suivant', name: 'app_game_advance', methods: ['POST'])]
     public function advance(): Response
     {
-        $now = new DateTimeImmutable();
-        $game = $this->timeKeeper->catchUp($this->store->current(), $now);
-
-        $this->store->save(
-            $game->withState($this->engine->advance($game->config, $game->state))
-                ->withProgression($game->progression->withSpeed($game->progression->speed, $now)),
-        );
+        $this->store->save($this->timeKeeper->step($this->store->current(), new DateTimeImmutable()));
 
         return $this->redirectToRoute('app_game');
     }
