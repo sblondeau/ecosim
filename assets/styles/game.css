@@ -118,6 +118,104 @@ section > h2.section { font-size: .75rem; text-transform: uppercase; letter-spac
 .effects { margin-top: .5rem; padding: .45rem .6rem; background: var(--bg); border-radius: 8px; font-size: .82rem; color: var(--accent); }
 .effects-none { color: var(--muted); }
 
+/* ===== Vue locale : scène + panneau latéral (game-design §17) ===== */
+.game-layout { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 1rem; align-items: start; }
+@media (max-width: 900px) { .game-layout { grid-template-columns: 1fr; } }
+.scene-wrap { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--card); }
+.scene { display: block; width: 100%; height: auto; }
+.panel { display: flex; flex-direction: column; gap: .8rem; position: sticky; top: .8rem; }
+.panel .big { margin-bottom: .2rem; }
+.panel-head { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+.panel-head h2 { margin: 0; font-size: .85rem; }
+.panel-footer { margin-top: .2rem; }
+.works-links { display: flex; flex-direction: column; gap: .4rem; align-items: stretch; }
+.works-links button { text-align: left; }
+details.card > summary { cursor: pointer; font-size: .78rem; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); font-weight: 600; }
+details.card[open] > summary { margin-bottom: .5rem; }
+
+/* --- slots cliquables --- */
+.slot { cursor: pointer; outline: none; }
+.slot .hit { fill: transparent; stroke: transparent; stroke-width: 2.5; }
+.slot:hover .hit, .slot:focus-visible .hit { stroke: var(--accent); stroke-dasharray: 7 5; }
+.slot.is-selected .hit { stroke: var(--accent); stroke-dasharray: none; }
+.room-temp { font-family: system-ui, sans-serif; font-size: 15px; fill: #dce8f2; opacity: .85; }
+
+/* --- ciel par saison (les stops du dégradé sont stylés en CSS) --- */
+.scene .sky-top { stop-color: #3d5a7a; }
+.scene .sky-bottom { stop-color: #c8d3dc; }
+.scene.season-spring .sky-top { stop-color: #4a7ba6; }
+.scene.season-spring .sky-bottom { stop-color: #cfe3ea; }
+.scene.season-summer .sky-top { stop-color: #3f7fc0; }
+.scene.season-summer .sky-bottom { stop-color: #d8ecf2; }
+.scene.season-autumn .sky-top { stop-color: #56718e; }
+.scene.season-autumn .sky-bottom { stop-color: #d3d7d2; }
+.scene .hill-far { fill: #8fa3b5; opacity: .55; }
+.scene .hill-near { fill: #a9bccb; opacity: .6; }
+.scene.season-summer .hill-far, .scene.season-spring .hill-far { fill: #7fa98c; }
+.scene.season-summer .hill-near, .scene.season-spring .hill-near { fill: #93bb9e; }
+
+/* --- nébulosité et soleil pilotés en continu par --cloud --- */
+.scene .sun { opacity: calc(1.05 - var(--cloud)); }
+.scene .cloud-1 { opacity: clamp(0, calc(var(--cloud) * 1.6 - 0.1), 1); }
+.scene .cloud-2 { opacity: clamp(0, calc(var(--cloud) * 1.8 - 0.5), 1); }
+.scene .cloud-3 { opacity: clamp(0, calc(var(--cloud) * 2 - 1), 0.9); }
+
+/* --- sol : herbe, ou neige quand il gèle --- */
+.scene .ground-grass { fill: #3d4a3a; }
+.scene.season-summer .ground-grass { fill: #4a6a42; }
+.scene.season-spring .ground-grass { fill: #46603f; }
+.scene .ground-snow { display: none; }
+.scene.frost .ground-snow { display: initial; }
+.scene .canopy-snow, .scene .roof-snow-cap { display: none; }
+.scene.frost .canopy-snow, .scene.frost .roof-snow-cap { display: initial; }
+
+/* --- neige de toiture : la fonte raconte l'isolation --- */
+.scene .roof-snow { display: none; }
+.scene.frost.ins-tier-0 .roof-snow-0 { display: initial; }
+.scene.frost.ins-tier-1 .roof-snow-1 { display: initial; }
+.scene.frost.ins-tier-2 .roof-snow-2 { display: initial; }
+
+/* --- isolation : la couche visible dans la coupe, par palier --- */
+.scene .ins-attic, .scene .ins-wall { display: none; }
+.scene.ins-tier-0 .ins-attic-0 { display: initial; }
+.scene.ins-tier-1 .ins-attic-1, .scene.ins-tier-1 .ins-wall-1 { display: initial; }
+.scene.ins-tier-2 .ins-attic-2, .scene.ins-tier-2 .ins-wall-2 { display: initial; }
+
+/* --- confort : la teinte du séjour --- */
+.scene .room-tint { fill: #31465c; }
+.scene.comfort-cool .room-tint { fill: #46503f; }
+.scene.comfort-warm .room-tint { fill: #4a3f2f; }
+
+/* --- chauffage : couches de la chaudière / PAC --- */
+.scene .flame, .scene .smoke, .scene .alarm, .scene .breakdown-sign { display: none; }
+.scene.heating-fioul .flame { display: initial; animation: sc-flick .5s infinite alternate ease-in-out; transform-origin: 48px 96px; }
+.scene.heating-fioul-broken .smoke, .scene.heating-fioul-broken .alarm, .scene.heating-fioul-broken .breakdown-sign { display: initial; }
+.scene.heating-fioul-broken .alarm { animation: sc-pulse 1.4s infinite ease-in-out; }
+.scene.heating-fioul-broken .gauge-needle { stroke: #e05341; }
+.scene .fan { animation: sc-spin 2.2s infinite linear; transform-origin: 38px 26px; }
+
+/* --- cheminée : fume tant que du fioul brûle --- */
+.scene .chimney-smoke { display: none; }
+.scene.smoking .chimney-smoke { display: initial; }
+.scene .puff { animation: sc-drift 4s infinite linear; }
+.scene .puff.p2 { animation-delay: -1.3s; }
+.scene .puff.p3 { animation-delay: -2.6s; }
+
+/* --- panneaux : présents si posés, reflet les jours de production --- */
+.scene .solar { display: none; }
+.scene.roof-installed .solar { display: initial; }
+.scene.producing .solar .glint { animation: sc-glint 5s infinite ease-in-out; }
+
+/* --- batterie dans le garage --- */
+.scene .battery { display: none; }
+.scene.garage-installed .battery { display: initial; }
+
+@keyframes sc-pulse { 50% { opacity: .1; } }
+@keyframes sc-drift { from { transform: translate(0, 0); opacity: .55; } to { transform: translate(8px, -26px); opacity: 0; } }
+@keyframes sc-spin { to { transform: rotate(360deg); } }
+@keyframes sc-flick { to { transform: scaleY(1.18); } }
+@keyframes sc-glint { 0%, 70%, 100% { opacity: .1; } 82% { opacity: .45; } }
+
 .quote-actions { display: flex; gap: .6rem; margin-top: .8rem; flex-wrap: wrap; }
 .btn-small { padding: .45rem .9rem; font-size: .85rem; }
 button:disabled { opacity: .35; cursor: not-allowed; }

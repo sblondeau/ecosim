@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 152" width="108" height="152" overflow="visible">
+    <!-- Chaudière fioul, TOUTES couches présentes : .flame (en marche),
+         .smoke/.alarm (en panne). La scène pilote par .heating-fioul /
+         .heating-fioul-broken — aucun second asset nécessaire. -->
+    <defs>
+        <linearGradient id="bBody" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#7c8b99"/><stop offset=".5" stop-color="#a7b4c0"/><stop offset="1" stop-color="#68767f"/>
+        </linearGradient>
+        <filter id="bSoft" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="6"/>
+        </filter>
+    </defs>
+
+    <circle class="alarm" cx="48" cy="62" r="46" fill="#e05341" opacity=".28" filter="url(#bSoft)"/>
+    <path d="M8 4 v30 h18" stroke="#55636f" stroke-width="7" fill="none" stroke-linecap="round"/>
+    <path d="M92 4 v50 h-16" stroke="#55636f" stroke-width="7" fill="none" stroke-linecap="round"/>
+    <rect x="22" y="30" width="52" height="92" rx="8" fill="url(#bBody)"/>
+    <rect x="22" y="30" width="52" height="14" rx="7" fill="#8d9aa6"/>
+    <circle cx="48" cy="64" r="11" fill="#2b3642"/>
+    <circle cx="48" cy="64" r="11" fill="none" stroke="#4a5866" stroke-width="3"/>
+    <path class="gauge-needle" d="M42 64 a6 6 0 0 1 12 0" stroke="#7fd49a" stroke-width="2.5" fill="none"/>
+    <rect x="34" y="88" width="28" height="18" rx="3" fill="#1c242e"/>
+    <path class="flame" d="M42 102 q2 -8 6 -10 q4 2 6 10 q-2 3 -6 3 q-4 0 -6 -3z" fill="#f0a03c"/>
+    <g class="smoke" fill="#b9c4ce">
+        <circle class="puff p1" cx="48" cy="20" r="6"/>
+        <circle class="puff p2" cx="58" cy="14" r="4.5"/>
+        <circle class="puff p3" cx="40" cy="12" r="3.5"/>
+    </g>
+    <g class="breakdown-sign">
+        <rect x="2" y="128" width="96" height="20" rx="6" fill="#e05341"/>
+        <text x="10" y="142.5" font-family="system-ui" font-size="12" font-weight="700" fill="#2b0f0b">⚠ EN PANNE</text>
+    </g>
+</svg>

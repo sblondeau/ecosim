@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 208 262" width="208" height="262" overflow="visible">
+    <!-- Garage porte relevée : l'intérieur est visible — la batterie s'y pose
+         (par le renderer) quand elle est installée. Neige de toit sous .frost. -->
+    <defs>
+        <linearGradient id="gaWall" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#cbb794"/><stop offset="1" stop-color="#b9a582"/>
+        </linearGradient>
+        <linearGradient id="gaRoof" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#8a4f43"/><stop offset="1" stop-color="#6d3d34"/>
+        </linearGradient>
+        <pattern id="gaTiles" width="34" height="16" patternUnits="userSpaceOnUse" patternTransform="skewX(-24)">
+            <rect width="34" height="16" fill="#7a453a"/>
+            <path d="M0 15h34" stroke="#5f342b" stroke-width="2"/>
+            <path d="M17 0v15" stroke="#5f342b" stroke-width="1.4"/>
+        </pattern>
+    </defs>
+    <rect x="14" y="64" width="180" height="192" fill="url(#gaWall)"/>
+    <polygon points="2,72 104,4 206,72" fill="url(#gaRoof)"/>
+    <polygon points="16,66 104,12 192,66" fill="url(#gaTiles)"/>
+    <path class="roof-snow-cap" d="M24 62 q40 -34 78 -48 q-30 4 -52 20 q-18 14 -26 28z" fill="#f2f6fa" opacity=".95"/>
+    <!-- ouverture : porte relevée, intérieur sombre -->
+    <rect x="36" y="112" width="136" height="144" fill="#1d2732"/>
+    <g stroke="#39434e" stroke-width="3">
+        <rect x="36" y="112" width="136" height="34" fill="#47535f"/>
+        <path d="M42 124h124 M42 136h124"/>
+    </g>
+    <rect x="30" y="250" width="148" height="8" rx="2" fill="#c9d6e2"/>
+</svg>

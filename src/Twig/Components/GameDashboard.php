@@ -10,7 +10,13 @@ use App\Application\GameView;
 use App\Application\GameViewFactory;
 use App\Application\TimeKeeper;
 use DateTimeImmutable;
+
+use function in_array;
+
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
+use Symfony\UX\LiveComponent\Attribute\LiveAction;
+use Symfony\UX\LiveComponent\Attribute\LiveArg;
+use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
 /**
@@ -26,6 +32,12 @@ final class GameDashboard
 {
     use DefaultActionTrait;
 
+    private const array SLOTS = ['roof', 'walls', 'heating', 'garage', 'living'];
+
+    /** The scene slot whose contextual panel is open (null = summary panel). */
+    #[LiveProp(writable: true)]
+    public ?string $selectedSlot = null;
+
     private ?Game $game = null;
     private ?GameView $view = null;
 
@@ -34,6 +46,23 @@ final class GameDashboard
         private readonly TimeKeeper $timeKeeper,
         private readonly GameViewFactory $viewFactory,
     ) {
+    }
+
+    #[LiveAction]
+    public function selectSlot(#[LiveArg] string $slot): void
+    {
+        if (!in_array($slot, self::SLOTS, true)) {
+            return;
+        }
+
+        // Clicking the selected slot again closes its panel.
+        $this->selectedSlot = $slot === $this->selectedSlot ? null : $slot;
+    }
+
+    #[LiveAction]
+    public function closePanel(): void
+    {
+        $this->selectedSlot = null;
     }
 
     public function getGame(): GameView
