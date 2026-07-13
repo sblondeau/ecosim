@@ -121,6 +121,27 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
   et un actif à dépréciation rapide (~15-25 %/an) exigerait une courbe de
   dépréciation continue pour un axe conçu autour du logement. Sa valeur
   résiduelle se matérialise une seule fois, à l'échange (la reprise).
+- **Délai & conditions d'accès de l'éco-PTZ (le levier « délai » du §1, à
+  modéliser)** (déclencheur : Phase 4 économie complète, ou passe réalisme des
+  aides). Aujourd'hui l'éco-PTZ est **instantané** au clic — irréaliste. Réel
+  (sources : service-public.fr, ADEME, Ministère ; plafonds/durées exacts à
+  revérifier avant codage) : **artisan RGE obligatoire**, logement > 2 ans,
+  **aucune condition de revenus** (c'est un prêt, la banque évalue la
+  solvabilité), action seule éligible depuis 2019, cumulable MaPrimeRénov',
+  **jusqu'à 50 000 €** (plafonds plus bas par action : ~15 k€ action seule,
+  25 k€ deux, etc.), durée **15 ans** (20 ans seulement pour rénovation globale
+  performante — notre jeu met 20 à plat, optimiste). **Obtention = 4-8
+  semaines** (devis RGE → dossier bancaire → délai de rétractation ~10-14 j →
+  déblocage). **Conséquence de design majeure** : un éco-PTZ n'est PAS
+  mobilisable pour une panne d'urgence (on ne reste pas 2 mois sans chauffage).
+  L'urgence se paie comptant / crédit conso rapide ; l'éco-PTZ 0 % récompense
+  l'ANTICIPATION. Cible : à la panne, l'option PAC-via-PTZ porte un délai (des
+  semaines d'appoint électrique en attendant les fonds) → réparer devient le
+  choix rationnel de l'urgence, et remplacer *avant* la panne devient la
+  stratégie gagnante. Renforce exactement la leçon « anticiper vs subir » de
+  l'événement panne, et matérialise le levier coût-d'accès du §1 (prix/délai/
+  prérequis, jamais magnitude truquée). Voir `RenovationQuoter` (« travaux
+  instantanés en Phase 0-1 »).
 - **Frais d'entretien annuels par équipement** (déclencheur : écran de ROI, ou
   V1.1 quand le coût complet de possession devient un axe de comparaison).
   Aujourd'hui `monthlyExpenses` est un forfait de vie (INSEE) insensible à
