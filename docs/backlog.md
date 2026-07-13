@@ -13,6 +13,25 @@ avance » : chacune est notée avec son déclencheur.
 - ~~Extraire le value noise vers `Domain/Math`~~ : fait (`SeededNoise` :
   `uniform`/`centered`/`smooth`, canaux indépendants).
 
+- **Amplitude des extrêmes trop faible (recalibration, sourcé Météo-France)**.
+  Diagnostic (juillet 2026, en creusant la sensibilité du thermostat) : la
+  moyenne saisonnière est juste (janvier ~5 °C, juillet ~20 °C), mais les
+  **extrêmes journaliers** sont écrasés — jour le plus froid ~+2 °C (France
+  réelle ~−5), jour le plus chaud ~21 °C (France ~28-30). Conséquence mesurée
+  sur 6 années simulées : **DJU base 18 ~2 090** (France ~2 500), **269 jours
+  de chauffe/365** (trop, car tous *un peu* sous 18), d'où une **sensibilité
+  au thermostat de ~11 %/°C** au lieu des ~7 % ADEME. Cause = le bruit
+  jour-à-jour (±3-4 °C lissé) ne produit pas de vraies vagues de froid/chaleur.
+  Correctif = **renforcer l'amplitude du bruit/persistance hivernale (et
+  estivale)** pour retrouver DJU ~2 500 et des coups de froid à ~−5 °C. Effet
+  attendu : sensibilité → **~9 %/°C** par la physique (le résidu 9→7 % = inertie
+  + intermittence réelles, non modélisées au tick journalier — simplification
+  ASSUMÉE et documentée, jamais un facteur correctif caché). Bonus : débloque
+  l'**été/canicule** pour le pan confort d'été (§16), aujourd'hui impossible
+  (plafond ~21 °C). Cascades : production solaire, équilibrage (hivers plus
+  rudes = factures plus salées), tests météo (bornes, sauts jour-à-jour,
+  moyennes saisonnières) — recalibration à mener proprement, pas un one-liner.
+
 En Phase 5 (météo complète), la **pression atmosphérique** devient la variable
 pivot qui corrèle température/nébulosité/vent (game-design §5) — l'anticyclone
 hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant.
