@@ -40,6 +40,9 @@ final readonly class GameView
         public string $fuelOilCostLabel,
         public string $surplusRevenueLabel,
         public bool $incomeCreditedToday,
+        /** Net change to savings today (income − bill − loan payment), signed. */
+        public string $dayNetLabel,
+        public bool $dayNetNegative,
         public string $monthlyIncomeLabel,
         public string $monthlyExpensesLabel,
         public string $monthlyNetIncomeLabel,

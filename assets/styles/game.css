@@ -28,6 +28,7 @@ body {
 }
 
 .wrap { max-width: 1200px; margin: 0 auto; padding: 1.2rem 1rem 2.5rem; }
+.wrap-game { max-width: none; padding: .8rem 1rem 1.5rem; }
 
 header.top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .5rem; }
 h1 { font-size: 1.4rem; margin: 0; letter-spacing: .5px; }
@@ -118,14 +119,39 @@ section > h2.section { font-size: .75rem; text-transform: uppercase; letter-spac
 .effects { margin-top: .5rem; padding: .45rem .6rem; background: var(--bg); border-radius: 8px; font-size: .82rem; color: var(--accent); }
 .effects-none { color: var(--muted); }
 
-/* ===== Vue locale : scène + panneau latéral (game-design §17) ===== */
-.game-layout { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 1rem; align-items: start; }
-@media (max-width: 900px) { .game-layout { grid-template-columns: 1fr; } }
-.scene-wrap { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--card); }
+/* ===== Vue locale : scène plein cadre + HUD superposé (game-design §17) ===== */
+.game { max-width: 1500px; margin: 0 auto; }
+.game .top { padding: 0 .2rem .6rem; gap: 1rem; }
+.game .brand { display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap; }
+.game .brand h1 { font-size: 1.2rem; }
+.game .top .progress { flex: 1; min-width: 120px; margin: 0; }
+
+.stage { position: relative; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--card); }
 .scene { display: block; width: 100%; height: auto; }
-.panel { display: flex; flex-direction: column; gap: .8rem; position: sticky; top: .8rem; }
-.panel .big { margin-bottom: .2rem; }
-.panel-head { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+
+/* cartes HUD superposées aux coins (info directe in-game) */
+.hud { position: absolute; z-index: 2; padding: .6rem .75rem; background: color-mix(in srgb, var(--card) 82%, transparent); backdrop-filter: blur(4px); border: 1px solid var(--line); border-radius: 12px; font-size: .82rem; max-width: 42%; }
+.hud-tl { top: .7rem; left: .7rem; }
+.hud-tr { top: .7rem; right: .7rem; min-width: 130px; }
+.hud-bl { bottom: .7rem; left: .7rem; }
+.hud-br { bottom: .7rem; right: .7rem; }
+.hud .big { font-size: 1.35rem; }
+.hud-title { font-size: .68rem; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); }
+.hud-line { display: flex; justify-content: space-between; gap: .8rem; padding: .1rem 0; }
+.hud-line .k { color: var(--muted); }
+button.hud-br { z-index: 2; }
+@media (max-width: 720px) {
+    .hud { position: static; max-width: none; margin: .4rem 0; backdrop-filter: none; }
+    .hud-br { display: inline-block; }
+}
+
+/* panneau contextuel flottant au-dessus de la scène */
+.panel-backdrop { position: absolute; inset: 0; z-index: 3; background: transparent; border: 0; cursor: default; padding: 0; }
+.float-panel { position: absolute; z-index: 4; top: .7rem; right: .7rem; bottom: .7rem; width: min(340px, 88%); overflow-y: auto; display: flex; flex-direction: column; gap: .7rem; padding: .8rem; background: color-mix(in srgb, var(--card) 96%, transparent); border: 1px solid var(--line); border-radius: 14px; box-shadow: -8px 0 30px rgba(0, 0, 0, .35); }
+.float-close { position: absolute; top: .6rem; right: .6rem; z-index: 1; padding: .2rem .5rem; }
+.float-panel .card { background: var(--bg); }
+.float-panel .big { margin-bottom: .2rem; }
+.panel-head { display: flex; justify-content: space-between; align-items: center; gap: .5rem; padding-right: 2rem; }
 .panel-head h2 { margin: 0; font-size: .85rem; }
 .panel-footer { margin-top: .2rem; }
 .works-links { display: flex; flex-direction: column; gap: .4rem; align-items: stretch; }

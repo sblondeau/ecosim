@@ -2,12 +2,14 @@
 {% set game = this.game %}
 {% set speed = this.speedValue %}
 {% set selected = this.selectedSlot %}
-<div{{ attributes }} {% if not game.finished %}data-poll="delay(4000)|$render"{% endif %}>
+{% set slots = ['roof', 'walls', 'heating', 'garage', 'living'] %}
+<div{{ attributes }} class="game{{ game.finished ? ' is-finished' }}" {% if not game.finished %}data-poll="delay(4000)|$render"{% endif %}>
     <header class="top">
-        <div>
-            <h1>🏠 EcoSim — Ma maison</h1>
+        <div class="brand">
+            <h1>🏠 EcoSim</h1>
             <div class="sub">Jour {{ game.dayNumber }} / {{ game.horizonDays }} · {{ game.dateLabel }} · {{ game.seasonLabel }}</div>
         </div>
+        <div class="progress"><span style="width: {{ game.progressPct }}%"></span></div>
         {% if not game.finished %}
             <div class="time-controls">
                 <form method="post" action="{{ path('app_game_speed') }}" class="speed">
@@ -24,7 +26,53 @@
             </div>
         {% endif %}
     </header>
-    <div class="progress"><span style="width: {{ game.progressPct }}%"></span></div>
+
+    {% if game.boilerBroken and not game.finished %}
+        <div class="banner">🚨 La chaudière fioul est en panne. Vos chauffages d'appoint électriques maintiennent péniblement ~16 °C — et l'électricité flambe (effet Joule : 1 kWh consommé = 1 kWh de chaleur, le pire des chauffages). Cliquez la chaudière pour réparer ou remplacer.{% if speed == 0 %} Le temps est en pause, décidez sereinement — puis relancez (▶).{% endif %}</div>
+    {% endif %}
+
+    <div class="stage">
+        {{ include('game/scene/_cutaway.html.twig') }}
+
+        {# ===== HUD permanent superposé (info directe in-game) ===== #}
+        <div class="hud hud-tl card">
+            <div class="hud-title">Épargne</div>
+            <div class="big {{ game.savingsNegative ? 'neg' }}">{{ game.savingsLabel }}</div>
+            <div class="hud-line"><span class="k">Aujourd'hui</span><span class="{{ game.dayNetNegative ? 'neg' : 'pos' }}">{{ game.dayNetLabel }}</span></div>
+            {% if game.loanActive %}<div class="hud-line"><span class="k">Dette éco-PTZ</span><span>{{ game.loanRemainingLabel }}</span></div>{% endif %}
+        </div>
+
+        <div class="hud hud-tr card">
+            <div class="hud-line"><span class="k">🌡️</span><span>{{ game.temperatureC|number_format(1, ',', ' ') }} °C</span></div>
+            <div class="hud-line"><span class="k">☁️</span><span>{{ game.cloudPct }} %</span></div>
+            <div class="hud-line"><span class="k">🛋️ Confort</span><span>{{ game.comfortScorePct }} %</span></div>
+            <div class="gauge"><span style="width: {{ game.comfortScorePct }}%; background: var(--accent);"></span></div>
+        </div>
+
+        <div class="hud hud-bl card">
+            <div class="hud-line"><span class="k">⚡ Prod. / conso</span><span>{{ game.productionKwh|number_format(1, ',', ' ') }} / {{ game.demandKwh|number_format(1, ',', ' ') }} kWh</span></div>
+            <div class="hud-line"><span class="k">🔄 Autosuffisance</span><span>{{ game.selfSufficiencyPct }} %</span></div>
+            {% if game.fuelOilLitres > 0 %}<div class="hud-line"><span class="k">🛢️ Fioul</span><span>{{ game.fuelOilLitres|number_format(1, ',', ' ') }} L</span></div>{% endif %}
+        </div>
+
+        <button type="button" class="hud hud-br btn-ghost btn-small {{ selected == 'menu' ? 'active' }}"
+                data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="menu">≡ Bilan & options</button>
+
+        {# ===== panneau flottant contextuel (au clic sur un élément) ===== #}
+        {% if selected %}
+            <button type="button" class="panel-backdrop" aria-label="Fermer"
+                    data-action="click->live#action" data-live-action-param="closePanel"></button>
+            <aside class="float-panel">
+                <button type="button" class="float-close btn-ghost btn-small"
+                        data-action="click->live#action" data-live-action-param="closePanel" aria-label="Fermer">✕</button>
+                {% if selected == 'menu' %}
+                    {{ include('game/panel/_summary.html.twig') }}
+                {% elseif selected in slots %}
+                    {{ include('game/panel/_slot.html.twig') }}
+                {% endif %}
+            </aside>
+        {% endif %}
+    </div>
 
     {% if game.endReport %}
         {% set report = game.endReport %}
@@ -58,23 +106,10 @@
                     <div class="row"><span class="k">Coût énergie net sur l'année</span><span>{{ report.totalNetEnergyCostLabel }}</span></div>
                 </div>
             </div>
+            <form method="post" action="{{ path('app_game_reset') }}" style="margin-top:1rem">
+                <input type="hidden" name="_token" value="{{ csrf_token('game') }}">
+                <button type="submit" class="btn-primary">Nouvelle partie</button>
+            </form>
         </section>
     {% endif %}
-
-    {% if game.boilerBroken and not game.finished %}
-        <div class="banner">🚨 La chaudière fioul est en panne. Vos chauffages d'appoint électriques maintiennent péniblement ~16 °C — et l'électricité flambe (effet Joule : 1 kWh consommé = 1 kWh de chaleur, le pire des chauffages). Cliquez la chaudière pour réparer ou remplacer.{% if speed == 0 %} Le temps est en pause, décidez sereinement — puis relancez (▶).{% endif %}</div>
-    {% endif %}
-
-    <div class="game-layout">
-        <div class="scene-wrap">
-            {{ include('game/scene/_cutaway.html.twig') }}
-        </div>
-        <aside class="panel">
-            {% if selected %}
-                {{ include('game/panel/_slot.html.twig') }}
-            {% else %}
-                {{ include('game/panel/_summary.html.twig') }}
-            {% endif %}
-        </aside>
-    </div>
 </div>

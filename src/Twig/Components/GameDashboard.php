@@ -32,9 +32,10 @@ final class GameDashboard
 {
     use DefaultActionTrait;
 
-    private const array SLOTS = ['roof', 'walls', 'heating', 'garage', 'living'];
+    /** Clickable equipment slots, plus 'menu' for the totals/patrimoine drawer. */
+    private const array PANELS = ['roof', 'walls', 'heating', 'garage', 'living', 'menu'];
 
-    /** The scene slot whose contextual panel is open (null = summary panel). */
+    /** The floating panel currently open over the scene (null = none, fullwidth). */
     #[LiveProp(writable: true)]
     public ?string $selectedSlot = null;
 
@@ -51,11 +52,11 @@ final class GameDashboard
     #[LiveAction]
     public function selectSlot(#[LiveArg] string $slot): void
     {
-        if (!in_array($slot, self::SLOTS, true)) {
+        if (!in_array($slot, self::PANELS, true)) {
             return;
         }
 
-        // Clicking the selected slot again closes its panel.
+        // Clicking the open panel's trigger again closes it.
         $this->selectedSlot = $slot === $this->selectedSlot ? null : $slot;
     }
 
