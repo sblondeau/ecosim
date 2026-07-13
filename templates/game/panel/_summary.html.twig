@@ -74,7 +74,7 @@
             {% set slotOfWork = {insulation: 'walls', heat_pump: 'heating', boiler_repair: 'heating', solar_panels: 'roof', home_battery: 'garage'} %}
             {% for action in game.actions %}
                 <button type="button" class="btn-ghost btn-small"
-                        data-action="live#action" data-live-action-param="selectSlot"
+                        data-action="click->live#action" data-live-action-param="selectSlot"
                         data-live-slot-param="{{ slotOfWork[action.work] }}">{{ action.title }} · {{ action.netCostLabel }}</button>
             {% endfor %}
         </div>

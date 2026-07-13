@@ -48,7 +48,7 @@
 
         {# slot toit : panneaux posés sur le versant gauche #}
         <g class="slot slot-roof{{ selected == 'roof' ? ' is-selected' }}" tabindex="0" role="button"
-           data-action="live#action" data-live-action-param="selectSlot" data-live-slot-param="roof">
+           data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="roof">
             <title>Toit — {{ scene.roofLabel }}</title>
             <g class="solar" transform="translate(66 66) rotate(-25.5)">{{ include('game/scene/assets/solar-panels.svg') }}</g>
             <polygon class="hit" points="2,142 260,18 518,142"/>
@@ -56,7 +56,7 @@
 
         {# slot isolation : les tranches de murs + la couche des combles #}
         <g class="slot slot-walls{{ selected == 'walls' ? ' is-selected' }}" tabindex="0" role="button"
-           data-action="live#action" data-live-action-param="selectSlot" data-live-slot-param="walls">
+           data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="walls">
             <title>Isolation — {{ scene.insulationLabel }}</title>
             <rect class="hit" x="22" y="118" width="28" height="270"/>
             <rect class="hit" x="470" y="118" width="28" height="270"/>
@@ -65,7 +65,7 @@
 
         {# slot séjour (indicateur confort, pas d'action) #}
         <g class="slot slot-living{{ selected == 'living' ? ' is-selected' }}" tabindex="0" role="button"
-           data-action="live#action" data-live-action-param="selectSlot" data-live-slot-param="living">
+           data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="living">
             <title>Séjour — {{ game.indoorTemperatureC|number_format(1, ',', ' ') }} °C</title>
             <text class="room-temp" x="196" y="186">{{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C ressenti</text>
             <rect class="hit" x="50" y="156" width="298" height="212"/>
@@ -73,7 +73,7 @@
 
         {# slot chauffage : chaudière (couches en marche/panne) ou PAC #}
         <g class="slot slot-heating{{ selected == 'heating' ? ' is-selected' }}" tabindex="0" role="button"
-           data-action="live#action" data-live-action-param="selectSlot" data-live-slot-param="heating">
+           data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="heating">
             <title>Chauffage — {{ scene.heatingLabel }}</title>
             {% if scene.heatingState == 'heat-pump' %}
                 <g transform="translate(382 236)">{{ include('game/scene/assets/heat-pump.svg') }}</g>
@@ -90,7 +90,7 @@
     <g transform="translate(800 208)">
         {{ include('game/scene/assets/garage-open.svg') }}
         <g class="slot slot-garage{{ selected == 'garage' ? ' is-selected' }}" tabindex="0" role="button"
-           data-action="live#action" data-live-action-param="selectSlot" data-live-slot-param="garage">
+           data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="garage">
             <title>Garage — {{ scene.garageLabel }}</title>
             <g class="battery" transform="translate(62 142)">{{ include('game/scene/assets/battery.svg') }}</g>
             <rect class="hit" x="2" y="4" width="204" height="252"/>
