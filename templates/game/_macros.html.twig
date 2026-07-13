@@ -1,0 +1,39 @@
+{% macro tip(text) %}
+    <span class="tip" tabindex="0">ⓘ<span class="tipbox">{{ text }}</span></span>
+{%- endmacro %}
+
+{% macro quote_card(action) %}
+    <div class="card quote">
+        <h2>{{ action.title }}</h2>
+        <div class="row"><span class="k">Coût</span><span>{{ action.costLabel }}</span></div>
+        {% if action.subsidyLabel is not empty %}
+            <div class="row"><span class="k">Prime</span><span class="pos">−{{ action.subsidyLabel }}</span></div>
+        {% endif %}
+        <div class="row"><span class="k">Reste à charge</span><span><strong>{{ action.netCostLabel }}</strong></span></div>
+        {% if action.effectLabels is not empty %}
+            <div class="effects">
+                {% for effect in action.effectLabels %}
+                    <div>{{ effect }}</div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="effects effects-none">Aucun effet mesurable sur votre installation actuelle.</div>
+        {% endif %}
+        <div class="quote-actions">
+            <form method="post" action="{{ path('app_game_renovate') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('game') }}">
+                <input type="hidden" name="work" value="{{ action.work }}">
+                <input type="hidden" name="financing" value="cash">
+                <button type="submit" class="btn-primary btn-small" {{ action.cashAllowed ? '' : 'disabled' }}>Payer comptant</button>
+            </form>
+            {% if action.loanAllowed %}
+                <form method="post" action="{{ path('app_game_renovate') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('game') }}">
+                    <input type="hidden" name="work" value="{{ action.work }}">
+                    <input type="hidden" name="financing" value="loan">
+                    <button type="submit" class="btn-ghost btn-small">Éco-PTZ · {{ action.loanMonthlyLabel }}/mois · 20 ans</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+{% endmacro %}

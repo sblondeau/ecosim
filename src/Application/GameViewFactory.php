@@ -7,8 +7,12 @@ namespace App\Application;
 use function abs;
 
 use App\Domain\Building\BuildingCalibration;
+use App\Domain\Building\HeatingSystem;
+use App\Domain\Building\Household;
+use App\Domain\Building\InsulationLevel;
 use App\Domain\Energy\EnergyCalibration;
 use App\Domain\Finance\FinanceCalibration;
+use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
 use App\Domain\Finance\PropertyValuator;
 use App\Domain\Finance\Renovation;
@@ -17,6 +21,7 @@ use App\Domain\Scenario\PrimoAccedantScenario;
 use App\Domain\Scenario\Scenario;
 use App\Domain\Simulation\AnnualOutcome;
 use App\Domain\Simulation\AnnualOutcomeEstimator;
+use App\Domain\Simulation\DailySnapshot;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\SimulationEngine;
@@ -25,8 +30,10 @@ use App\Domain\Weather\Weather;
 use App\Domain\Weather\WeatherGenerator;
 
 use function array_map;
+use function ceil;
 use function count;
 use function implode;
+use function intdiv;
 use function max;
 use function min;
 use function number_format;
@@ -73,6 +80,12 @@ final readonly class GameViewFactory
         $totals = $state->totals;
         $household = $state->household;
 
+        // One reference-year estimate of the CURRENT house, shared by the
+        // fuel-poverty rate and the works panel's "before" (no double sim).
+        $currentAnnual = $this->estimator->estimate($household);
+        $annualIncome = $this->finance->monthlyNetIncome()->value * 12.0;
+        $effortRate = $currentAnnual->netEnergyCost->euros() / $annualIncome;
+
         return new GameView(
             dayNumber: min($state->currentDay + 1, $config->horizonDays),
             dateLabel: $this->frenchDate($snapshot->date),
@@ -83,6 +96,7 @@ final readonly class GameViewFactory
             cloudPct: (int) round($snapshot->weather->cloudCover * 100),
             temperatureC: $snapshot->weather->temperatureC,
             weatherSparkline: $this->weatherSparkline($config, $state),
+            scene: $this->houseScene($snapshot, $household),
             productionKwh: $balance->productionKwh,
             demandKwh: $balance->demandKwh,
             selfSufficiencyPct: (int) round($balance->selfSufficiencyRatio() * 100),
@@ -94,17 +108,29 @@ final readonly class GameViewFactory
             fuelOilCostLabel: $snapshot->bill->fuelOilCost->format(),
             surplusRevenueLabel: $snapshot->bill->surplusRevenue->format(),
             incomeCreditedToday: $snapshot->incomeCredited->cents > 0,
+            dayNetLabel: self::signed($dayNet = $snapshot->incomeCredited->minus($snapshot->bill->netCost())->minus($snapshot->loanPayment)),
+            dayNetNegative: $dayNet->isNegative(),
             monthlyIncomeLabel: Money::fromEuros($this->finance->monthlyNetIncome()->value)->format(),
             monthlyExpensesLabel: Money::fromEuros($this->finance->monthlyLivingExpenses()->value)->format(),
             monthlyNetIncomeLabel: Money::fromEuros(
                 $this->finance->monthlyNetIncome()->value - $this->finance->monthlyLivingExpenses()->value,
             )->format(),
+            energyEffortPct: (int) round($effortRate * 100),
+            inFuelPoverty: $effortRate > $this->finance->fuelPovertyEffortThreshold()->value,
             propertyValueLabel: $this->property->valueFor($household->dpeClass())->format(),
             loanActive: $state->loan->isActive(),
             loanMonthlyPaymentLabel: $state->loan->monthlyPayment->format(),
             loanRemainingLabel: $state->loan->remaining->format(),
+            loanTermYears: intdiv(Loan::TERM_MONTHS, 12),
+            loanRemainingYears: (int) ceil($state->loan->remainingMonths() / 12),
             heatingLabel: $household->heatingSystem->label(),
             boilerBroken: $household->boilerBroken,
+            setpointC: (int) round($household->heatingSetpointC),
+            setpointCanUp: $household->heatingSetpointC < $this->building->maxHeatingSetpointC()->value,
+            setpointCanDown: $household->heatingSetpointC > $this->building->minHeatingSetpointC()->value,
+            setpointBelowHealthy: $household->heatingSetpointC < $this->building->healthySetpointFloorC()->value,
+            setpointDownEffectLabel: $this->setpointEffect($household, $currentAnnual, -1.0),
+            setpointUpEffectLabel: $this->setpointEffect($household, $currentAnnual, 1.0),
             insulationLabel: $household->insulation->label(),
             dpeLetter: $household->dpeClass()->label(),
             heatingElectricityKwh: $snapshot->heating->electricityKwh,
@@ -128,7 +154,7 @@ final readonly class GameViewFactory
             totalSurplusRevenueLabel: $totals->surplusRevenue->format(),
             totalNetEnergyCostLabel: $totals->netEnergyCost()->format(),
             help: $this->helpTexts(),
-            actions: $this->actionsFor($state),
+            actions: $this->actionsFor($state, $currentAnnual),
             endReport: $this->engine->isFinished($config, $state) ? $this->endReport($state) : null,
         );
     }
@@ -217,12 +243,76 @@ final readonly class GameViewFactory
                 number_format($this->finance->fuelOilPricePerLitre()->value, 2, ',', ' '),
             ),
             'netIncome' => 'Revenu net du foyer (INSEE) moins les dépenses de vie hors énergie, crédité le 1er du mois. L\'énergie, elle, est payée jour par jour par la simulation.',
+            'ecoPtz' => sprintf(
+                'Éco-PTZ : prêt à taux zéro (0 %% d\'intérêt) sur %d ans, jusqu\'à %s (plafond réglementaire). Réservé aux travaux de performance énergétique. La mensualité est faible et étalée — c\'est le levier qui rend la rénovation accessible — mais elle est prélevée chaque mois pendant 20 ans, et la dette restante pèse sur votre patrimoine.',
+                intdiv(Loan::TERM_MONTHS, 12),
+                Money::fromEuros($this->finance->loanCap()->value)->format(),
+            ),
+            'setpoint' => sprintf(
+                'Température de consigne du chauffage. Chaque °C compte : ~+7 %% de chauffage par degré (ADEME). Repère de confort 19 °C (Code de l\'énergie), plancher santé %.0f °C (OMS) — en dessous, les habitants souffrent du froid. Baisser économise mais dégrade le confort : c\'est le vrai arbitrage de la précarité.',
+                $this->building->healthySetpointFloorC()->value,
+            ),
+            'fuelPoverty' => sprintf(
+                'Taux d\'effort énergétique : part du revenu annuel consacrée à l\'énergie du logement (estimée sur une année type). Au-delà de %.0f %% pour un ménage modeste, on parle de précarité énergétique (indicateur ONPE, loi Grenelle II) — ~12 millions de personnes en France. La rénovation en fait sortir.',
+                $this->finance->fuelPovertyEffortThreshold()->value * 100,
+            ),
             'worksEstimate' => 'Effets estimés en simulant une année météo type complète avec et sans les travaux, via le moteur du jeu lui-même. L\'effet réel dépendra de la météo de VOTRE partie et de la date des travaux.',
             'propertyValue' => sprintf(
                 'Prix d\'achat de la maison (Notaires de France) revalorisé de +%.0f %% par classe DPE gagnée. Cette valeur n\'est réalisable qu\'à la revente — elle ne s\'additionne jamais à l\'épargne.',
                 $this->finance->dpeClassValueStep()->value * 100,
             ),
         ];
+    }
+
+    /**
+     * Felt-temperature tiers driving the occupant and living-room tint. Based
+     * on operative (felt) temperature, not the air setpoint: OMS minimum 18 °C,
+     * adaptive comfort up to ~25 °C (EN 16798). This is why 19 °C is never a
+     * universal answer — a passoire's cold walls drop the felt below the air.
+     */
+    private const float FELT_COLD_BELOW = 14.0;
+    private const float FELT_COOL_BELOW = 18.0;
+    private const float FELT_HOT_ABOVE = 25.0;
+
+    /**
+     * Translates the simulation facts into the semantic scene model — states
+     * and buckets only, never geometry (game-design §17).
+     */
+    private function houseScene(DailySnapshot $snapshot, Household $household): HouseSceneView
+    {
+        return new HouseSceneView(
+            season: $snapshot->date->season()->value,
+            cloudPct: (int) round($snapshot->weather->cloudCover * 100),
+            frost: $snapshot->weather->temperatureC <= 0.0,
+            producing: $snapshot->balance->productionKwh > 0.0,
+            chimneySmoking: $snapshot->heating->fuelOilLitres > 0.0,
+            roofState: $household->solarKwc > 0.0 ? 'installed' : 'empty',
+            roofLabel: $household->solarKwc > 0.0
+                ? sprintf('%.0f kWc', $household->solarKwc)
+                : 'Pas de panneaux',
+            insulationTier: match ($household->insulation) {
+                InsulationLevel::Original => 0,
+                InsulationLevel::Retrofitted => 1,
+                InsulationLevel::Reinforced => 2,
+            },
+            insulationLabel: $household->insulation->label(),
+            heatingState: match (true) {
+                $household->boilerBroken => 'fioul-broken',
+                HeatingSystem::HeatPump === $household->heatingSystem => 'heat-pump',
+                default => 'fioul',
+            },
+            heatingLabel: $household->heatingSystem->label(),
+            garageState: $household->batteryKwh > 0.0 ? 'installed' : 'empty',
+            garageLabel: $household->batteryKwh > 0.0
+                ? sprintf('%.0f kWh', $household->batteryKwh)
+                : 'Pas de batterie',
+            comfortState: match (true) {
+                $snapshot->comfort->feltC < self::FELT_COLD_BELOW => 'cold',
+                $snapshot->comfort->feltC < self::FELT_COOL_BELOW => 'cool',
+                $snapshot->comfort->feltC > self::FELT_HOT_ABOVE => 'hot',
+                default => 'warm',
+            },
+        );
     }
 
     private const int SPARKLINE_DAYS = 30;
@@ -276,13 +366,38 @@ final readonly class GameViewFactory
     }
 
     /**
+     * The estimated effect of nudging the thermostat by one degree, over a
+     * reference year — the live pedagogy of "−1 °C ≈ −7 % de chauffage".
+     * Empty at the bounds (no button there).
+     */
+    private function setpointEffect(Household $household, AnnualOutcome $current, float $deltaC): string
+    {
+        $target = $household->heatingSetpointC + $deltaC;
+        if ($target < $this->building->minHeatingSetpointC()->value || $target > $this->building->maxHeatingSetpointC()->value) {
+            return '';
+        }
+
+        $billDelta = $this->estimator->estimate($household->withHeatingSetpointC($target))
+            ->netEnergyCost->minus($current->netEnergyCost);
+
+        // Nearest 10 € — false precision for an estimate.
+        $euros = 10 * (int) round($billDelta->cents / 1000);
+
+        return sprintf(
+            '≈ %s%s €/an · confort %s',
+            $euros < 0 ? '−' : '+',
+            number_format(abs($euros), 0, ',', ' '),
+            $deltaC < 0 ? 'moindre' : 'meilleur',
+        );
+    }
+
+    /**
      * @return array<string, ActionView>
      */
-    private function actionsFor(GameState $state): array
+    private function actionsFor(GameState $state, AnnualOutcome $before): array
     {
         $loanCap = Money::fromEuros($this->finance->loanCap()->value);
         $actions = [];
-        $before = null;
 
         foreach (Renovation::cases() as $work) {
             $quote = $this->quoter->quote($work, $state->household);
@@ -290,9 +405,7 @@ final readonly class GameViewFactory
                 continue;
             }
 
-            // Estimated lazily: one reference year for the current house…
-            $before ??= $this->estimator->estimate($state->household);
-            // …and one per available work.
+            // The current house's reference year is shared; each work gets its own.
             $after = $this->estimator->estimate($quote->resultingHousehold);
 
             $net = $quote->netCost();
@@ -304,8 +417,9 @@ final readonly class GameViewFactory
                 subsidyLabel: $quote->subsidy->cents > 0 ? $quote->subsidy->format() : '',
                 netCostLabel: $net->format(),
                 cashAllowed: $state->savings->cents >= $net->cents,
-                loanAllowed: $work->isLoanEligible()
-                    && $state->loan->borrowedTotal->plus($net)->cents <= $loanCap->cents,
+                loanAllowed: $loanEligible = ($work->isLoanEligible()
+                    && $state->loan->borrowedTotal->plus($net)->cents <= $loanCap->cents),
+                loanMonthlyLabel: $loanEligible ? Loan::none()->borrow($net)->monthlyPayment->format() : '',
                 effectLabels: self::effectLabels($before, $after),
             );
         }

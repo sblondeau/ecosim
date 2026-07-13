@@ -96,6 +96,79 @@ final class GameViewFactoryTest extends TestCase
         );
     }
 
+    public function testTheSceneModelSpeaksInSemanticStates(): void
+    {
+        $factory = new GameViewFactory();
+        $config = self::config(); // January 15th epoch: winter, fuel burning.
+
+        $bare = new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler);
+        $scene = $factory->build($config, GameState::start($bare, Money::fromEuros(4000.0)))->scene;
+
+        self::assertSame('winter', $scene->season);
+        self::assertSame('empty', $scene->roofState);
+        self::assertSame(0, $scene->insulationTier);
+        self::assertSame('fioul', $scene->heatingState);
+        self::assertSame('empty', $scene->garageState);
+        self::assertTrue($scene->chimneySmoking, 'The boiler burns fuel in January — the chimney shows it.');
+        self::assertFalse($scene->producing, 'No panels, no glint.');
+        self::assertSame('cool', $scene->comfortState, 'Heated passoire: 16.2 °C felt — chilly, not freezing.');
+
+        $renovated = new Household(3.0, 5.0, InsulationLevel::Reinforced, HeatingSystem::HeatPump);
+        $scene = $factory->build($config, GameState::start($renovated, Money::fromEuros(4000.0)))->scene;
+
+        self::assertSame('installed', $scene->roofState);
+        self::assertSame(2, $scene->insulationTier);
+        self::assertSame('heat-pump', $scene->heatingState);
+        self::assertFalse($scene->chimneySmoking, 'A heat pump never smokes.');
+        self::assertSame('warm', $scene->comfortState);
+
+        $broken = new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler, boilerBroken: true);
+        $scene = $factory->build($config, GameState::start($broken, Money::fromEuros(4000.0)))->scene;
+
+        self::assertSame('fioul-broken', $scene->heatingState);
+        self::assertFalse($scene->chimneySmoking, 'A dead boiler burns nothing.');
+        self::assertSame('cold', $scene->comfortState, 'Emergency heat only: the occupant is freezing.');
+    }
+
+    public function testThermostatExposesBoundsAndLivePreview(): void
+    {
+        $factory = new GameViewFactory();
+        $config = self::config();
+        $house = new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler);
+
+        $view = $factory->build($config, GameState::start($house, Money::fromEuros(4000.0)));
+        self::assertSame(19, $view->setpointC);
+        self::assertTrue($view->setpointCanUp);
+        self::assertTrue($view->setpointCanDown);
+        self::assertFalse($view->setpointBelowHealthy);
+        self::assertStringContainsString('€/an', $view->setpointUpEffectLabel, 'Warming previews a yearly cost.');
+        self::assertStringContainsString('+', $view->setpointUpEffectLabel, 'Warmer = more spending.');
+        self::assertStringContainsString('−', $view->setpointDownEffectLabel, 'Cooler = savings.');
+
+        // At the 16 °C floor: no more down, and flagged below the health floor.
+        $cold = $house->withHeatingSetpointC(16.0);
+        $coldView = $factory->build($config, GameState::start($cold, Money::fromEuros(4000.0)));
+        self::assertFalse($coldView->setpointCanDown);
+        self::assertTrue($coldView->setpointBelowHealthy);
+        self::assertSame('', $coldView->setpointDownEffectLabel, 'No preview past the bound.');
+    }
+
+    public function testFuelPovertyFlagsThePassoireAndClearsAfterRenovation(): void
+    {
+        $factory = new GameViewFactory();
+        $config = self::config();
+
+        $passoire = new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler);
+        $bare = $factory->build($config, GameState::start($passoire, Money::fromEuros(4000.0)));
+        self::assertTrue($bare->inFuelPoverty, 'The fuel-oil passoire eats >8% of income.');
+        self::assertGreaterThan(8, $bare->energyEffortPct);
+
+        $renovated = new Household(3.0, 5.0, InsulationLevel::Reinforced, HeatingSystem::HeatPump);
+        $good = $factory->build($config, GameState::start($renovated, Money::fromEuros(4000.0)));
+        self::assertFalse($good->inFuelPoverty, 'Insulation + heat pump + solar clear fuel poverty.');
+        self::assertLessThan($bare->energyEffortPct, $good->energyEffortPct);
+    }
+
     public function testHelpTextsQuoteTheCalibratedFigures(): void
     {
         $help = new GameViewFactory()->build(self::config(), GameState::start(self::passoire(), Money::fromEuros(4000.0)))->help;

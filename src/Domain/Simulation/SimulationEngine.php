@@ -82,7 +82,7 @@ final readonly class SimulationEngine
             ? $this->emergencyHeating->consumptionFor($household->insulation, $weather->temperatureC, $baseDemand)
             : $this->heatingEnergy->consumptionFor(
                 $household->heatingSystem,
-                $this->heatingNeed->dailyNeedKwh($household->insulation, $weather->temperatureC),
+                $this->heatingNeed->dailyNeedKwh($household->insulation, $weather->temperatureC, $household->heatingSetpointC),
             );
 
         $demand = $baseDemand + $heating->electricityKwh;
@@ -93,7 +93,7 @@ final readonly class SimulationEngine
         // survival setpoint, lower on cold days when the heaters are maxed out.
         $comfort = $household->boilerBroken
             ? $this->comfort->unheatedComfortFor($household->insulation, $weather->temperatureC, $baseDemand + $heating->electricityKwh)
-            : $this->comfort->comfortFor($household->insulation, $weather->temperatureC);
+            : $this->comfort->comfortFor($household->insulation, $weather->temperatureC, $household->heatingSetpointC);
 
         return new DailySnapshot(
             $date,

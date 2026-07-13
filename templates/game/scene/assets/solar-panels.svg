@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 156 40" width="156" height="40" overflow="visible">
+    <!-- Rangée de 3 modules PV, dessinée à plat : le renderer l'incline sur le
+         versant du toit (rotate). Le reflet (.glint) s'anime les jours de production. -->
+    <defs>
+        <linearGradient id="pvCell" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#28497a"/><stop offset=".6" stop-color="#1d3557"/><stop offset="1" stop-color="#16294a"/>
+        </linearGradient>
+    </defs>
+    <g stroke="#a8c6e8" stroke-width="1.5" fill="url(#pvCell)">
+        <rect x="2" y="2" width="48" height="36" rx="2"/>
+        <rect x="54" y="2" width="48" height="36" rx="2"/>
+        <rect x="106" y="2" width="48" height="36" rx="2"/>
+    </g>
+    <g stroke="#7aa0cc" stroke-width=".8" opacity=".7">
+        <path d="M18 2v36 M34 2v36 M70 2v36 M86 2v36 M122 2v36 M138 2v36 M2 20h152"/>
+    </g>
+    <g class="glint" fill="#fff" opacity=".25">
+        <polygon points="6,34 30,6 40,6 16,34"/>
+        <polygon points="110,34 134,6 141,6 117,34"/>
+    </g>
+</svg>

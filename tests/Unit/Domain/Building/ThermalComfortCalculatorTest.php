@@ -85,6 +85,20 @@ final class ThermalComfortCalculatorTest extends TestCase
         self::assertSame(100, $unheated->score);
     }
 
+    public function testALowerSetpointHoldsTheHouseColder(): void
+    {
+        $calculator = new ThermalComfortCalculator();
+
+        $at21 = $calculator->comfortFor(InsulationLevel::Original, 0.0, 21.0);
+        $at19 = $calculator->comfortFor(InsulationLevel::Original, 0.0, 19.0);
+        $at16 = $calculator->comfortFor(InsulationLevel::Original, 0.0, 16.0);
+
+        self::assertSame(21.0, $at21->indoorC);
+        self::assertSame(19.0, $at19->indoorC);
+        self::assertSame(16.0, $at16->indoorC, 'Dialling down the thermostat directly lowers the indoor air.');
+        self::assertGreaterThan($at16->score, $at19->score, 'Under-heating to save money costs comfort.');
+    }
+
     public function testScoreDegradesProgressivelyNeverACliff(): void
     {
         $calculator = new ThermalComfortCalculator();

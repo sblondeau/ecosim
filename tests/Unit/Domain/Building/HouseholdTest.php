@@ -60,4 +60,16 @@ final class HouseholdTest extends TestCase
         self::assertTrue($broken->withInsulation(InsulationLevel::Retrofitted)->boilerBroken);
         self::assertFalse($broken->withBoilerBroken(false)->boilerBroken, 'The repair clears the flag.');
     }
+
+    public function testTheSetpointDefaultsToNineteenAndSurvivesOtherWithers(): void
+    {
+        $house = new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler);
+        self::assertSame(19.0, $house->heatingSetpointC, 'Default thermostat: 19 °C (R241-26).');
+
+        $warmer = $house->withHeatingSetpointC(21.0);
+        self::assertSame(21.0, $warmer->heatingSetpointC);
+        self::assertSame(21.0, $warmer->withSolarKwc(3.0)->heatingSetpointC, 'Installing panels keeps the dialled setpoint.');
+        self::assertSame(21.0, $warmer->withInsulation(InsulationLevel::Reinforced)->heatingSetpointC);
+        self::assertSame(21.0, $warmer->withHeatingSystem(HeatingSystem::HeatPump)->heatingSetpointC);
+    }
 }

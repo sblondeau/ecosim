@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Application\GameStore;
 use App\Application\RenovationHandler;
 use App\Application\TimeKeeper;
+use App\Domain\Building\BuildingCalibration;
 use App\Domain\Finance\Renovation;
 use App\Domain\Simulation\GameState;
 use App\Domain\Time\TickSpeed;
@@ -31,6 +32,7 @@ final class GameController extends AbstractController
         private readonly GameStore $store,
         private readonly TimeKeeper $timeKeeper,
         private readonly RenovationHandler $renovations,
+        private readonly BuildingCalibration $building = new BuildingCalibration(),
     ) {
     }
 
@@ -60,6 +62,25 @@ final class GameController extends AbstractController
             $game = $this->timeKeeper->catchUp($this->store->current(), $now);
             $this->store->save($game->withProgression($game->progression->withSpeed($speed, $now)));
         }
+
+        return $this->redirectToRoute('app_game');
+    }
+
+    #[IsCsrfTokenValid('game', tokenKey: '_token')]
+    #[Route('/consigne', name: 'app_game_setpoint', methods: ['POST'])]
+    public function setpoint(Request $request): Response
+    {
+        $game = $this->timeKeeper->catchUp($this->store->current(), new DateTimeImmutable());
+        $delta = $request->getPayload()->getInt('delta');
+        $household = $game->state->household;
+
+        $target = $household->heatingSetpointC + max(-1, min(1, $delta));
+        $clamped = max(
+            $this->building->minHeatingSetpointC()->value,
+            min($this->building->maxHeatingSetpointC()->value, $target),
+        );
+
+        $this->store->save($game->withState($game->state->withHousehold($household->withHeatingSetpointC($clamped))));
 
         return $this->redirectToRoute('app_game');
     }

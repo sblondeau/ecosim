@@ -10,7 +10,13 @@ use App\Application\GameView;
 use App\Application\GameViewFactory;
 use App\Application\TimeKeeper;
 use DateTimeImmutable;
+
+use function in_array;
+
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
+use Symfony\UX\LiveComponent\Attribute\LiveAction;
+use Symfony\UX\LiveComponent\Attribute\LiveArg;
+use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
 /**
@@ -26,6 +32,13 @@ final class GameDashboard
 {
     use DefaultActionTrait;
 
+    /** Clickable equipment slots, plus 'menu' for the totals/patrimoine drawer. */
+    private const array PANELS = ['roof', 'walls', 'heating', 'garage', 'living', 'menu'];
+
+    /** The floating panel currently open over the scene (null = none, fullwidth). */
+    #[LiveProp(writable: true)]
+    public ?string $selectedSlot = null;
+
     private ?Game $game = null;
     private ?GameView $view = null;
 
@@ -34,6 +47,23 @@ final class GameDashboard
         private readonly TimeKeeper $timeKeeper,
         private readonly GameViewFactory $viewFactory,
     ) {
+    }
+
+    #[LiveAction]
+    public function selectSlot(#[LiveArg] string $slot): void
+    {
+        if (!in_array($slot, self::PANELS, true)) {
+            return;
+        }
+
+        // Clicking the open panel's trigger again closes it.
+        $this->selectedSlot = $slot === $this->selectedSlot ? null : $slot;
+    }
+
+    #[LiveAction]
+    public function closePanel(): void
+    {
+        $this->selectedSlot = null;
     }
 
     public function getGame(): GameView

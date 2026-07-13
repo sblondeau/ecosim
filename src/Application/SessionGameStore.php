@@ -40,7 +40,7 @@ final readonly class SessionGameStore implements GameStore
      * format is thrown away and the game restarts, instead of being silently
      * rebuilt into a valid-looking but absurd state by the hydrate fallbacks.
      */
-    private const int FORMAT_VERSION = 9;
+    private const int FORMAT_VERSION = 10;
 
     public function __construct(
         private RequestStack $requestStack,
@@ -109,6 +109,7 @@ final readonly class SessionGameStore implements GameStore
             insulation: InsulationLevel::from((string) ($data['insulation'] ?? InsulationLevel::Original->value)),
             heatingSystem: HeatingSystem::from((string) ($data['heating'] ?? HeatingSystem::FuelOilBoiler->value)),
             boilerBroken: (bool) ($data['boilerBroken'] ?? false),
+            heatingSetpointC: (float) ($data['setpointC'] ?? 19.0),
         );
 
         $state = new GameState(
@@ -162,6 +163,7 @@ final readonly class SessionGameStore implements GameStore
             'insulation' => $game->state->household->insulation->value,
             'heating' => $game->state->household->heatingSystem->value,
             'boilerBroken' => $game->state->household->boilerBroken,
+            'setpointC' => $game->state->household->heatingSetpointC,
             'batteryLevelKwh' => $game->state->batteryLevelKwh,
             'savingsCents' => $game->state->savings->cents,
             'loanRemainingCents' => $game->state->loan->remaining->cents,

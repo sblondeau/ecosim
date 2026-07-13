@@ -24,13 +24,19 @@ final readonly class HeatingNeedCalculator
     }
 
     /**
-     * @param float $outdoorC daily-mean outdoor temperature, in °C
+     * @param float      $outdoorC  daily-mean outdoor temperature, in °C
+     * @param float|null $setpointC thermostat target (°C); null = the standard 19 °C.
+     *                              The degree-day base tracks it (base = setpoint −
+     *                              free internal gains), so a warmer setpoint needs
+     *                              more heat — the ADEME ≈ +7 %/°C lesson.
      *
      * @return float useful heat needed for the day, in kWh (0 outside the heating season)
      */
-    public function dailyNeedKwh(InsulationLevel $insulation, float $outdoorC): float
+    public function dailyNeedKwh(InsulationLevel $insulation, float $outdoorC, ?float $setpointC = null): float
     {
-        $degreeDays = max(0.0, $this->calibration->heatingBaseTemperatureC()->value - $outdoorC);
+        $setpoint = $setpointC ?? $this->calibration->heatingSetpointC()->value;
+        $base = $setpoint - $this->calibration->internalHeatGainOffsetC()->value;
+        $degreeDays = max(0.0, $base - $outdoorC);
 
         $need = $this->calibration->heatLossKwhPerDegreeDay()->value
             * $this->calibration->insulationFactor($insulation)->value

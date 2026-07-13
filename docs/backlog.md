@@ -13,6 +13,25 @@ avance » : chacune est notée avec son déclencheur.
 - ~~Extraire le value noise vers `Domain/Math`~~ : fait (`SeededNoise` :
   `uniform`/`centered`/`smooth`, canaux indépendants).
 
+- **Amplitude des extrêmes trop faible (recalibration, sourcé Météo-France)**.
+  Diagnostic (juillet 2026, en creusant la sensibilité du thermostat) : la
+  moyenne saisonnière est juste (janvier ~5 °C, juillet ~20 °C), mais les
+  **extrêmes journaliers** sont écrasés — jour le plus froid ~+2 °C (France
+  réelle ~−5), jour le plus chaud ~21 °C (France ~28-30). Conséquence mesurée
+  sur 6 années simulées : **DJU base 18 ~2 090** (France ~2 500), **269 jours
+  de chauffe/365** (trop, car tous *un peu* sous 18), d'où une **sensibilité
+  au thermostat de ~11 %/°C** au lieu des ~7 % ADEME. Cause = le bruit
+  jour-à-jour (±3-4 °C lissé) ne produit pas de vraies vagues de froid/chaleur.
+  Correctif = **renforcer l'amplitude du bruit/persistance hivernale (et
+  estivale)** pour retrouver DJU ~2 500 et des coups de froid à ~−5 °C. Effet
+  attendu : sensibilité → **~9 %/°C** par la physique (le résidu 9→7 % = inertie
+  + intermittence réelles, non modélisées au tick journalier — simplification
+  ASSUMÉE et documentée, jamais un facteur correctif caché). Bonus : débloque
+  l'**été/canicule** pour le pan confort d'été (§16), aujourd'hui impossible
+  (plafond ~21 °C). Cascades : production solaire, équilibrage (hivers plus
+  rudes = factures plus salées), tests météo (bornes, sauts jour-à-jour,
+  moyennes saisonnières) — recalibration à mener proprement, pas un one-liner.
+
 En Phase 5 (météo complète), la **pression atmosphérique** devient la variable
 pivot qui corrèle température/nébulosité/vent (game-design §5) — l'anticyclone
 hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant.
@@ -102,6 +121,27 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
   et un actif à dépréciation rapide (~15-25 %/an) exigerait une courbe de
   dépréciation continue pour un axe conçu autour du logement. Sa valeur
   résiduelle se matérialise une seule fois, à l'échange (la reprise).
+- **Délai & conditions d'accès de l'éco-PTZ (le levier « délai » du §1, à
+  modéliser)** (déclencheur : Phase 4 économie complète, ou passe réalisme des
+  aides). Aujourd'hui l'éco-PTZ est **instantané** au clic — irréaliste. Réel
+  (sources : service-public.fr, ADEME, Ministère ; plafonds/durées exacts à
+  revérifier avant codage) : **artisan RGE obligatoire**, logement > 2 ans,
+  **aucune condition de revenus** (c'est un prêt, la banque évalue la
+  solvabilité), action seule éligible depuis 2019, cumulable MaPrimeRénov',
+  **jusqu'à 50 000 €** (plafonds plus bas par action : ~15 k€ action seule,
+  25 k€ deux, etc.), durée **15 ans** (20 ans seulement pour rénovation globale
+  performante — notre jeu met 20 à plat, optimiste). **Obtention = 4-8
+  semaines** (devis RGE → dossier bancaire → délai de rétractation ~10-14 j →
+  déblocage). **Conséquence de design majeure** : un éco-PTZ n'est PAS
+  mobilisable pour une panne d'urgence (on ne reste pas 2 mois sans chauffage).
+  L'urgence se paie comptant / crédit conso rapide ; l'éco-PTZ 0 % récompense
+  l'ANTICIPATION. Cible : à la panne, l'option PAC-via-PTZ porte un délai (des
+  semaines d'appoint électrique en attendant les fonds) → réparer devient le
+  choix rationnel de l'urgence, et remplacer *avant* la panne devient la
+  stratégie gagnante. Renforce exactement la leçon « anticiper vs subir » de
+  l'événement panne, et matérialise le levier coût-d'accès du §1 (prix/délai/
+  prérequis, jamais magnitude truquée). Voir `RenovationQuoter` (« travaux
+  instantanés en Phase 0-1 »).
 - **Frais d'entretien annuels par équipement** (déclencheur : écran de ROI, ou
   V1.1 quand le coût complet de possession devient un axe de comparaison).
   Aujourd'hui `monthlyExpenses` est un forfait de vie (INSEE) insensible à
@@ -199,6 +239,119 @@ minimal si on veut l'avancer.
   été on est bien jusqu'à ~26-28 °C (EN 16798) ; la plage 19-26 actuelle
   l'encode grossièrement, à raffiner quand l'été devient un vrai sujet
   (bornes saisonnières).
+
+## Confort thermique : représentation + consigne réglable (réflexion joueur, juillet 2026)
+
+Constat : le confort n'est qu'un %, peu lisible, et surtout **sans conséquence
+mécanique** — donc dominé par l'argent. Le vrai problème est le même que la
+panne avant l'appoint forcé : baisser le chauffage économise sans coût réel.
+Deux résolutions, à mener DANS CET ORDRE.
+
+- ~~Rendre le confort VISIBLE~~ : **fait** — occupant SVG plein corps dans le
+  séjour, 4 états pilotés par le ressenti `feltC` (transi < 14 · frileux
+  14-18 · à l'aise 18-25 · en sueur > 25 °C), teinte du séjour assortie, clic =
+  panneau confort. Reste éventuel : radiateur chaud/froid animé, boîtier
+  thermostat mural. Le détail sourcé conservé ci-dessous pour référence.
+  **Point clé sourcé** : le confort dépend de la température
+  OPÉRATIVE (air + parois), pas de l'air seul → 19 °C n'est PAS une solution
+  unique. En passoire, 19 °C d'air ≈ 16 °C ressenti (parois froides, déjà
+  modélisées) ; rénové, 19 °C d'air ≈ 18-19 °C ressenti. Le DPE devient donc un
+  déterminant du confort, gratuitement. Sources : OMS *Housing and Health
+  Guidelines* 2018 (mini 18 °C, 20 °C vulnérables) ; ADEME (19 °C pièces de
+  vie, +1 °C ≈ +7 % conso) ; Code de l'énergie R241-26 (plafond 19 °C) ;
+  EN 16798-1 / ASHRAE 55 (confort adaptatif, plage saisonnière, jusqu'à
+  ~26-28 °C l'été — lien §16).
+- ~~Indicateur de précarité énergétique~~ : **fait** — taux d'effort
+  énergétique (coût énergie annuel estimé / revenu annuel) affiché dans le
+  panneau, badge « ⚠️ Précarité énergétique · N % » dans le HUD au-delà du
+  seuil ONPE **8 %** (`FinanceCalibration::fuelPovertyEffortThreshold`, loi
+  Grenelle II). Passoire ~12 % → en précarité ; rénové ~2 % → sorti. Autres
+  indicateurs officiels si besoin un jour : BRDE (bas revenus / dépenses
+  élevées), froid ressenti, restriction.
+- **Éco-gestes : la couche de confort bon marché (V1.x)**. Réponse gameplay à
+  « comment améliorer mon ressenti sans trop dépenser ? » — un palier de
+  micro-décisions à quelques dizaines d'euros ENTRE « ne rien faire » et
+  « rénover », qui augmentent le ressenti par euro en réduisant l'effet parois
+  froides / les infiltrations. **Discipline obligatoire (§13)** : chaque geste
+  = un `Coefficient` sourcé + fourchette, avec une magnitude honnête « du
+  ridicule au majeur ». Classement indicatif (à vérifier sur sources primaires
+  avant de coder ; sources de départ : éco-gestes ADEME) :
+
+  | Geste | Coût | Impact confort | Nature |
+  |---|---|---|---|
+  | Calfeutrage / joints (infiltrations) | ~qques € | **majeur** en passoire | micro-geste |
+  | Changement fenêtres (double/triple) | cher | majeur (radiatif + air) | gros travaux (cf. §16) |
+  | Rideaux épais / volets la nuit | faible | modéré | micro-geste |
+  | Réflecteurs derrière radiateurs | très faible | mineur-modéré | micro-geste |
+  | Tapis sur sol froid | faible | mineur | micro-geste |
+  | Brasseur d'air (déstratification) | moyen | **mineur** plafond std / modéré été | double-saison |
+  | Boudins de porte, agencement | ~0 | mineur | micro-geste |
+
+  Le **brasseur d'air** : concept réel (déstratification — repousse l'air chaud
+  du plafond vers l'occupant), mais gain hiver **faible** sous plafond standard
+  (2,5 m), notable seulement sous hauts plafonds ; son vrai intérêt est l'ÉTÉ
+  (brise, ressenti −2-3 °C, §16). Ne pas le survendre l'hiver. Enseigne que
+  confort ≠ juste température, et que la passoire pénalise le
+  **confort-par-euro** (le calfeutrage à 15 € peut battre un geste « sérieux »).
+  Nuance de design : l'**habillement** (pull/plaid) est un **signe d'inconfort**
+  montré par l'occupant, PAS un fix gratuit — sinon « mets un manteau »
+  annulerait la pénalité. Déjà en jeu : l'isolation augmente déjà le ressenti
+  de façon disproportionnée (facteur paroi 0,15 → 0,03) ; les éco-gestes en
+  sont la déclinaison granulaire.
+- ~~Consigne de chauffe réglable~~ : **fait** — thermostat cliquable (boîtier
+  mural + panneau +/−, plage 16-23 °C), consigne sur `Household`, besoin de
+  chauffage et confort qui la lisent (base DJU = consigne − apports gratuits,
+  ~+7 %/°C ADEME), **prévision live** ±1 °C sur la facture annuelle (via
+  l'estimateur), avertissement sous 18 °C (plancher OMS), occupant qui réagit.
+  L'arbitrage est rendu VISIBLE (occupant + confort + précarité) — l'anti-abus
+  d'interim. **La dent financière du froid reste à venir** avec le système
+  moisissures ci-dessous (décision maintenue : les moisissures ajoutent la
+  conséquence physique du sous-chauffage). L'anti-abus réaliste et élégant :
+  **condensation / moisissures**, qui exige de modéliser une **humidité
+  intérieure** en plus de la température. Chaîne : le foyer produit de la
+  vapeur (~10-15 L/j pour une famille, ordre de grandeur CSTB/BRE) → rencontre
+  les **parois froides** (déjà calculées via `coldWallPenaltyFactor`) → quand
+  l'**HR de surface dépasse ~80 % durablement**, la moisissure germe (modèle
+  isoplèthe de germination, **Fraunhofer IBP / Sedlbauer 2001** — pas besoin de
+  condensation visible à 100 %). Baisser la consigne refroidit les parois →
+  risque ↑ ; **isoler réchauffe la paroi → protège** (renforce la leçon
+  isolation) ; **ventiler (VMC) abaisse l'HR → protège**. Implémentation :
+  **jauge de risque DÉTERMINISTE** (pas un dé — le jeu est semé), qui monte au
+  fil des jours à HR de surface élevée ; au-delà d'un palier → apparition des
+  moisissures (le joueur la voit venir et agit). Conséquences : coût de
+  traitement (ANAH), décote du bien, santé. N'interdit rien (§1) : rend juste
+  la passoire-froide-humide aussi piégeuse qu'en vrai. Borne basse
+  réglementaire en complément, mais c'est la moisissure qui donne les dents.
+- **Précarité énergétique ≠ insalubrité : deux cadres distincts, ne pas les
+  confondre**. La **précarité énergétique** (indicateur TEE ci-dessus) est
+  ÉCONOMIQUE/thermique : « le ménage peut-il payer une chaleur suffisante ? »
+  (suivi ONPE, loi Grenelle II) — ne dit rien de l'état physique du logement.
+  L'**insalubrité / non-décence / habitat indigne** est SANITAIRE et légale :
+  « le logement est-il vivable ? » (décret décence 2002-120 : humidité/
+  moisissures = non-décent ; Code de la santé publique, ordonnance 2020-1144
+  « habitat indigne » ; loi MOLLE 2009). Un logement peut être insalubre quel
+  que soit le revenu de l'occupant. **Deux mécaniques distinctes dans le jeu** :
+  (1) un **indicateur de précarité** = un % économique, faisable maintenant ;
+  (2) l'**insalubrité = un ÉTAT du logement** piloté par la moisissure (étape
+  future). Le pont : la moisissure est le moteur SANITAIRE de la non-décence,
+  le DPE le moteur ÉNERGÉTIQUE (loi Climat & Résilience 2021 : passoire
+  progressivement interdite à la location) — les deux peuvent rendre le
+  logement « non-décent / indigne », par des chemins séparés.
+- **Autres pathologies sourcées du logement mal chauffé** (déclencheurs : axe
+  santé V1.x, scénario locataire/bailleur). Toutes réelles et citables :
+  santé (OMS ; **Marmot Review 2011**, *Health Impacts of Cold Homes* :
+  surmortalité hivernale, cardiovasculaire < 16 °C, respiratoire, santé
+  mentale ; étude **Eurowinter**) ; **interdiction de louer** les passoires
+  (décret décence 2002-120 : absence de moisissures ; **loi Climat &
+  Résilience 2021** : DPE G interdit à la location depuis janv. 2025, F en
+  2028, E en 2034 — lie directement DPE et valeur/louabilité) ; acariens &
+  allergies (HR > ~60 %) ; condensation sur simple vitrage (signe visible) ;
+  dégâts au bâti (plâtre, peintures, menuiseries).
+
+Note de fond (§1) : « avoir froid pour économiser » reste un choix *légitime*
+d'un jeu multi-critères (précarité énergétique). Le rôle du jeu est de le faire
+voir et ressentir (résolution 1) et de rendre le froid-en-passoire réellement
+coûteux (résolution 2), pas de l'interdire par un malus arbitraire.
 
 ## Conséquences réalistes de l'inconfort (suites possibles de la panne)
 
