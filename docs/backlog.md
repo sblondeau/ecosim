@@ -258,11 +258,15 @@ Deux résolutions, à mener DANS CET ORDRE.
   annulerait la pénalité. Déjà en jeu : l'isolation augmente déjà le ressenti
   de façon disproportionnée (facteur paroi 0,15 → 0,03) ; les éco-gestes en
   sont la déclinaison granulaire.
-- **Consigne de chauffe réglable + son anti-abus (couple V1.x — ne JAMAIS
-  livrer l'un sans l'autre)**. Un thermostat cliquable (+/−) impacterait
-  directement facture et confort — leçon ADEME réelle : **−1 °C ≈ −7 % de
-  chauffage**. Mais sans garde-fou, l'optimum est de geler les habitants pour
-  économiser (exactement la faille à éviter). L'anti-abus réaliste et élégant :
+- ~~Consigne de chauffe réglable~~ : **fait** — thermostat cliquable (boîtier
+  mural + panneau +/−, plage 16-23 °C), consigne sur `Household`, besoin de
+  chauffage et confort qui la lisent (base DJU = consigne − apports gratuits,
+  ~+7 %/°C ADEME), **prévision live** ±1 °C sur la facture annuelle (via
+  l'estimateur), avertissement sous 18 °C (plancher OMS), occupant qui réagit.
+  L'arbitrage est rendu VISIBLE (occupant + confort + précarité) — l'anti-abus
+  d'interim. **La dent financière du froid reste à venir** avec le système
+  moisissures ci-dessous (décision maintenue : les moisissures ajoutent la
+  conséquence physique du sous-chauffage). L'anti-abus réaliste et élégant :
   **condensation / moisissures**, qui exige de modéliser une **humidité
   intérieure** en plus de la température. Chaîne : le foyer produit de la
   vapeur (~10-15 L/j pour une famille, ordre de grandeur CSTB/BRE) → rencontre

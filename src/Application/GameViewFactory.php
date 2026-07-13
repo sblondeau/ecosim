@@ -120,6 +120,12 @@ final readonly class GameViewFactory
             loanRemainingLabel: $state->loan->remaining->format(),
             heatingLabel: $household->heatingSystem->label(),
             boilerBroken: $household->boilerBroken,
+            setpointC: (int) round($household->heatingSetpointC),
+            setpointCanUp: $household->heatingSetpointC < $this->building->maxHeatingSetpointC()->value,
+            setpointCanDown: $household->heatingSetpointC > $this->building->minHeatingSetpointC()->value,
+            setpointBelowHealthy: $household->heatingSetpointC < $this->building->healthySetpointFloorC()->value,
+            setpointDownEffectLabel: $this->setpointEffect($household, $currentAnnual, -1.0),
+            setpointUpEffectLabel: $this->setpointEffect($household, $currentAnnual, 1.0),
             insulationLabel: $household->insulation->label(),
             dpeLetter: $household->dpeClass()->label(),
             heatingElectricityKwh: $snapshot->heating->electricityKwh,
@@ -232,6 +238,10 @@ final readonly class GameViewFactory
                 number_format($this->finance->fuelOilPricePerLitre()->value, 2, ',', ' '),
             ),
             'netIncome' => 'Revenu net du foyer (INSEE) moins les dépenses de vie hors énergie, crédité le 1er du mois. L\'énergie, elle, est payée jour par jour par la simulation.',
+            'setpoint' => sprintf(
+                'Température de consigne du chauffage. Chaque °C compte : ~+7 %% de chauffage par degré (ADEME). Repère de confort 19 °C (Code de l\'énergie), plancher santé %.0f °C (OMS) — en dessous, les habitants souffrent du froid. Baisser économise mais dégrade le confort : c\'est le vrai arbitrage de la précarité.',
+                $this->building->healthySetpointFloorC()->value,
+            ),
             'fuelPoverty' => sprintf(
                 'Taux d\'effort énergétique : part du revenu annuel consacrée à l\'énergie du logement (estimée sur une année type). Au-delà de %.0f %% pour un ménage modeste, on parle de précarité énergétique (indicateur ONPE, loi Grenelle II) — ~12 millions de personnes en France. La rénovation en fait sortir.',
                 $this->finance->fuelPovertyEffortThreshold()->value * 100,
@@ -343,6 +353,32 @@ final readonly class GameViewFactory
         }
 
         return implode(' ', $points);
+    }
+
+    /**
+     * The estimated effect of nudging the thermostat by one degree, over a
+     * reference year — the live pedagogy of "−1 °C ≈ −7 % de chauffage".
+     * Empty at the bounds (no button there).
+     */
+    private function setpointEffect(Household $household, AnnualOutcome $current, float $deltaC): string
+    {
+        $target = $household->heatingSetpointC + $deltaC;
+        if ($target < $this->building->minHeatingSetpointC()->value || $target > $this->building->maxHeatingSetpointC()->value) {
+            return '';
+        }
+
+        $billDelta = $this->estimator->estimate($household->withHeatingSetpointC($target))
+            ->netEnergyCost->minus($current->netEnergyCost);
+
+        // Nearest 10 € — false precision for an estimate.
+        $euros = 10 * (int) round($billDelta->cents / 1000);
+
+        return sprintf(
+            '≈ %s%s €/an · confort %s',
+            $euros < 0 ? '−' : '+',
+            number_format(abs($euros), 0, ',', ' '),
+            $deltaC < 0 ? 'moindre' : 'meilleur',
+        );
     }
 
     /**

@@ -69,6 +69,11 @@
             <title>Séjour — ressenti {{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C</title>
             <g class="occupant" transform="translate(150 202) scale(.6)">{{ include('game/scene/assets/occupant.svg') }}</g>
             <text class="room-temp" x="64" y="182">{{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C ressenti</text>
+            {# boîtier thermostat mural : affiche la consigne #}
+            <g class="thermostat" transform="translate(300 214)">
+                <rect x="0" y="0" width="40" height="30" rx="5" fill="#1b232d" stroke="#3a4756" stroke-width="1.5"/>
+                <text x="20" y="20" text-anchor="middle" font-size="15" font-weight="700" fill="#5fd8a0">{{ game.setpointC }}°</text>
+            </g>
             <rect class="hit" x="50" y="156" width="298" height="212"/>
         </g>
 

@@ -61,6 +61,16 @@ final readonly class GameView
         public string $heatingLabel,
         /** The scripted breakdown happened and the boiler is still dead (no heating). */
         public bool $boilerBroken,
+        // Thermostat setpoint
+        public int $setpointC,
+        public bool $setpointCanUp,
+        public bool $setpointCanDown,
+        /** Dialled below the OMS 18 °C health floor. */
+        public bool $setpointBelowHealthy,
+        /** Live preview of −1 °C on the yearly bill (empty at the lower bound). */
+        public string $setpointDownEffectLabel,
+        /** Live preview of +1 °C on the yearly bill (empty at the upper bound). */
+        public string $setpointUpEffectLabel,
         public string $insulationLabel,
         public string $dpeLetter,
         public float $heatingElectricityKwh,

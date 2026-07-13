@@ -130,6 +130,29 @@ final class GameViewFactoryTest extends TestCase
         self::assertSame('cold', $scene->comfortState, 'Emergency heat only: the occupant is freezing.');
     }
 
+    public function testThermostatExposesBoundsAndLivePreview(): void
+    {
+        $factory = new GameViewFactory();
+        $config = self::config();
+        $house = new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler);
+
+        $view = $factory->build($config, GameState::start($house, Money::fromEuros(4000.0)));
+        self::assertSame(19, $view->setpointC);
+        self::assertTrue($view->setpointCanUp);
+        self::assertTrue($view->setpointCanDown);
+        self::assertFalse($view->setpointBelowHealthy);
+        self::assertStringContainsString('€/an', $view->setpointUpEffectLabel, 'Warming previews a yearly cost.');
+        self::assertStringContainsString('+', $view->setpointUpEffectLabel, 'Warmer = more spending.');
+        self::assertStringContainsString('−', $view->setpointDownEffectLabel, 'Cooler = savings.');
+
+        // At the 16 °C floor: no more down, and flagged below the health floor.
+        $cold = $house->withHeatingSetpointC(16.0);
+        $coldView = $factory->build($config, GameState::start($cold, Money::fromEuros(4000.0)));
+        self::assertFalse($coldView->setpointCanDown);
+        self::assertTrue($coldView->setpointBelowHealthy);
+        self::assertSame('', $coldView->setpointDownEffectLabel, 'No preview past the bound.');
+    }
+
     public function testFuelPovertyFlagsThePassoireAndClearsAfterRenovation(): void
     {
         $factory = new GameViewFactory();

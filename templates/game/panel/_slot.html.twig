@@ -58,6 +58,28 @@
     {% endif %}
 </div>
 
+{% if selected == 'living' and not game.finished and not game.boilerBroken %}
+    <div class="card thermostat-panel">
+        <h2>Thermostat{{ ui.tip(game.help.setpoint) }}</h2>
+        <div class="thermo-dial">
+            <form method="post" action="{{ path('app_game_setpoint') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('game') }}">
+                <input type="hidden" name="delta" value="-1">
+                <button type="submit" class="btn-ghost thermo-btn" {{ game.setpointCanDown ? '' : 'disabled' }} aria-label="Baisser">−</button>
+            </form>
+            <div class="thermo-value">{{ game.setpointC }} °C</div>
+            <form method="post" action="{{ path('app_game_setpoint') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('game') }}">
+                <input type="hidden" name="delta" value="1">
+                <button type="submit" class="btn-ghost thermo-btn" {{ game.setpointCanUp ? '' : 'disabled' }} aria-label="Monter">+</button>
+            </form>
+        </div>
+        {% if game.setpointDownEffectLabel is not empty %}<div class="thermo-effect neg">−1 °C : {{ game.setpointDownEffectLabel }}</div>{% endif %}
+        {% if game.setpointUpEffectLabel is not empty %}<div class="thermo-effect pos">+1 °C : {{ game.setpointUpEffectLabel }}</div>{% endif %}
+        {% if game.setpointBelowHealthy %}<div class="precarity">🥶 Sous 18 °C : sous-chauffage. Les habitants souffrent du froid (plancher santé OMS).</div>{% endif %}
+    </div>
+{% endif %}
+
 {% if not game.finished %}
     {% for work in worksOfSlot[selected] %}
         {% if game.actions[work] is defined %}
