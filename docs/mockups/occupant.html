@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>EcoSim — occupant, 4 paliers de confort ressenti</title>
+<!-- Preuve de faisabilité : un occupant SVG dont l'habit + l'attitude suivent
+     le confort RESSENTI (température opérative), pas la consigne d'air. En jeu,
+     un seul <svg> à couches ; le palier est une classe CSS. Zéro asset externe. -->
+<style>
+  body { margin: 0; background: #172231; color: #e8eef5; font-family: system-ui, sans-serif; padding: 2rem; }
+  h1 { font-size: 1rem; color: #90a2b8; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; }
+  .row { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  figure { margin: 0; background: #0f1720; border: 1px solid #24303f; border-radius: 14px; padding: 1rem; text-align: center; width: 200px; }
+  figure svg { width: 130px; height: 210px; }
+  figcaption { margin-top: .6rem; font-size: .85rem; }
+  figcaption b { display: block; }
+  figcaption .t { color: #90a2b8; font-size: .78rem; }
+  .cold b { color: #6db3e6; } .chill b { color: #8fbfe0; } .ok b { color: #4ad991; } .hot b { color: #e88a5a; }
+</style>
+</head>
+<body>
+<h1>Occupant — confort ressenti (température opérative)</h1>
+<div class="row">
+
+  <!-- ============ TRÈS FROID (ressenti < ~14 °C) ============ -->
+  <figure class="cold">
+    <svg viewBox="0 0 130 210">
+      <!-- buée devant la bouche -->
+      <g fill="#cde6f5" opacity=".7">
+        <circle cx="92" cy="58" r="5"/><circle cx="102" cy="54" r="4"/><circle cx="110" cy="52" r="3"/>
+      </g>
+      <!-- plaid sur les épaules -->
+      <path d="M30 92 q35 -14 70 0 l6 70 q-41 12 -82 0z" fill="#7d5b8a"/>
+      <path d="M30 92 q35 -14 70 0" fill="none" stroke="#5f4269" stroke-width="3"/>
+      <!-- corps (manteau) -->
+      <rect x="44" y="92" width="42" height="70" rx="12" fill="#3f5a74"/>
+      <!-- bras croisés serrés -->
+      <path d="M48 112 q18 14 34 0 l-2 12 q-15 10 -30 0z" fill="#33495e"/>
+      <!-- écharpe -->
+      <rect x="48" y="80" width="34" height="16" rx="7" fill="#b5544a"/>
+      <!-- tête + bonnet -->
+      <circle cx="65" cy="58" r="20" fill="#e9c3a0"/>
+      <path d="M45 54 a20 20 0 0 1 40 0 z" fill="#b5544a"/>
+      <rect x="43" y="50" width="44" height="8" rx="4" fill="#9a453c"/>
+      <circle cx="65" cy="40" r="5" fill="#c96b60"/>
+      <!-- visage grelottant : sourcils tendus, bouche crispée, nez rouge -->
+      <circle cx="65" cy="66" r="3" fill="#d98f7a"/>
+      <path d="M56 60 l7 3 M74 60 l-7 3" stroke="#5a3d2a" stroke-width="2"/>
+      <circle cx="58" cy="64" r="1.6" fill="#3a2a1c"/><circle cx="72" cy="64" r="1.6" fill="#3a2a1c"/>
+      <path d="M60 72 q5 -3 10 0" fill="none" stroke="#8a5a44" stroke-width="2"/>
+      <!-- traits de tremblement -->
+      <g stroke="#6db3e6" stroke-width="2" stroke-linecap="round" opacity=".8">
+        <path d="M26 108 l-6 -3 M26 120 l-6 3"/><path d="M104 108 l6 -3 M104 120 l6 3"/>
+      </g>
+    </svg>
+    <figcaption><b>Transi</b><span class="t">ressenti &lt; 14 °C · &lt; OMS mini 18 °C</span></figcaption>
+  </figure>
+
+  <!-- ============ FROID (ressenti ~14-18 °C) ============ -->
+  <figure class="chill">
+    <svg viewBox="0 0 130 210">
+      <!-- corps (gros pull) -->
+      <rect x="44" y="92" width="42" height="70" rx="12" fill="#5a7a52"/>
+      <!-- bras croisés -->
+      <path d="M46 110 q19 12 38 0 l-3 12 q-16 9 -32 0z" fill="#4c6846"/>
+      <!-- col roulé -->
+      <rect x="52" y="82" width="26" height="12" rx="6" fill="#4c6846"/>
+      <!-- tête -->
+      <circle cx="65" cy="60" r="20" fill="#e9c3a0"/>
+      <!-- cheveux -->
+      <path d="M46 56 a19 19 0 0 1 38 0 q-19 -10 -38 0z" fill="#5a4632"/>
+      <!-- visage un peu tendu -->
+      <path d="M56 58 l7 2 M74 58 l-7 2" stroke="#5a3d2a" stroke-width="1.6"/>
+      <circle cx="58" cy="63" r="1.6" fill="#3a2a1c"/><circle cx="72" cy="63" r="1.6" fill="#3a2a1c"/>
+      <path d="M60 72 q5 -1 10 0" fill="none" stroke="#8a5a44" stroke-width="2"/>
+    </svg>
+    <figcaption><b>Frileux</b><span class="t">ressenti 14-18 °C · en dessous du confort</span></figcaption>
+  </figure>
+
+  <!-- ============ BIEN (ressenti ~18-25 °C) ============ -->
+  <figure class="ok">
+    <svg viewBox="0 0 130 210">
+      <!-- corps (chemise normale) -->
+      <rect x="44" y="92" width="42" height="70" rx="12" fill="#4f6b86"/>
+      <!-- bras détendus le long du corps -->
+      <rect x="38" y="96" width="12" height="52" rx="6" fill="#456079"/>
+      <rect x="80" y="96" width="12" height="52" rx="6" fill="#456079"/>
+      <!-- tête -->
+      <circle cx="65" cy="60" r="20" fill="#e9c3a0"/>
+      <path d="M46 56 a19 19 0 0 1 38 0 q-19 -10 -38 0z" fill="#5a4632"/>
+      <!-- visage détendu, léger sourire -->
+      <circle cx="58" cy="61" r="1.8" fill="#3a2a1c"/><circle cx="72" cy="61" r="1.8" fill="#3a2a1c"/>
+      <path d="M59 70 q6 5 12 0" fill="none" stroke="#8a5a44" stroke-width="2"/>
+    </svg>
+    <figcaption><b>À l'aise</b><span class="t">ressenti 18-25 °C · zone de confort</span></figcaption>
+  </figure>
+
+  <!-- ============ TROP CHAUD (ressenti > ~26 °C) ============ -->
+  <figure class="hot">
+    <svg viewBox="0 0 130 210">
+      <!-- gouttes de sueur -->
+      <g fill="#7ec8f0"><path d="M84 46 q3 5 0 8 q-3 -3 0 -8z"/><path d="M46 50 q3 5 0 8 q-3 -3 0 -8z"/></g>
+      <!-- corps (t-shirt) -->
+      <rect x="44" y="92" width="42" height="70" rx="12" fill="#c8794a"/>
+      <!-- un bras qui s'évente -->
+      <rect x="80" y="96" width="12" height="34" rx="6" fill="#b96c40"/>
+      <g transform="rotate(-30 92 96)"><rect x="86" y="66" width="12" height="34" rx="6" fill="#b96c40"/>
+        <path d="M82 62 h20 l-4 -8 h-12z" fill="#d9d2c4"/></g>
+      <rect x="38" y="96" width="12" height="52" rx="6" fill="#b96c40"/>
+      <!-- tête (joues rouges) -->
+      <circle cx="65" cy="60" r="20" fill="#eec2a0"/>
+      <circle cx="55" cy="66" r="4" fill="#e79b86" opacity=".7"/><circle cx="75" cy="66" r="4" fill="#e79b86" opacity=".7"/>
+      <path d="M46 56 a19 19 0 0 1 38 0 q-19 -10 -38 0z" fill="#5a4632"/>
+      <circle cx="58" cy="61" r="1.8" fill="#3a2a1c"/><circle cx="72" cy="61" r="1.8" fill="#3a2a1c"/>
+      <!-- bouche : souffle -->
+      <ellipse cx="65" cy="71" rx="4" ry="3" fill="#8a5a44"/>
+    </svg>
+    <figcaption><b>En sueur</b><span class="t">ressenti &gt; 26 °C · au-dessus du confort</span></figcaption>
+  </figure>
+
+</div>
+
+<h1 style="margin-top:2rem">Radiateur — froid / tiède / chaud</h1>
+<div class="row">
+  <figure><svg viewBox="0 0 120 60"><rect x="8" y="8" width="104" height="44" rx="5" fill="#8895a1"/><g stroke="#6f7d89" stroke-width="4"><path d="M20 8v44 M35 8v44 M50 8v44 M65 8v44 M80 8v44 M95 8v44"/></g></svg><figcaption><span class="t">éteint</span></figcaption></figure>
+  <figure><svg viewBox="0 0 120 60"><rect x="8" y="8" width="104" height="44" rx="5" fill="#c9a06a"/><g stroke="#b0864f" stroke-width="4"><path d="M20 8v44 M35 8v44 M50 8v44 M65 8v44 M80 8v44 M95 8v44"/></g></svg><figcaption><span class="t">tiède</span></figcaption></figure>
+  <figure><svg viewBox="0 0 120 60"><rect x="4" y="4" width="112" height="52" rx="8" fill="#e0a341" opacity=".25"/><rect x="8" y="8" width="104" height="44" rx="5" fill="#e08a4a"/><g stroke="#c96f34" stroke-width="4"><path d="M20 8v44 M35 8v44 M50 8v44 M65 8v44 M80 8v44 M95 8v44"/></g></svg><figcaption><span class="t">chaud (chauffe)</span></figcaption></figure>
+</div>
+</body>
+</html>

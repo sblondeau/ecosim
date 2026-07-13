@@ -209,25 +209,55 @@ Deux résolutions, à mener DANS CET ORDRE.
 
 - **Rendre le confort VISIBLE (à faire tôt, aucune mécanique nouvelle)** :
   c'est un problème de représentation, pas de modèle. Dans la coupe : un
-  **occupant** dont l'état suit le confort (à l'aise → emmitouflé → grelottant
-  + buée), un **boîtier thermostat mural** affichant la température intérieure,
-  le radiateur chaud/froid. Le confort devient une chose qu'on *sent*. Résout
-  « pas très visible » sans toucher au gameplay.
+  **occupant** piloté par le confort **RESSENTI** (`feltC`, pas la consigne
+  d'air), le radiateur chaud/tiède/froid, éventuellement un boîtier thermostat
+  mural affichant la température. Maquette : `docs/mockups/occupant.html`
+  (4 états SVG à couches, palier = classe CSS). Paliers proposés sur le
+  ressenti : transi < 14 °C · frileux 14-18 °C · à l'aise 18-25 °C · en sueur
+  > 25-26 °C. **Point clé sourcé** : le confort dépend de la température
+  OPÉRATIVE (air + parois), pas de l'air seul → 19 °C n'est PAS une solution
+  unique. En passoire, 19 °C d'air ≈ 16 °C ressenti (parois froides, déjà
+  modélisées) ; rénové, 19 °C d'air ≈ 18-19 °C ressenti. Le DPE devient donc un
+  déterminant du confort, gratuitement. Sources : OMS *Housing and Health
+  Guidelines* 2018 (mini 18 °C, 20 °C vulnérables) ; ADEME (19 °C pièces de
+  vie, +1 °C ≈ +7 % conso) ; Code de l'énergie R241-26 (plafond 19 °C) ;
+  EN 16798-1 / ASHRAE 55 (confort adaptatif, plage saisonnière, jusqu'à
+  ~26-28 °C l'été — lien §16).
+- **Indicateur de précarité énergétique (gratuit, sourcé, à faire tôt)** : on a
+  déjà coût énergie + revenu → afficher le **taux d'effort énergétique** et
+  signaler la précarité au-delà de ~8-10 % du revenu (définition ONPE,
+  ~12 M de personnes en France). Matérialise que la passoire pousse le foyer
+  dans la précarité — sans aucune nouvelle simulation. Le plus rentable.
 - **Consigne de chauffe réglable + son anti-abus (couple V1.x — ne JAMAIS
   livrer l'un sans l'autre)**. Un thermostat cliquable (+/−) impacterait
   directement facture et confort — leçon ADEME réelle : **−1 °C ≈ −7 % de
   chauffage**. Mais sans garde-fou, l'optimum est de geler les habitants pour
   économiser (exactement la faille à éviter). L'anti-abus réaliste et élégant :
-  **condensation / moisissures**. Air chaud humide (occupation) + **parois
-  froides** (déjà modélisées via `coldWallPenaltyFactor`) sous le point de
-  rosée → condensation → moisissures → coût de traitement (ANAH/ADEME) +
-  décote du bien + santé (cf. ci-dessous). Baisser la consigne refroidit les
-  parois → risque accru ; **une bonne isolation réchauffe la paroi → protège**
-  (renforce la leçon isolation). N'interdit rien (fidèle §1) : rend juste la
-  passoire-froide-humide aussi piégeuse qu'en vrai. Prérequis d'un modèle
-  d'humidité intérieure + point de rosée (extension directe du mur froid
-  existant). Borne basse réglementaire en complément (jamais sous ~17 °C sans
-  raison), mais c'est la moisissure qui donne les dents, pas la borne.
+  **condensation / moisissures**, qui exige de modéliser une **humidité
+  intérieure** en plus de la température. Chaîne : le foyer produit de la
+  vapeur (~10-15 L/j pour une famille, ordre de grandeur CSTB/BRE) → rencontre
+  les **parois froides** (déjà calculées via `coldWallPenaltyFactor`) → quand
+  l'**HR de surface dépasse ~80 % durablement**, la moisissure germe (modèle
+  isoplèthe de germination, **Fraunhofer IBP / Sedlbauer 2001** — pas besoin de
+  condensation visible à 100 %). Baisser la consigne refroidit les parois →
+  risque ↑ ; **isoler réchauffe la paroi → protège** (renforce la leçon
+  isolation) ; **ventiler (VMC) abaisse l'HR → protège**. Implémentation :
+  **jauge de risque DÉTERMINISTE** (pas un dé — le jeu est semé), qui monte au
+  fil des jours à HR de surface élevée ; au-delà d'un palier → apparition des
+  moisissures (le joueur la voit venir et agit). Conséquences : coût de
+  traitement (ANAH), décote du bien, santé. N'interdit rien (§1) : rend juste
+  la passoire-froide-humide aussi piégeuse qu'en vrai. Borne basse
+  réglementaire en complément, mais c'est la moisissure qui donne les dents.
+- **Autres pathologies sourcées du logement mal chauffé** (déclencheurs : axe
+  santé V1.x, scénario locataire/bailleur). Toutes réelles et citables :
+  santé (OMS ; **Marmot Review 2011**, *Health Impacts of Cold Homes* :
+  surmortalité hivernale, cardiovasculaire < 16 °C, respiratoire, santé
+  mentale ; étude **Eurowinter**) ; **interdiction de louer** les passoires
+  (décret décence 2002-120 : absence de moisissures ; **loi Climat &
+  Résilience 2021** : DPE G interdit à la location depuis janv. 2025, F en
+  2028, E en 2034 — lie directement DPE et valeur/louabilité) ; acariens &
+  allergies (HR > ~60 %) ; condensation sur simple vitrage (signe visible) ;
+  dégâts au bâti (plâtre, peintures, menuiseries).
 
 Note de fond (§1) : « avoir froid pour économiser » reste un choix *légitime*
 d'un jeu multi-critères (précarité énergétique). Le rôle du jeu est de le faire
