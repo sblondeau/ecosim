@@ -200,6 +200,40 @@ minimal si on veut l'avancer.
   l'encode grossièrement, à raffiner quand l'été devient un vrai sujet
   (bornes saisonnières).
 
+## Confort thermique : représentation + consigne réglable (réflexion joueur, juillet 2026)
+
+Constat : le confort n'est qu'un %, peu lisible, et surtout **sans conséquence
+mécanique** — donc dominé par l'argent. Le vrai problème est le même que la
+panne avant l'appoint forcé : baisser le chauffage économise sans coût réel.
+Deux résolutions, à mener DANS CET ORDRE.
+
+- **Rendre le confort VISIBLE (à faire tôt, aucune mécanique nouvelle)** :
+  c'est un problème de représentation, pas de modèle. Dans la coupe : un
+  **occupant** dont l'état suit le confort (à l'aise → emmitouflé → grelottant
+  + buée), un **boîtier thermostat mural** affichant la température intérieure,
+  le radiateur chaud/froid. Le confort devient une chose qu'on *sent*. Résout
+  « pas très visible » sans toucher au gameplay.
+- **Consigne de chauffe réglable + son anti-abus (couple V1.x — ne JAMAIS
+  livrer l'un sans l'autre)**. Un thermostat cliquable (+/−) impacterait
+  directement facture et confort — leçon ADEME réelle : **−1 °C ≈ −7 % de
+  chauffage**. Mais sans garde-fou, l'optimum est de geler les habitants pour
+  économiser (exactement la faille à éviter). L'anti-abus réaliste et élégant :
+  **condensation / moisissures**. Air chaud humide (occupation) + **parois
+  froides** (déjà modélisées via `coldWallPenaltyFactor`) sous le point de
+  rosée → condensation → moisissures → coût de traitement (ANAH/ADEME) +
+  décote du bien + santé (cf. ci-dessous). Baisser la consigne refroidit les
+  parois → risque accru ; **une bonne isolation réchauffe la paroi → protège**
+  (renforce la leçon isolation). N'interdit rien (fidèle §1) : rend juste la
+  passoire-froide-humide aussi piégeuse qu'en vrai. Prérequis d'un modèle
+  d'humidité intérieure + point de rosée (extension directe du mur froid
+  existant). Borne basse réglementaire en complément (jamais sous ~17 °C sans
+  raison), mais c'est la moisissure qui donne les dents, pas la borne.
+
+Note de fond (§1) : « avoir froid pour économiser » reste un choix *légitime*
+d'un jeu multi-critères (précarité énergétique). Le rôle du jeu est de le faire
+voir et ressentir (résolution 1) et de rendre le froid-en-passoire réellement
+coûteux (résolution 2), pas de l'interdire par un malus arbitraire.
+
 ## Conséquences réalistes de l'inconfort (suites possibles de la panne)
 
 La panne a son urgence systémique (chauffage d'appoint automatique : électricité
