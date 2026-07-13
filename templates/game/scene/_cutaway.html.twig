@@ -1,9 +1,11 @@
-{# The cutaway renderer: draws the HouseSceneView (game-design §17).
-   ALL geometry lives here — the model only speaks in states. Slots are
-   clickable (LiveAction selectSlot) and open the side panel. #}
+{# The cutaway renderer: composes the HouseSceneView (game-design §17) from
+   anonymous asset components (templates/components/scene/*). ALL geometry lives
+   here or in the assets; the model only speaks in states. Scene-wide ambience
+   (season/frost/clouds/smoke/production) drives the .scene root; per-equipment
+   state is a component prop. Slots are clickable (LiveAction selectSlot). #}
 {% set scene = game.scene %}
 <svg viewBox="0 0 1100 560"
-     class="scene season-{{ scene.season }} ins-tier-{{ scene.insulationTier }} heating-{{ scene.heatingState }} comfort-{{ scene.comfortState }} roof-{{ scene.roofState }} garage-{{ scene.garageState }}{{ scene.frost ? ' frost' }}{{ scene.chimneySmoking ? ' smoking' }}{{ scene.producing ? ' producing' }}"
+     class="scene season-{{ scene.season }} comfort-{{ scene.comfortState }}{{ scene.frost ? ' frost' }}{{ scene.chimneySmoking ? ' smoking' }}{{ scene.producing ? ' producing' }}"
      style="--cloud: {{ scene.cloudPct / 100 }}"
      role="img"
      aria-label="Votre maison — cliquez un élément pour agir"
@@ -27,10 +29,10 @@
     <path class="hill hill-far" d="M0 400 q140 -70 300 -34 q200 44 400 -12 q220 -56 400 22 v144 H0z"/>
     <path class="hill hill-near" d="M0 430 q180 -50 380 -14 q240 40 420 -8 q160 -38 300 18 v94 H0z"/>
 
-    {# nuages : le même asset, densité/opacité pilotées par --cloud #}
-    <g class="cloud cloud-1" transform="translate(120 46)">{{ include('game/scene/assets/cloud.svg') }}</g>
-    <g class="cloud cloud-2" transform="translate(620 100) scale(.8)">{{ include('game/scene/assets/cloud.svg') }}</g>
-    <g class="cloud cloud-3" transform="translate(800 200) scale(1.05)">{{ include('game/scene/assets/cloud.svg') }}</g>
+    {# nuages : le même asset à 3 échelles, opacité pilotée par --cloud #}
+    <twig:scene:Cloud variant="1" transform="translate(120 46)" />
+    <twig:scene:Cloud variant="2" transform="translate(620 100) scale(.8)" />
+    <twig:scene:Cloud variant="3" transform="translate(800 200) scale(1.05)" />
 
     {# sol : herbe, recouverte de neige sous .frost #}
     <rect class="ground-grass" y="470" width="1100" height="90"/>
@@ -39,18 +41,20 @@
         <path d="M0 470 q160 14 340 4 q240 -12 460 6 q180 12 300 -4 v20 q-240 16 -560 6 q-320 -8 -540 2z" fill="#ffffff" opacity=".8"/>
     </g>
 
-    <g transform="translate(50 200)">{{ include('game/scene/assets/tree.svg') }}</g>
+    <twig:scene:Tree transform="translate(50 200)" />
 
     {# ===== LA MAISON (coupe) + ses emplacements cliquables ===== #}
     <ellipse cx="500" cy="474" rx="290" ry="16" fill="#4a5866" opacity=".35"/>
     <g transform="translate(240 88)">
-        {{ include('game/scene/assets/house-cutaway.svg') }}
+        <twig:scene:HouseShell insulation="{{ scene.insulationTier }}" />
 
-        {# slot toit : panneaux posés sur le versant gauche #}
+        {# slot toit : panneaux posés (rendus uniquement si installés) #}
         <g class="slot slot-roof{{ selected == 'roof' ? ' is-selected' }}" tabindex="0" role="button"
            data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="roof">
             <title>Toit — {{ scene.roofLabel }}</title>
-            <g class="solar" transform="translate(66 66) rotate(-25.5)">{{ include('game/scene/assets/solar-panels.svg') }}</g>
+            {% if scene.roofState == 'installed' %}
+                <twig:scene:SolarPanels transform="translate(66 66) rotate(-25.5)" />
+            {% endif %}
             <polygon class="hit" points="2,142 260,18 518,142"/>
         </g>
 
@@ -67,7 +71,7 @@
         <g class="slot slot-living{{ selected == 'living' ? ' is-selected' }}" tabindex="0" role="button"
            data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="living">
             <title>Séjour — ressenti {{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C</title>
-            <g class="occupant" transform="translate(150 202) scale(.6)">{{ include('game/scene/assets/occupant.svg') }}</g>
+            <twig:scene:Occupant tier="{{ scene.comfortState }}" transform="translate(150 202) scale(.6)" />
             <text class="room-temp" x="64" y="182">{{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C ressenti</text>
             {# boîtier thermostat mural : affiche la consigne #}
             <g class="thermostat" transform="translate(300 214)">
@@ -77,16 +81,16 @@
             <rect class="hit" x="50" y="156" width="298" height="212"/>
         </g>
 
-        {# slot chauffage : chaudière (couches en marche/panne) ou PAC #}
+        {# slot chauffage : chaudière (marche/panne) ou PAC #}
         <g class="slot slot-heating{{ selected == 'heating' ? ' is-selected' }}" tabindex="0" role="button"
            data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="heating">
             <title>Chauffage — {{ scene.heatingLabel }}</title>
             {% if scene.heatingState == 'heat-pump' %}
-                <g transform="translate(382 236)">{{ include('game/scene/assets/heat-pump.svg') }}</g>
+                <twig:scene:HeatPump transform="translate(382 236)" />
                 <path d="M420 292 v40" stroke="#55636f" stroke-width="6" stroke-linecap="round"/>
                 <rect x="386" y="330" width="66" height="40" rx="5" fill="#8fa3b8"/>
             {% else %}
-                <g transform="translate(376 214)">{{ include('game/scene/assets/boiler-fioul.svg') }}</g>
+                <twig:scene:Boiler state="{{ scene.heatingState }}" transform="translate(376 214)" />
             {% endif %}
             <rect class="hit" x="366" y="154" width="106" height="216"/>
         </g>
@@ -94,11 +98,13 @@
 
     {# ===== LE GARAGE : slot batterie ===== #}
     <g transform="translate(800 208)">
-        {{ include('game/scene/assets/garage-open.svg') }}
+        <twig:scene:Garage />
         <g class="slot slot-garage{{ selected == 'garage' ? ' is-selected' }}" tabindex="0" role="button"
            data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="garage">
             <title>Garage — {{ scene.garageLabel }}</title>
-            <g class="battery" transform="translate(62 142)">{{ include('game/scene/assets/battery.svg') }}</g>
+            {% if scene.garageState == 'installed' %}
+                <twig:scene:Battery transform="translate(62 142)" />
+            {% endif %}
             <rect class="hit" x="2" y="4" width="204" height="252"/>
         </g>
     </g>

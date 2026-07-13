@@ -1,0 +1,6 @@
+{# The household occupant, embodying felt comfort. The `tier` prop drives a
+   local variant class (cold/cool/warm/hot) — the visible state is picked in
+   scene.css from that class, no dependence on a distant ancestor. Wraps the
+   hand-editable occupant.svg (§17). #}
+{% props tier = 'warm' %}
+<g class="occupant occupant--{{ tier }}"{{ attributes }}>{{ include('game/scene/assets/occupant.svg') }}</g>

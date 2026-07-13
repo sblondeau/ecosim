@@ -562,10 +562,15 @@ suivantes). La maison est une **scène à emplacements** (« slots »), pas un t
   `boiler-fioul-broken`, `heat-pump`, `solar-panels`, `battery`, `tree-winter`, `cloud`…),
   chacun ouvrable/retouchable tel quel dans Inkscape/Illustrator, ses micro-animations
   embarquées (style interne). La scène ne possède que l'ambiance (ciel, sol, lumière) et
-  ASSEMBLE les assets ; en jeu le renderer Twig les inclut **inline**
-  (`{{ include('scene/assets/x.svg') }}`) pour garder le pilotage des états par classes CSS —
-  les maquettes composent par `<image href>`. Retravailler un asset à la main ne touche ni la
-  scène ni le code. Un changement d'état = une classe (pas
+  ASSEMBLE les assets. **Implémenté** : chaque asset atomique est un **composant Twig anonyme**
+  (`templates/components/scene/*` : `<twig:scene:Occupant tier=…>`, `Boiler state=…`,
+  `HouseShell insulation=…`, `Cloud`, `Tree`, `Garage`, `SolarPanels`, `Battery`, `HeatPump`)
+  qui **`{{ include }}` le `.svg` brut** (retouche Inkscape préservée) et dérive une **classe
+  de variante locale** depuis ses props (pattern CVA : `occupant--cool`, `boiler--fioul-broken`,
+  `house--ins-2`) — fini le pilotage par classe d'ancêtre lointaine. L'ambiance scène-wide
+  (saison, gel, nuages, fumée, production) reste sur la racine `.scene`. La présence (panneaux,
+  batterie) est un rendu conditionnel (`{% if installed %}`), pas un `display:none`.
+  Retravailler un asset à la main ne touche ni la scène ni le code. Un changement d'état = une classe (pas
   un asset de plus), les animations légères sont du CSS pur (`transform`/`opacity` : fumée,
   pulsation, rotation du ventilateur de PAC, nuages — cohérent avec la règle d'animations de
   la carte), net à toutes tailles, thémable par variables CSS. Le pipeline d'assets illustrés

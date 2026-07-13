@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 152" width="108" height="152" overflow="visible">
     <!-- Chaudière fioul, TOUTES couches présentes : .flame (en marche),
-         .smoke/.alarm (en panne). La scène pilote par .heating-fioul /
-         .heating-fioul-broken — aucun second asset nécessaire. -->
+         .smoke/.alarm (en panne). Le composant scene:Boiler pilote via sa
+         classe locale .boiler--fioul / .boiler--fioul-broken (props `state`). -->
     <defs>
         <linearGradient id="bBody" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0" stop-color="#7c8b99"/><stop offset=".5" stop-color="#a7b4c0"/><stop offset="1" stop-color="#68767f"/>

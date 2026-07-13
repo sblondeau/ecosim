@@ -204,52 +204,46 @@ details.card[open] > summary { margin-bottom: .5rem; }
 .scene .canopy-snow, .scene .roof-snow-cap { display: none; }
 .scene.frost .canopy-snow, .scene.frost .roof-snow-cap { display: initial; }
 
-/* --- neige de toiture : la fonte raconte l'isolation --- */
+/* --- neige de toiture : la fonte raconte l'isolation (palier local à HouseShell) --- */
 .scene .roof-snow { display: none; }
-.scene.frost.ins-tier-0 .roof-snow-0 { display: initial; }
-.scene.frost.ins-tier-1 .roof-snow-1 { display: initial; }
-.scene.frost.ins-tier-2 .roof-snow-2 { display: initial; }
+.scene.frost .house--ins-0 .roof-snow-0 { display: initial; }
+.scene.frost .house--ins-1 .roof-snow-1 { display: initial; }
+.scene.frost .house--ins-2 .roof-snow-2 { display: initial; }
 
-/* --- isolation : la couche visible dans la coupe, par palier --- */
+/* --- isolation : la couche visible dans la coupe (variante locale à HouseShell) --- */
 .scene .ins-attic, .scene .ins-wall { display: none; }
-.scene.ins-tier-0 .ins-attic-0 { display: initial; }
-.scene.ins-tier-1 .ins-attic-1, .scene.ins-tier-1 .ins-wall-1 { display: initial; }
-.scene.ins-tier-2 .ins-attic-2, .scene.ins-tier-2 .ins-wall-2 { display: initial; }
+.house--ins-0 .ins-attic-0 { display: initial; }
+.house--ins-1 .ins-attic-1, .house--ins-1 .ins-wall-1 { display: initial; }
+.house--ins-2 .ins-attic-2, .house--ins-2 .ins-wall-2 { display: initial; }
 
-/* --- confort : la teinte du séjour + l'occupant (4 paliers de ressenti) --- */
+/* --- confort : la teinte du séjour (scène) + l'occupant (variante locale) --- */
 .scene .room-tint { fill: #31465c; }
 .scene.comfort-cool .room-tint { fill: #3d4a47; }
 .scene.comfort-warm .room-tint { fill: #4a3f2f; }
 .scene.comfort-hot .room-tint { fill: #5a3b30; }
 .scene .occ { display: none; }
-.scene.comfort-cold .occ-cold,
-.scene.comfort-cool .occ-cool,
-.scene.comfort-warm .occ-warm,
-.scene.comfort-hot .occ-hot { display: block; }
+.occupant--cold .occ-cold,
+.occupant--cool .occ-cool,
+.occupant--warm .occ-warm,
+.occupant--hot .occ-hot { display: block; }
 
-/* --- chauffage : couches de la chaudière / PAC --- */
+/* --- chauffage : couches de la chaudière (variante locale) / PAC --- */
 .scene .flame, .scene .smoke, .scene .alarm, .scene .breakdown-sign { display: none; }
-.scene.heating-fioul .flame { display: initial; animation: sc-flick .5s infinite alternate ease-in-out; transform-origin: 48px 96px; }
-.scene.heating-fioul-broken .smoke, .scene.heating-fioul-broken .alarm, .scene.heating-fioul-broken .breakdown-sign { display: initial; }
-.scene.heating-fioul-broken .alarm { animation: sc-pulse 1.4s infinite ease-in-out; }
-.scene.heating-fioul-broken .gauge-needle { stroke: #e05341; }
-.scene .fan { animation: sc-spin 2.2s infinite linear; transform-origin: 38px 26px; }
+.boiler--fioul .flame { display: initial; animation: sc-flick .5s infinite alternate ease-in-out; transform-origin: 48px 96px; }
+.boiler--fioul-broken .smoke, .boiler--fioul-broken .alarm, .boiler--fioul-broken .breakdown-sign { display: initial; }
+.boiler--fioul-broken .alarm { animation: sc-pulse 1.4s infinite ease-in-out; }
+.boiler--fioul-broken .gauge-needle { stroke: #e05341; }
+.heat-pump .fan { animation: sc-spin 2.2s infinite linear; transform-origin: 38px 26px; }
 
-/* --- cheminée : fume tant que du fioul brûle --- */
+/* --- cheminée : fume tant que du fioul brûle (scène) --- */
 .scene .chimney-smoke { display: none; }
 .scene.smoking .chimney-smoke { display: initial; }
 .scene .puff { animation: sc-drift 4s infinite linear; }
 .scene .puff.p2 { animation-delay: -1.3s; }
 .scene .puff.p3 { animation-delay: -2.6s; }
 
-/* --- panneaux : présents si posés, reflet les jours de production --- */
-.scene .solar { display: none; }
-.scene.roof-installed .solar { display: initial; }
+/* --- panneaux : rendus seulement si posés ; reflet les jours de production --- */
 .scene.producing .solar .glint { animation: sc-glint 5s infinite ease-in-out; }
-
-/* --- batterie dans le garage --- */
-.scene .battery { display: none; }
-.scene.garage-installed .battery { display: initial; }
 
 @keyframes sc-pulse { 50% { opacity: .1; } }
 @keyframes sc-drift { from { transform: translate(0, 0); opacity: .55; } to { transform: translate(8px, -26px); opacity: 0; } }
