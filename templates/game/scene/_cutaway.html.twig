@@ -63,11 +63,12 @@
             <rect class="hit" x="46" y="120" width="424" height="34"/>
         </g>
 
-        {# slot séjour (indicateur confort, pas d'action) #}
+        {# slot séjour : l'occupant incarne le confort ressenti (clic = détails) #}
         <g class="slot slot-living{{ selected == 'living' ? ' is-selected' }}" tabindex="0" role="button"
            data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="living">
-            <title>Séjour — {{ game.indoorTemperatureC|number_format(1, ',', ' ') }} °C</title>
-            <text class="room-temp" x="196" y="186">{{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C ressenti</text>
+            <title>Séjour — ressenti {{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C</title>
+            <g class="occupant" transform="translate(150 202) scale(.6)">{{ include('game/scene/assets/occupant.svg') }}</g>
+            <text class="room-temp" x="64" y="182">{{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C ressenti</text>
             <rect class="hit" x="50" y="156" width="298" height="212"/>
         </g>
 

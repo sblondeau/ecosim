@@ -127,6 +127,7 @@ final class GameViewFactoryTest extends TestCase
 
         self::assertSame('fioul-broken', $scene->heatingState);
         self::assertFalse($scene->chimneySmoking, 'A dead boiler burns nothing.');
+        self::assertSame('cold', $scene->comfortState, 'Emergency heat only: the occupant is freezing.');
     }
 
     public function testHelpTextsQuoteTheCalibratedFigures(): void

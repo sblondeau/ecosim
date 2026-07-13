@@ -207,10 +207,16 @@ details.card[open] > summary { margin-bottom: .5rem; }
 .scene.ins-tier-1 .ins-attic-1, .scene.ins-tier-1 .ins-wall-1 { display: initial; }
 .scene.ins-tier-2 .ins-attic-2, .scene.ins-tier-2 .ins-wall-2 { display: initial; }
 
-/* --- confort : la teinte du séjour --- */
+/* --- confort : la teinte du séjour + l'occupant (4 paliers de ressenti) --- */
 .scene .room-tint { fill: #31465c; }
-.scene.comfort-cool .room-tint { fill: #46503f; }
+.scene.comfort-cool .room-tint { fill: #3d4a47; }
 .scene.comfort-warm .room-tint { fill: #4a3f2f; }
+.scene.comfort-hot .room-tint { fill: #5a3b30; }
+.scene .occ { display: none; }
+.scene.comfort-cold .occ-cold,
+.scene.comfort-cool .occ-cool,
+.scene.comfort-warm .occ-warm,
+.scene.comfort-hot .occ-hot { display: block; }
 
 /* --- chauffage : couches de la chaudière / PAC --- */
 .scene .flame, .scene .smoke, .scene .alarm, .scene .breakdown-sign { display: none; }

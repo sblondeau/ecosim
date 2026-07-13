@@ -232,9 +232,15 @@ final readonly class GameViewFactory
         ];
     }
 
-    /** Comfort-score buckets driving the living-room tint (presentation-only). */
-    private const int COMFORT_WARM_FROM = 90;
-    private const int COMFORT_COOL_FROM = 60;
+    /**
+     * Felt-temperature tiers driving the occupant and living-room tint. Based
+     * on operative (felt) temperature, not the air setpoint: OMS minimum 18 °C,
+     * adaptive comfort up to ~25 °C (EN 16798). This is why 19 °C is never a
+     * universal answer — a passoire's cold walls drop the felt below the air.
+     */
+    private const float FELT_COLD_BELOW = 14.0;
+    private const float FELT_COOL_BELOW = 18.0;
+    private const float FELT_HOT_ABOVE = 25.0;
 
     /**
      * Translates the simulation facts into the semantic scene model — states
@@ -269,9 +275,10 @@ final readonly class GameViewFactory
                 ? sprintf('%.0f kWh', $household->batteryKwh)
                 : 'Pas de batterie',
             comfortState: match (true) {
-                $snapshot->comfort->score >= self::COMFORT_WARM_FROM => 'warm',
-                $snapshot->comfort->score >= self::COMFORT_COOL_FROM => 'cool',
-                default => 'cold',
+                $snapshot->comfort->feltC < self::FELT_COLD_BELOW => 'cold',
+                $snapshot->comfort->feltC < self::FELT_COOL_BELOW => 'cool',
+                $snapshot->comfort->feltC > self::FELT_HOT_ABOVE => 'hot',
+                default => 'warm',
             },
         );
     }
