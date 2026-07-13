@@ -505,6 +505,13 @@ l'interface sait les montrer sur la maison, pas en empilant des cartes de devis.
   (~20-25 %), fenêtres/huisseries (~10-15 %), plancher bas (~7-10 %) — répartition ADEME.
   Chaque geste = coût/gain/prime propres → plus de décisions dans la durée, budget étalé,
   et l'effet de séquencement du §8 (isoler avant de dimensionner la PAC) devient tangible.
+  Aujourd'hui tout le bâti est fondu dans deux coefficients par-maison
+  (`heatLossKwhPerDegreeDay`, `coldWallPenaltyFactor`) — le MVP ne distingue PAS les
+  ouvertures. **Les ouvertures (fenêtres, portes) ont un DOUBLE effet** qui les rend
+  intéressantes : facture (déperdition, simple→double/triple vitrage) ET confort (le vitrage
+  froid est un puissant puits radiatif = paroi froide, et les vieux châssis fuient l'air =
+  courants d'air, gros sur le ressenti). Ce sont des gros travaux (capex), distincts des
+  micro-gestes ci-dessous ; les porter séparément étale les grosses dépenses.
 - **Matériaux à double caractéristique hiver/été** : résistance thermique (R) pour l'hiver,
   **déphasage/inertie** pour l'été — à R égal, fibre de bois ~10-15 h de déphasage vs laine
   minérale ~4-6 h (CSTB/ADEME). Leçon rare : deux isolants « équivalents » l'hiver ne le

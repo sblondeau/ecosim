@@ -238,17 +238,32 @@ Deux résolutions, à mener DANS CET ORDRE.
   « comment améliorer mon ressenti sans trop dépenser ? » — un palier de
   micro-décisions à quelques dizaines d'euros ENTRE « ne rien faire » et
   « rénover », qui augmentent le ressenti par euro en réduisant l'effet parois
-  froides / les infiltrations (sources : éco-gestes ADEME). Exemples chacun
-  avec un petit effet sourcé sur `coldWallPenaltyFactor` ou l'infiltration :
-  rideaux épais/doublés la nuit, calfeutrage (joints), panneaux réflecteurs
-  derrière radiateurs, tapis sur sols froids, fermer/ne chauffer que les pièces
-  occupées, agencement (canapé loin du mur froid). Enseigne que confort ≠ juste
-  température, et que la passoire pénalise le **confort-par-euro**. Nuance de
-  design : l'**habillement** (pull/plaid) est un **signe d'inconfort** montré
-  par l'occupant, PAS un fix gratuit — sinon « mets un manteau » annulerait la
-  pénalité. Déjà en jeu aujourd'hui : l'isolation augmente déjà le ressenti de
-  façon disproportionnée (facteur paroi 0,15 → 0,03) ; les éco-gestes en sont
-  la déclinaison granulaire.
+  froides / les infiltrations. **Discipline obligatoire (§13)** : chaque geste
+  = un `Coefficient` sourcé + fourchette, avec une magnitude honnête « du
+  ridicule au majeur ». Classement indicatif (à vérifier sur sources primaires
+  avant de coder ; sources de départ : éco-gestes ADEME) :
+
+  | Geste | Coût | Impact confort | Nature |
+  |---|---|---|---|
+  | Calfeutrage / joints (infiltrations) | ~qques € | **majeur** en passoire | micro-geste |
+  | Changement fenêtres (double/triple) | cher | majeur (radiatif + air) | gros travaux (cf. §16) |
+  | Rideaux épais / volets la nuit | faible | modéré | micro-geste |
+  | Réflecteurs derrière radiateurs | très faible | mineur-modéré | micro-geste |
+  | Tapis sur sol froid | faible | mineur | micro-geste |
+  | Brasseur d'air (déstratification) | moyen | **mineur** plafond std / modéré été | double-saison |
+  | Boudins de porte, agencement | ~0 | mineur | micro-geste |
+
+  Le **brasseur d'air** : concept réel (déstratification — repousse l'air chaud
+  du plafond vers l'occupant), mais gain hiver **faible** sous plafond standard
+  (2,5 m), notable seulement sous hauts plafonds ; son vrai intérêt est l'ÉTÉ
+  (brise, ressenti −2-3 °C, §16). Ne pas le survendre l'hiver. Enseigne que
+  confort ≠ juste température, et que la passoire pénalise le
+  **confort-par-euro** (le calfeutrage à 15 € peut battre un geste « sérieux »).
+  Nuance de design : l'**habillement** (pull/plaid) est un **signe d'inconfort**
+  montré par l'occupant, PAS un fix gratuit — sinon « mets un manteau »
+  annulerait la pénalité. Déjà en jeu : l'isolation augmente déjà le ressenti
+  de façon disproportionnée (facteur paroi 0,15 → 0,03) ; les éco-gestes en
+  sont la déclinaison granulaire.
 - **Consigne de chauffe réglable + son anti-abus (couple V1.x — ne JAMAIS
   livrer l'un sans l'autre)**. Un thermostat cliquable (+/−) impacterait
   directement facture et confort — leçon ADEME réelle : **−1 °C ≈ −7 % de
