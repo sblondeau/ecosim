@@ -46,6 +46,11 @@ final readonly class GameView
         public string $monthlyIncomeLabel,
         public string $monthlyExpensesLabel,
         public string $monthlyNetIncomeLabel,
+        // Fuel poverty (ONPE taux d'effort énergétique)
+        /** Share of annual income spent on housing energy, in whole percent. */
+        public int $energyEffortPct,
+        /** Above the ONPE threshold (8 %): the household is in fuel poverty. */
+        public bool $inFuelPoverty,
         // Patrimoine (non-liquid, realisable on resale only — §8)
         public string $propertyValueLabel,
         // Loan (éco-PTZ account)

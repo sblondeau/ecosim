@@ -13,6 +13,10 @@
         <div class="row"><span class="k">Mensualité éco-PTZ (le 1ᵉʳ)</span><span class="neg">−{{ game.loanMonthlyPaymentLabel }}</span></div>
         <div class="row"><span class="k">Dette éco-PTZ restante</span><span>{{ game.loanRemainingLabel }}</span></div>
     {% endif %}
+    <div class="row"><span class="k">Taux d'effort énergétique{{ ui.tip(game.help.fuelPoverty) }}</span><span class="{{ game.inFuelPoverty ? 'neg' }}">{{ game.energyEffortPct }} %{% if game.inFuelPoverty %} ⚠️{% endif %}</span></div>
+    {% if game.inFuelPoverty %}
+        <div class="precarity">⚠️ Foyer en <strong>précarité énergétique</strong> (plus de 8 % du revenu part dans l'énergie). Isoler ou changer de chauffage l'en fait sortir.</div>
+    {% endif %}
 </div>
 
 <details class="card" open>

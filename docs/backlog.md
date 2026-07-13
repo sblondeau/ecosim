@@ -207,14 +207,12 @@ mécanique** — donc dominé par l'argent. Le vrai problème est le même que l
 panne avant l'appoint forcé : baisser le chauffage économise sans coût réel.
 Deux résolutions, à mener DANS CET ORDRE.
 
-- **Rendre le confort VISIBLE (à faire tôt, aucune mécanique nouvelle)** :
-  c'est un problème de représentation, pas de modèle. Dans la coupe : un
-  **occupant** piloté par le confort **RESSENTI** (`feltC`, pas la consigne
-  d'air), le radiateur chaud/tiède/froid, éventuellement un boîtier thermostat
-  mural affichant la température. Maquette : `docs/mockups/occupant.html`
-  (4 états SVG à couches, palier = classe CSS). Paliers proposés sur le
-  ressenti : transi < 14 °C · frileux 14-18 °C · à l'aise 18-25 °C · en sueur
-  > 25-26 °C. **Point clé sourcé** : le confort dépend de la température
+- ~~Rendre le confort VISIBLE~~ : **fait** — occupant SVG plein corps dans le
+  séjour, 4 états pilotés par le ressenti `feltC` (transi < 14 · frileux
+  14-18 · à l'aise 18-25 · en sueur > 25 °C), teinte du séjour assortie, clic =
+  panneau confort. Reste éventuel : radiateur chaud/froid animé, boîtier
+  thermostat mural. Le détail sourcé conservé ci-dessous pour référence.
+  **Point clé sourcé** : le confort dépend de la température
   OPÉRATIVE (air + parois), pas de l'air seul → 19 °C n'est PAS une solution
   unique. En passoire, 19 °C d'air ≈ 16 °C ressenti (parois froides, déjà
   modélisées) ; rénové, 19 °C d'air ≈ 18-19 °C ressenti. Le DPE devient donc un
@@ -223,17 +221,13 @@ Deux résolutions, à mener DANS CET ORDRE.
   vie, +1 °C ≈ +7 % conso) ; Code de l'énergie R241-26 (plafond 19 °C) ;
   EN 16798-1 / ASHRAE 55 (confort adaptatif, plage saisonnière, jusqu'à
   ~26-28 °C l'été — lien §16).
-- **Indicateur de précarité énergétique (gratuit, sourcé, à faire tôt)** :
-  concept LÉGAL (loi Grenelle II 2010, art. 11 ; suivi ONPE depuis 2011), pas
-  inventé. On a déjà coût énergie + revenu → afficher le **taux d'effort
-  énergétique** (TEE = coût énergie annuel / revenu annuel). Palier officiel :
-  **TEE > 8 %** ET ménage **sous le revenu médian** (la 2ᵉ condition exclut les
-  riches en grande maison ; notre primo-accédant modeste la remplit). ~12 M de
-  personnes en France (ONPE, ordre de grandeur). Autres indicateurs officiels
-  si besoin : BRDE (bas revenus / dépenses élevées), froid ressenti,
-  restriction. Concret scénario : passoire ~3 800 €/33 600 € ≈ 11 % → EN
-  précarité ; rénové ~750 € ≈ 2 % → sorti. Bascule visible avec la rénovation,
-  zéro nouvelle simulation. Le plus rentable.
+- ~~Indicateur de précarité énergétique~~ : **fait** — taux d'effort
+  énergétique (coût énergie annuel estimé / revenu annuel) affiché dans le
+  panneau, badge « ⚠️ Précarité énergétique · N % » dans le HUD au-delà du
+  seuil ONPE **8 %** (`FinanceCalibration::fuelPovertyEffortThreshold`, loi
+  Grenelle II). Passoire ~12 % → en précarité ; rénové ~2 % → sorti. Autres
+  indicateurs officiels si besoin un jour : BRDE (bas revenus / dépenses
+  élevées), froid ressenti, restriction.
 - **Éco-gestes : la couche de confort bon marché (V1.x)**. Réponse gameplay à
   « comment améliorer mon ressenti sans trop dépenser ? » — un palier de
   micro-décisions à quelques dizaines d'euros ENTRE « ne rien faire » et

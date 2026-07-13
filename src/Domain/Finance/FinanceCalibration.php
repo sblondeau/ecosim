@@ -79,6 +79,24 @@ final class FinanceCalibration
     }
 
     /**
+     * Fuel-poverty threshold: a household spending more than this share of its
+     * income on housing energy is in energy poverty (the ONPE "taux d'effort
+     * énergétique" indicator, combined with being below median income — which
+     * the modest scenario household is).
+     */
+    public function fuelPovertyEffortThreshold(): Coefficient
+    {
+        return new Coefficient(
+            value: 0.08,
+            unit: 'fraction',
+            min: 0.08,
+            max: 0.10,
+            source: 'ONPE : taux d\'effort énergétique > 8 % (+ revenu sous la médiane) — indicateur principal de précarité énergétique (loi Grenelle II 2010)',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
+    /**
      * Monthly living expenses EXCLUDING energy (food, transport, mortgage…).
      * Energy is billed separately by the simulation — that is the point.
      */

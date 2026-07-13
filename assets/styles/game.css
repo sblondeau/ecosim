@@ -119,6 +119,9 @@ section > h2.section { font-size: .75rem; text-transform: uppercase; letter-spac
 .effects { margin-top: .5rem; padding: .45rem .6rem; background: var(--bg); border-radius: 8px; font-size: .82rem; color: var(--accent); }
 .effects-none { color: var(--muted); }
 
+.precarity { margin-top: .5rem; padding: .45rem .6rem; background: color-mix(in srgb, var(--warn) 18%, transparent); border: 1px solid var(--warn); border-radius: 8px; font-size: .8rem; }
+.precarity-badge { margin-top: .4rem; padding: .25rem .5rem; background: var(--warn); color: var(--on-warn); border-radius: 8px; font-size: .74rem; font-weight: 600; }
+
 /* ===== Vue locale : scène plein cadre + HUD superposé (game-design §17) ===== */
 .game { max-width: 1500px; margin: 0 auto; }
 .game .top { padding: 0 .2rem .6rem; gap: 1rem; }

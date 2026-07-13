@@ -77,6 +77,12 @@ final readonly class GameViewFactory
         $totals = $state->totals;
         $household = $state->household;
 
+        // One reference-year estimate of the CURRENT house, shared by the
+        // fuel-poverty rate and the works panel's "before" (no double sim).
+        $currentAnnual = $this->estimator->estimate($household);
+        $annualIncome = $this->finance->monthlyNetIncome()->value * 12.0;
+        $effortRate = $currentAnnual->netEnergyCost->euros() / $annualIncome;
+
         return new GameView(
             dayNumber: min($state->currentDay + 1, $config->horizonDays),
             dateLabel: $this->frenchDate($snapshot->date),
@@ -106,6 +112,8 @@ final readonly class GameViewFactory
             monthlyNetIncomeLabel: Money::fromEuros(
                 $this->finance->monthlyNetIncome()->value - $this->finance->monthlyLivingExpenses()->value,
             )->format(),
+            energyEffortPct: (int) round($effortRate * 100),
+            inFuelPoverty: $effortRate > $this->finance->fuelPovertyEffortThreshold()->value,
             propertyValueLabel: $this->property->valueFor($household->dpeClass())->format(),
             loanActive: $state->loan->isActive(),
             loanMonthlyPaymentLabel: $state->loan->monthlyPayment->format(),
@@ -135,7 +143,7 @@ final readonly class GameViewFactory
             totalSurplusRevenueLabel: $totals->surplusRevenue->format(),
             totalNetEnergyCostLabel: $totals->netEnergyCost()->format(),
             help: $this->helpTexts(),
-            actions: $this->actionsFor($state),
+            actions: $this->actionsFor($state, $currentAnnual),
             endReport: $this->engine->isFinished($config, $state) ? $this->endReport($state) : null,
         );
     }
@@ -224,6 +232,10 @@ final readonly class GameViewFactory
                 number_format($this->finance->fuelOilPricePerLitre()->value, 2, ',', ' '),
             ),
             'netIncome' => 'Revenu net du foyer (INSEE) moins les dépenses de vie hors énergie, crédité le 1er du mois. L\'énergie, elle, est payée jour par jour par la simulation.',
+            'fuelPoverty' => sprintf(
+                'Taux d\'effort énergétique : part du revenu annuel consacrée à l\'énergie du logement (estimée sur une année type). Au-delà de %.0f %% pour un ménage modeste, on parle de précarité énergétique (indicateur ONPE, loi Grenelle II) — ~12 millions de personnes en France. La rénovation en fait sortir.',
+                $this->finance->fuelPovertyEffortThreshold()->value * 100,
+            ),
             'worksEstimate' => 'Effets estimés en simulant une année météo type complète avec et sans les travaux, via le moteur du jeu lui-même. L\'effet réel dépendra de la météo de VOTRE partie et de la date des travaux.',
             'propertyValue' => sprintf(
                 'Prix d\'achat de la maison (Notaires de France) revalorisé de +%.0f %% par classe DPE gagnée. Cette valeur n\'est réalisable qu\'à la revente — elle ne s\'additionne jamais à l\'épargne.',
@@ -336,11 +348,10 @@ final readonly class GameViewFactory
     /**
      * @return array<string, ActionView>
      */
-    private function actionsFor(GameState $state): array
+    private function actionsFor(GameState $state, AnnualOutcome $before): array
     {
         $loanCap = Money::fromEuros($this->finance->loanCap()->value);
         $actions = [];
-        $before = null;
 
         foreach (Renovation::cases() as $work) {
             $quote = $this->quoter->quote($work, $state->household);
@@ -348,9 +359,7 @@ final readonly class GameViewFactory
                 continue;
             }
 
-            // Estimated lazily: one reference year for the current house…
-            $before ??= $this->estimator->estimate($state->household);
-            // …and one per available work.
+            // The current house's reference year is shared; each work gets its own.
             $after = $this->estimator->estimate($quote->resultingHousehold);
 
             $net = $quote->netCost();

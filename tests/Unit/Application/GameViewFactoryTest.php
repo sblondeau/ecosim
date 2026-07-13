@@ -130,6 +130,22 @@ final class GameViewFactoryTest extends TestCase
         self::assertSame('cold', $scene->comfortState, 'Emergency heat only: the occupant is freezing.');
     }
 
+    public function testFuelPovertyFlagsThePassoireAndClearsAfterRenovation(): void
+    {
+        $factory = new GameViewFactory();
+        $config = self::config();
+
+        $passoire = new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler);
+        $bare = $factory->build($config, GameState::start($passoire, Money::fromEuros(4000.0)));
+        self::assertTrue($bare->inFuelPoverty, 'The fuel-oil passoire eats >8% of income.');
+        self::assertGreaterThan(8, $bare->energyEffortPct);
+
+        $renovated = new Household(3.0, 5.0, InsulationLevel::Reinforced, HeatingSystem::HeatPump);
+        $good = $factory->build($config, GameState::start($renovated, Money::fromEuros(4000.0)));
+        self::assertFalse($good->inFuelPoverty, 'Insulation + heat pump + solar clear fuel poverty.');
+        self::assertLessThan($bare->energyEffortPct, $good->energyEffortPct);
+    }
+
     public function testHelpTextsQuoteTheCalibratedFigures(): void
     {
         $help = new GameViewFactory()->build(self::config(), GameState::start(self::passoire(), Money::fromEuros(4000.0)))->help;
