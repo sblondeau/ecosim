@@ -22,6 +22,8 @@ final readonly class ActionView
         public bool $cashAllowed,
         /** Can the player finance it with the zero-interest loan? */
         public bool $loanAllowed,
+        /** Monthly éco-PTZ installment this work would add (empty if not loan-eligible). */
+        public string $loanMonthlyLabel = '',
         /**
          * What the work would change over a reference weather year (bill,
          * comfort, production…) — honest estimates, never exact promises.

@@ -10,8 +10,8 @@
     <div class="row"><span class="k">Dépenses du foyer</span><span class="neg">−{{ game.monthlyExpensesLabel }}</span></div>
     <div class="row"><span class="k">Reste à vivre mensuel{{ ui.tip(game.help.netIncome) }}</span><span>{{ game.monthlyNetIncomeLabel }}{% if game.incomeCreditedToday %} <span class="pos">(crédité)</span>{% endif %}</span></div>
     {% if game.loanActive %}
-        <div class="row"><span class="k">Mensualité éco-PTZ (le 1ᵉʳ)</span><span class="neg">−{{ game.loanMonthlyPaymentLabel }}</span></div>
-        <div class="row"><span class="k">Dette éco-PTZ restante</span><span>{{ game.loanRemainingLabel }}</span></div>
+        <div class="row"><span class="k">Mensualité éco-PTZ (le 1ᵉʳ){{ ui.tip(game.help.ecoPtz) }}</span><span class="neg">−{{ game.loanMonthlyPaymentLabel }}</span></div>
+        <div class="row"><span class="k">Dette restante · encore ~{{ game.loanRemainingYears }} an{{ game.loanRemainingYears > 1 ? 's' }}</span><span>{{ game.loanRemainingLabel }}</span></div>
     {% endif %}
     <div class="row"><span class="k">Taux d'effort énergétique{{ ui.tip(game.help.fuelPoverty) }}</span><span class="{{ game.inFuelPoverty ? 'neg' }}">{{ game.energyEffortPct }} %{% if game.inFuelPoverty %} ⚠️{% endif %}</span></div>
     {% if game.inFuelPoverty %}

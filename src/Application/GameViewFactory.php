@@ -12,6 +12,7 @@ use App\Domain\Building\Household;
 use App\Domain\Building\InsulationLevel;
 use App\Domain\Energy\EnergyCalibration;
 use App\Domain\Finance\FinanceCalibration;
+use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
 use App\Domain\Finance\PropertyValuator;
 use App\Domain\Finance\Renovation;
@@ -29,8 +30,10 @@ use App\Domain\Weather\Weather;
 use App\Domain\Weather\WeatherGenerator;
 
 use function array_map;
+use function ceil;
 use function count;
 use function implode;
+use function intdiv;
 use function max;
 use function min;
 use function number_format;
@@ -118,6 +121,8 @@ final readonly class GameViewFactory
             loanActive: $state->loan->isActive(),
             loanMonthlyPaymentLabel: $state->loan->monthlyPayment->format(),
             loanRemainingLabel: $state->loan->remaining->format(),
+            loanTermYears: intdiv(Loan::TERM_MONTHS, 12),
+            loanRemainingYears: (int) ceil($state->loan->remainingMonths() / 12),
             heatingLabel: $household->heatingSystem->label(),
             boilerBroken: $household->boilerBroken,
             setpointC: (int) round($household->heatingSetpointC),
@@ -238,6 +243,11 @@ final readonly class GameViewFactory
                 number_format($this->finance->fuelOilPricePerLitre()->value, 2, ',', ' '),
             ),
             'netIncome' => 'Revenu net du foyer (INSEE) moins les dépenses de vie hors énergie, crédité le 1er du mois. L\'énergie, elle, est payée jour par jour par la simulation.',
+            'ecoPtz' => sprintf(
+                'Éco-PTZ : prêt à taux zéro (0 %% d\'intérêt) sur %d ans, jusqu\'à %s (plafond réglementaire). Réservé aux travaux de performance énergétique. La mensualité est faible et étalée — c\'est le levier qui rend la rénovation accessible — mais elle est prélevée chaque mois pendant 20 ans, et la dette restante pèse sur votre patrimoine.',
+                intdiv(Loan::TERM_MONTHS, 12),
+                Money::fromEuros($this->finance->loanCap()->value)->format(),
+            ),
             'setpoint' => sprintf(
                 'Température de consigne du chauffage. Chaque °C compte : ~+7 %% de chauffage par degré (ADEME). Repère de confort 19 °C (Code de l\'énergie), plancher santé %.0f °C (OMS) — en dessous, les habitants souffrent du froid. Baisser économise mais dégrade le confort : c\'est le vrai arbitrage de la précarité.',
                 $this->building->healthySetpointFloorC()->value,
@@ -407,8 +417,9 @@ final readonly class GameViewFactory
                 subsidyLabel: $quote->subsidy->cents > 0 ? $quote->subsidy->format() : '',
                 netCostLabel: $net->format(),
                 cashAllowed: $state->savings->cents >= $net->cents,
-                loanAllowed: $work->isLoanEligible()
-                    && $state->loan->borrowedTotal->plus($net)->cents <= $loanCap->cents,
+                loanAllowed: $loanEligible = ($work->isLoanEligible()
+                    && $state->loan->borrowedTotal->plus($net)->cents <= $loanCap->cents),
+                loanMonthlyLabel: $loanEligible ? Loan::none()->borrow($net)->monthlyPayment->format() : '',
                 effectLabels: self::effectLabels($before, $after),
             );
         }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Finance;
 
 use function intdiv;
+use function max;
 use function min;
 
 /**
@@ -20,7 +21,7 @@ use function min;
 final readonly class Loan
 {
     /** 20 years of monthly payments (éco-PTZ maximum duration). */
-    private const int TERM_MONTHS = 240;
+    public const int TERM_MONTHS = 240;
 
     public function __construct(
         /** Principal still to repay. */
@@ -40,6 +41,20 @@ final readonly class Loan
     public function isActive(): bool
     {
         return $this->remaining->cents > 0;
+    }
+
+    /**
+     * Whole months of payments still ahead (the last one may be partial).
+     *
+     * @return int<0, max>
+     */
+    public function remainingMonths(): int
+    {
+        if ($this->monthlyPayment->cents <= 0) {
+            return 0;
+        }
+
+        return max(0, intdiv($this->remaining->cents + $this->monthlyPayment->cents - 1, $this->monthlyPayment->cents));
     }
 
     /**

@@ -31,7 +31,7 @@
                     <input type="hidden" name="_token" value="{{ csrf_token('game') }}">
                     <input type="hidden" name="work" value="{{ action.work }}">
                     <input type="hidden" name="financing" value="loan">
-                    <button type="submit" class="btn-ghost btn-small">Éco-PTZ (0 %)</button>
+                    <button type="submit" class="btn-ghost btn-small">Éco-PTZ · {{ action.loanMonthlyLabel }}/mois · 20 ans</button>
                 </form>
             {% endif %}
         </div>

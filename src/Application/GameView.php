@@ -57,6 +57,10 @@ final readonly class GameView
         public bool $loanActive,
         public string $loanMonthlyPaymentLabel,
         public string $loanRemainingLabel,
+        /** Full duration of the éco-PTZ, in years (20). */
+        public int $loanTermYears,
+        /** Whole years of payments still ahead on the active loan. */
+        public int $loanRemainingYears,
         // Heating & comfort
         public string $heatingLabel,
         /** The scripted breakdown happened and the boiler is still dead (no heating). */

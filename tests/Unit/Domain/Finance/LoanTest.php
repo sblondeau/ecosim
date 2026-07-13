@@ -38,6 +38,19 @@ final class LoanTest extends TestCase
         self::assertSame(50_00 + 32_50, $loan->monthlyPayment->cents);
     }
 
+    public function testRemainingMonthsCountsThePaymentsAhead(): void
+    {
+        self::assertSame(0, Loan::none()->remainingMonths());
+
+        $loan = Loan::none()->borrow(Money::fromEuros(7800.0)); // 32,50 €/mois
+        self::assertSame(240, $loan->remainingMonths(), 'A fresh loan runs the full 20 years.');
+
+        // After a few payments, fewer months remain.
+        $due = $loan->installmentDue();
+        $loan = $loan->afterPayment($due)->afterPayment($due);
+        self::assertSame(238, $loan->remainingMonths());
+    }
+
     public function testZeroInterestTotalRepaidEqualsTotalBorrowed(): void
     {
         $loan = Loan::none()->borrow(Money::fromEuros(10000.0));
