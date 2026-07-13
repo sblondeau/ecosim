@@ -62,17 +62,11 @@
     <div class="card thermostat-panel">
         <h2>Thermostat{{ ui.tip(game.help.setpoint) }}</h2>
         <div class="thermo-dial">
-            <form method="post" action="{{ path('app_game_setpoint') }}">
-                <input type="hidden" name="_token" value="{{ csrf_token('game') }}">
-                <input type="hidden" name="delta" value="-1">
-                <button type="submit" class="btn-ghost thermo-btn" {{ game.setpointCanDown ? '' : 'disabled' }} aria-label="Baisser">−</button>
-            </form>
+            <button type="button" class="btn-ghost thermo-btn" {{ game.setpointCanDown ? '' : 'disabled' }} aria-label="Baisser"
+                    data-action="live#action" data-live-action-param="adjustSetpoint" data-live-delta-param="-1">−</button>
             <div class="thermo-value">{{ game.setpointC }} °C</div>
-            <form method="post" action="{{ path('app_game_setpoint') }}">
-                <input type="hidden" name="_token" value="{{ csrf_token('game') }}">
-                <input type="hidden" name="delta" value="1">
-                <button type="submit" class="btn-ghost thermo-btn" {{ game.setpointCanUp ? '' : 'disabled' }} aria-label="Monter">+</button>
-            </form>
+            <button type="button" class="btn-ghost thermo-btn" {{ game.setpointCanUp ? '' : 'disabled' }} aria-label="Monter"
+                    data-action="live#action" data-live-action-param="adjustSetpoint" data-live-delta-param="1">+</button>
         </div>
         {% if game.setpointDownEffectLabel is not empty %}<div class="thermo-effect neg">−1 °C : {{ game.setpointDownEffectLabel }}</div>{% endif %}
         {% if game.setpointUpEffectLabel is not empty %}<div class="thermo-effect pos">+1 °C : {{ game.setpointUpEffectLabel }}</div>{% endif %}

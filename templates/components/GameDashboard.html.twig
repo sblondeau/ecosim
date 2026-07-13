@@ -12,20 +12,25 @@
         <div class="progress"><span style="width: {{ game.progressPct }}%"></span></div>
         {% if not game.finished %}
             <div class="time-controls">
-                <form method="post" action="{{ path('app_game_speed') }}" class="speed">
-                    <input type="hidden" name="_token" value="{{ csrf_token('game') }}">
-                    <button type="submit" name="speed" value="0" class="btn-ghost btn-small {{ speed == 0 ? 'active' }}" title="Pause">⏸</button>
-                    <button type="submit" name="speed" value="1" class="btn-ghost btn-small {{ speed == 1 ? 'active' }}" title="Vitesse normale (1 jour / 12 s)">▶ ×1</button>
-                    <button type="submit" name="speed" value="2" class="btn-ghost btn-small {{ speed == 2 ? 'active' }}" title="1 jour / 6 s">×2</button>
-                    <button type="submit" name="speed" value="3" class="btn-ghost btn-small {{ speed == 3 ? 'active' }}" title="1 jour / 4 s">×3</button>
-                </form>
-                <form method="post" action="{{ path('app_game_advance') }}">
-                    <input type="hidden" name="_token" value="{{ csrf_token('game') }}">
-                    <button type="submit" class="btn-primary btn-small">Jour suivant →</button>
-                </form>
+                <div class="speed">
+                    <button type="button" class="btn-ghost btn-small {{ speed == 0 ? 'active' }}" title="Pause"
+                            data-action="live#action" data-live-action-param="setSpeed" data-live-speed-param="0">⏸</button>
+                    <button type="button" class="btn-ghost btn-small {{ speed == 1 ? 'active' }}" title="Vitesse normale (1 jour / 12 s)"
+                            data-action="live#action" data-live-action-param="setSpeed" data-live-speed-param="1">▶ ×1</button>
+                    <button type="button" class="btn-ghost btn-small {{ speed == 2 ? 'active' }}" title="1 jour / 6 s"
+                            data-action="live#action" data-live-action-param="setSpeed" data-live-speed-param="2">×2</button>
+                    <button type="button" class="btn-ghost btn-small {{ speed == 3 ? 'active' }}" title="1 jour / 4 s"
+                            data-action="live#action" data-live-action-param="setSpeed" data-live-speed-param="3">×3</button>
+                </div>
+                <button type="button" class="btn-primary btn-small"
+                        data-action="live#action" data-live-action-param="step">Jour suivant →</button>
             </div>
         {% endif %}
     </header>
+
+    {% if this.notice is not empty %}
+        <div class="banner {{ this.noticeIsError ? '' : 'banner-ok' }}">{{ this.noticeIsError ? '⚠️' : '✅' }} {{ this.notice }}</div>
+    {% endif %}
 
     {% if game.boilerBroken and not game.finished %}
         <div class="banner">🚨 La chaudière fioul est en panne. Vos chauffages d'appoint électriques maintiennent péniblement ~16 °C — et l'électricité flambe (effet Joule : 1 kWh consommé = 1 kWh de chaleur, le pire des chauffages). Cliquez la chaudière pour réparer ou remplacer.{% if speed == 0 %} Le temps est en pause, décidez sereinement — puis relancez (▶).{% endif %}</div>
@@ -107,10 +112,8 @@
                     <div class="row"><span class="k">Coût énergie net sur l'année</span><span>{{ report.totalNetEnergyCostLabel }}</span></div>
                 </div>
             </div>
-            <form method="post" action="{{ path('app_game_reset') }}" style="margin-top:1rem">
-                <input type="hidden" name="_token" value="{{ csrf_token('game') }}">
-                <button type="submit" class="btn-primary">Nouvelle partie</button>
-            </form>
+            <button type="button" class="btn-primary" style="margin-top:1rem"
+                    data-action="live#action" data-live-action-param="reset">Nouvelle partie</button>
         </section>
     {% endif %}
 </div>

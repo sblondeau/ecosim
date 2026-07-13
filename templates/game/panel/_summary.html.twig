@@ -85,7 +85,7 @@
     </div>
 {% endif %}
 
-<form method="post" action="{{ path('app_game_reset') }}" class="panel-footer">
-    <input type="hidden" name="_token" value="{{ csrf_token('game') }}">
-    <button type="submit" class="btn-ghost btn-small">Nouvelle partie</button>
-</form>
+<div class="panel-footer">
+    <button type="button" class="btn-ghost btn-small"
+            data-action="live#action" data-live-action-param="reset">Nouvelle partie</button>
+</div>
