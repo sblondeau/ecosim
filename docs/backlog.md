@@ -284,6 +284,21 @@ Deux résolutions, à mener DANS CET ORDRE.
   traitement (ANAH), décote du bien, santé. N'interdit rien (§1) : rend juste
   la passoire-froide-humide aussi piégeuse qu'en vrai. Borne basse
   réglementaire en complément, mais c'est la moisissure qui donne les dents.
+- **Précarité énergétique ≠ insalubrité : deux cadres distincts, ne pas les
+  confondre**. La **précarité énergétique** (indicateur TEE ci-dessus) est
+  ÉCONOMIQUE/thermique : « le ménage peut-il payer une chaleur suffisante ? »
+  (suivi ONPE, loi Grenelle II) — ne dit rien de l'état physique du logement.
+  L'**insalubrité / non-décence / habitat indigne** est SANITAIRE et légale :
+  « le logement est-il vivable ? » (décret décence 2002-120 : humidité/
+  moisissures = non-décent ; Code de la santé publique, ordonnance 2020-1144
+  « habitat indigne » ; loi MOLLE 2009). Un logement peut être insalubre quel
+  que soit le revenu de l'occupant. **Deux mécaniques distinctes dans le jeu** :
+  (1) un **indicateur de précarité** = un % économique, faisable maintenant ;
+  (2) l'**insalubrité = un ÉTAT du logement** piloté par la moisissure (étape
+  future). Le pont : la moisissure est le moteur SANITAIRE de la non-décence,
+  le DPE le moteur ÉNERGÉTIQUE (loi Climat & Résilience 2021 : passoire
+  progressivement interdite à la location) — les deux peuvent rendre le
+  logement « non-décent / indigne », par des chemins séparés.
 - **Autres pathologies sourcées du logement mal chauffé** (déclencheurs : axe
   santé V1.x, scénario locataire/bailleur). Toutes réelles et citables :
   santé (OMS ; **Marmot Review 2011**, *Health Impacts of Cold Homes* :
