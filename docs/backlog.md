@@ -223,11 +223,32 @@ Deux résolutions, à mener DANS CET ORDRE.
   vie, +1 °C ≈ +7 % conso) ; Code de l'énergie R241-26 (plafond 19 °C) ;
   EN 16798-1 / ASHRAE 55 (confort adaptatif, plage saisonnière, jusqu'à
   ~26-28 °C l'été — lien §16).
-- **Indicateur de précarité énergétique (gratuit, sourcé, à faire tôt)** : on a
-  déjà coût énergie + revenu → afficher le **taux d'effort énergétique** et
-  signaler la précarité au-delà de ~8-10 % du revenu (définition ONPE,
-  ~12 M de personnes en France). Matérialise que la passoire pousse le foyer
-  dans la précarité — sans aucune nouvelle simulation. Le plus rentable.
+- **Indicateur de précarité énergétique (gratuit, sourcé, à faire tôt)** :
+  concept LÉGAL (loi Grenelle II 2010, art. 11 ; suivi ONPE depuis 2011), pas
+  inventé. On a déjà coût énergie + revenu → afficher le **taux d'effort
+  énergétique** (TEE = coût énergie annuel / revenu annuel). Palier officiel :
+  **TEE > 8 %** ET ménage **sous le revenu médian** (la 2ᵉ condition exclut les
+  riches en grande maison ; notre primo-accédant modeste la remplit). ~12 M de
+  personnes en France (ONPE, ordre de grandeur). Autres indicateurs officiels
+  si besoin : BRDE (bas revenus / dépenses élevées), froid ressenti,
+  restriction. Concret scénario : passoire ~3 800 €/33 600 € ≈ 11 % → EN
+  précarité ; rénové ~750 € ≈ 2 % → sorti. Bascule visible avec la rénovation,
+  zéro nouvelle simulation. Le plus rentable.
+- **Éco-gestes : la couche de confort bon marché (V1.x)**. Réponse gameplay à
+  « comment améliorer mon ressenti sans trop dépenser ? » — un palier de
+  micro-décisions à quelques dizaines d'euros ENTRE « ne rien faire » et
+  « rénover », qui augmentent le ressenti par euro en réduisant l'effet parois
+  froides / les infiltrations (sources : éco-gestes ADEME). Exemples chacun
+  avec un petit effet sourcé sur `coldWallPenaltyFactor` ou l'infiltration :
+  rideaux épais/doublés la nuit, calfeutrage (joints), panneaux réflecteurs
+  derrière radiateurs, tapis sur sols froids, fermer/ne chauffer que les pièces
+  occupées, agencement (canapé loin du mur froid). Enseigne que confort ≠ juste
+  température, et que la passoire pénalise le **confort-par-euro**. Nuance de
+  design : l'**habillement** (pull/plaid) est un **signe d'inconfort** montré
+  par l'occupant, PAS un fix gratuit — sinon « mets un manteau » annulerait la
+  pénalité. Déjà en jeu aujourd'hui : l'isolation augmente déjà le ressenti de
+  façon disproportionnée (facteur paroi 0,15 → 0,03) ; les éco-gestes en sont
+  la déclinaison granulaire.
 - **Consigne de chauffe réglable + son anti-abus (couple V1.x — ne JAMAIS
   livrer l'un sans l'autre)**. Un thermostat cliquable (+/−) impacterait
   directement facture et confort — leçon ADEME réelle : **−1 °C ≈ −7 % de
