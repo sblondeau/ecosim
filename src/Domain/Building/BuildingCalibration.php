@@ -54,6 +54,42 @@ final class BuildingCalibration
     }
 
     /**
+     * How much free internal heat (occupants, appliances, solar gains) raises
+     * the indoor temperature above what the heating alone would give — the gap
+     * between the comfort setpoint and the degree-day balance point. At the
+     * default 19 °C setpoint this yields the conventional 18 °C DJU base.
+     */
+    public function internalHeatGainOffsetC(): Coefficient
+    {
+        return new Coefficient(
+            value: 1.0,
+            unit: '°C',
+            min: 0.5,
+            max: 2.0,
+            source: 'Convention DJU : apports internes/solaires gratuits ~1 °C (base 18 pour consigne 19), ADEME / COSTIC',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
+    /** Lowest heating setpoint the player can dial (below is survival, not a choice). */
+    public function minHeatingSetpointC(): Coefficient
+    {
+        return new Coefficient(value: 16.0, unit: '°C', min: 14.0, max: 17.0, source: 'Repère chauffage réduit / absence courte (Code de l\'énergie R241-26)', reviewedOn: '2025-01-01');
+    }
+
+    /** Highest sensible heating setpoint (above, comfort plateaus and the bill soars). */
+    public function maxHeatingSetpointC(): Coefficient
+    {
+        return new Coefficient(value: 23.0, unit: '°C', min: 22.0, max: 24.0, source: 'Calibration de jeu : au-delà, confort en plateau et surconsommation (repères ADEME)', reviewedOn: '2025-01-01');
+    }
+
+    /** Health floor: heating below this exposes occupants to cold-related risks. */
+    public function healthySetpointFloorC(): Coefficient
+    {
+        return new Coefficient(value: 18.0, unit: '°C', min: 18.0, max: 20.0, source: 'OMS, Housing and Health Guidelines 2018 : minimum 18 °C (20 °C pour les personnes vulnérables)', reviewedOn: '2025-01-01');
+    }
+
+    /**
      * Indoor target while the heating system is DOWN and portable electric
      * heaters take over (survival mode): households heat the living rooms to
      * a reduced setpoint, not to full comfort.

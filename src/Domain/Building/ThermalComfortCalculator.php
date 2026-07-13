@@ -37,11 +37,14 @@ final readonly class ThermalComfortCalculator
     ) {
     }
 
-    public function comfortFor(InsulationLevel $insulation, float $outdoorC): ThermalComfort
+    public function comfortFor(InsulationLevel $insulation, float $outdoorC, ?float $setpointC = null): ThermalComfort
     {
-        $indoor = $outdoorC < $this->calibration->heatingBaseTemperatureC()->value
-            ? $this->calibration->heatingSetpointC()->value
-            : $outdoorC;
+        $setpoint = $setpointC ?? $this->calibration->heatingSetpointC()->value;
+        $balancePoint = $setpoint - $this->calibration->internalHeatGainOffsetC()->value;
+
+        // Heating holds the air at the setpoint whenever it is cold enough to
+        // need it; otherwise the house free-runs at the outdoor mean.
+        $indoor = $outdoorC < $balancePoint ? $setpoint : $outdoorC;
 
         return $this->comfortAt($insulation, $indoor, $outdoorC);
     }
