@@ -91,11 +91,18 @@ Persistance   src/Entity/ + src/Repository/  (Doctrine, entités anémiques = é
   `TickSpeed` (⏸/×1/×2/×3) + `TimeProgression` (12 s réelles = 1 jour,
   `PausesWhileAway` via fenêtre de grâce, reste reporté, horloge toujours
   injectée), `TimeKeeper` (rattrapage borné à l'horizon, porte unique du
-  temps, **pause auto au matin de la panne** — décider mérite une horloge
-  arrêtée), LiveComponent `GameDashboard` (`data-poll` 4 s, boutons de
-  vitesse), contrôleur = coquille + POST (`/vitesse`, jour-suivant manuel via
-  `TimeKeeper::step`). **La boucle §15 est complète.** Reste : persistance
-  Doctrine.
+  temps, **pause auto au matin de la panne**). **Tout passe par le LiveComponent
+  `GameDashboard`** : `data-poll` 4 s + **toutes les actions en `#[LiveAction]`**
+  (jour-suivant, vitesse, consigne thermostat, travaux, nouvelle-partie) — plus
+  aucun POST-form, le `GameController` = coquille `GET /`. Messages transitoires
+  = propriété `notice` du composant (plus de flash). Scène = **composants Twig
+  anonymes** `templates/components/scene/*` (`<twig:scene:Occupant tier=…>`,
+  `Boiler state=…`, `HouseShell insulation=…`, `Cloud`, `Tree`, `Garage`,
+  `SolarPanels`, `Battery`, `HeatPump`) qui incluent le `.svg` brut (retouche
+  préservée) + classe de variante locale (CVA) ; ambiance scène-wide sur
+  `.scene`. Tests d'intégration LiveComponent (`tests/Integration/`,
+  `InteractsWithLiveComponents`). **La boucle §15 est complète.** Reste :
+  persistance Doctrine.
 
 Migration future possible vers du DDD plus strict (agrégats + mapping) sans tout
 casser, si l'échelle ville/pays l'exige — mais **pas maintenant**.
