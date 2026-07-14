@@ -16,39 +16,7 @@
     </div>
 {% endmacro %}
 
-{# Bouton d'une LiveAction : centralise le boilerplate (type, data-action, les
-   data-live-<clé>-param). `params` = les arguments de l'action ; `opts` porte
-   class / title / active / disabled. Ex :
-     {{ ui.action('⏸', 'setSpeed', {speed: 0}, {title: 'Pause', active: paused}) }} #}
-{% macro action(label, name, params = {}, opts = {}) -%}
-<button type="button" class="{{ opts.class|default('btn-ghost btn-small') }}{{ opts.active|default(false) ? ' active' }}"
-        {{- opts.title is defined ? ' title="' ~ opts.title ~ '"' }}{{ opts.disabled|default(false) ? ' disabled' }}
-        data-action="live#action" data-live-action-param="{{ name }}"
-        {%- for key, value in params %} data-live-{{ key }}-param="{{ value }}"{% endfor %}>{{ label }}</button>
-{%- endmacro %}
-
-{% macro quote_card(action) %}
-    <div class="card quote">
-        <h2>{{ action.title }}</h2>
-        <div class="row"><span class="key">Coût</span><span>{{ action.costLabel }}</span></div>
-        {% if action.subsidyLabel is not empty %}
-            <div class="row"><span class="key">Prime</span><span class="pos">−{{ action.subsidyLabel }}</span></div>
-        {% endif %}
-        <div class="row"><span class="key">Reste à charge</span><span><strong>{{ action.netCostLabel }}</strong></span></div>
-        {% if action.effectLabels is not empty %}
-            <div class="effects">
-                {% for effect in action.effectLabels %}
-                    <div>{{ effect }}</div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="effects effects-none">Aucun effet mesurable sur votre installation actuelle.</div>
-        {% endif %}
-        <div class="quote-actions">
-            {{ _self.action('Payer comptant', 'order', {work: action.work, financing: 'cash'}, {class: 'btn-primary btn-small', disabled: not action.cashAllowed}) }}
-            {% if action.loanAllowed %}
-                {{ _self.action('Éco-PTZ · ' ~ action.loanMonthlyLabel ~ '/mois · 20 ans', 'order', {work: action.work, financing: 'loan'}) }}
-            {% endif %}
-        </div>
-    </div>
-{% endmacro %}
+{# Boutons d'action et devis = composants Twig anonymes <twig:Button> /
+   <twig:QuoteCard> (règle projet §7 : les composants d'UI sont des Twig
+   components, pas des macros). Ce fichier ne garde que de petits helpers de
+   texte (tip) et l'en-tête de panneau. #}

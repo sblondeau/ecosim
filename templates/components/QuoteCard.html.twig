@@ -1,0 +1,50 @@
+{# Devis de travaux (composant Twig anonyme) : coût, prime, reste à charge,
+   effets estimés, et les deux financements en <twig:Button>. `action` =
+   l'ActionView. L'aperçu (icône) est le même asset SVG que la scène quand il
+   existe (solaire/PAC/chaudière/batterie) ; l'isolation n'a pas d'équipement
+   posable dans la scène donc son icône est un petit swatch dédié. #}
+{% props action %}
+<div class="card quote">
+    <p class="quote-eyebrow">Travaux disponibles</p>
+    <div class="quote-head">
+        <div class="quote-icon">
+            {% if action.work == 'solar_panels' %}
+                {{ include('game/scene/assets/solar-panels.svg') }}
+            {% elseif action.work == 'heat_pump' %}
+                {{ include('game/scene/assets/heat-pump.svg') }}
+            {% elseif action.work == 'boiler_repair' %}
+                {{ include('game/scene/assets/boiler-fioul.svg') }}
+            {% elseif action.work == 'home_battery' %}
+                {{ include('game/scene/assets/battery.svg') }}
+            {% elseif action.work == 'insulation' %}
+                <svg viewBox="0 0 80 80" overflow="visible">
+                    <rect x="8" y="8" width="64" height="64" rx="6" fill="#8a7458"/>
+                    <rect x="14" y="14" width="52" height="52" rx="3" fill="#69b585"/>
+                    <path d="M14 24h52M14 34h52M14 44h52M14 54h52" stroke="#5f9c74" stroke-width="3" opacity=".6"/>
+                    <path d="M22 14v52M32 14v52M42 14v52M52 14v52M62 14v52" stroke="#5f9c74" stroke-width="2" opacity=".35"/>
+                </svg>
+            {% endif %}
+        </div>
+        <h2>{{ action.title }}</h2>
+    </div>
+    <div class="row"><span class="key">Coût</span><span>{{ action.costLabel }}</span></div>
+    {% if action.subsidyLabel is not empty %}
+        <div class="row"><span class="key">Prime</span><span class="pos">−{{ action.subsidyLabel }}</span></div>
+    {% endif %}
+    <div class="row"><span class="key">Reste à charge</span><span><strong>{{ action.netCostLabel }}</strong></span></div>
+    {% if action.effectLabels is not empty %}
+        <div class="effects">
+            {% for effect in action.effectLabels %}
+                <div>{{ effect }}</div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="effects effects-none">Aucun effet mesurable sur votre installation actuelle.</div>
+    {% endif %}
+    <div class="quote-actions">
+        <twig:Button label="Payer comptant" action="order" :params="{work: action.work, financing: 'cash'}" class="btn-primary btn-small" :disabled="not action.cashAllowed" />
+        {% if action.loanAllowed %}
+            <twig:Button label="Éco-PTZ · {{ action.loanMonthlyLabel }}/mois · 20 ans" action="order" :params="{work: action.work, financing: 'loan'}" />
+        {% endif %}
+    </div>
+</div>

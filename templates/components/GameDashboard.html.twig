@@ -1,4 +1,3 @@
-{% import 'game/_macros.html.twig' as ui %}
 {% set game = this.game %}
 {% set speed = this.speedValue %}
 {% set selected = this.selectedSlot %}
@@ -67,7 +66,7 @@
                         <li><span class="ax">🛋️</span> <span><strong>Confort</strong> — la température <em>ressentie</em> chez vous.</span></li>
                     </ul>
                     <p class="intro-how">Cliquez le <strong>toit</strong>, la <strong>chaudière</strong>, le <strong>garage</strong> ou le <strong>séjour</strong> pour agir, et les <strong>quatre coins</strong> pour vos indicateurs. Le temps avance seul — <strong>⏸</strong> pour réfléchir. Des imprévus peuvent survenir.</p>
-                    {{ ui.action('Commencer →', 'dismissIntro', {}, {class: 'btn-primary'}) }}
+                    <twig:Button label="Commencer →" action="dismissIntro" class="btn-primary" />
                 </div>
             </div>
         {% endif %}
@@ -77,13 +76,13 @@
             <div class="controlbar">
                 <div class="cb-when">Jour {{ game.dayNumber }}/{{ game.horizonDays }} · {{ game.dateLabel }}</div>
                 <div class="speed">
-                    {{ ui.action('⏸', 'setSpeed', {speed: 0}, {title: 'Pause', active: speed == 0}) }}
-                    {{ ui.action('▶', 'setSpeed', {speed: 1}, {title: '1 jour / 12 s', active: speed == 1}) }}
-                    {{ ui.action('×2', 'setSpeed', {speed: 2}, {title: '1 jour / 6 s', active: speed == 2}) }}
-                    {{ ui.action('×3', 'setSpeed', {speed: 3}, {title: '1 jour / 4 s', active: speed == 3}) }}
+                    <twig:Button label="⏸" action="setSpeed" :params="{speed: 0}" title="Pause" :active="speed == 0" />
+                    <twig:Button label="▶" action="setSpeed" :params="{speed: 1}" title="1 jour / 12 s" :active="speed == 1" />
+                    <twig:Button label="×2" action="setSpeed" :params="{speed: 2}" title="1 jour / 6 s" :active="speed == 2" />
+                    <twig:Button label="×3" action="setSpeed" :params="{speed: 3}" title="1 jour / 4 s" :active="speed == 3" />
                 </div>
-                {{ ui.action('Jour suivant →', 'step', {}, {class: 'btn-primary btn-small'}) }}
-                {{ ui.action('⚙', 'selectSlot', {slot: 'options'}, {class: 'gear', active: selected == 'options', title: 'Options & bilan de session'}) }}
+                <twig:Button label="Jour suivant →" action="step" class="btn-primary btn-small" />
+                <twig:Button label="⚙" action="selectSlot" :params="{slot: 'options'}" class="gear" :active="selected == 'options'" title="Options & bilan de session" />
             </div>
         {% endif %}
 
@@ -145,8 +144,7 @@
                     <div class="row"><span class="key">Coût énergie net sur l'année</span><span>{{ report.totalNetEnergyCostLabel }}</span></div>
                 </div>
             </div>
-            <button type="button" class="btn-primary" style="margin-top: 1rem"
-                    data-action="live#action" data-live-action-param="reset">Nouvelle partie</button>
+            <div style="margin-top: 1rem"><twig:Button label="Nouvelle partie" action="reset" class="btn-primary" /></div>
         </section>
     {% endif %}
 </div>

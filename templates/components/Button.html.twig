@@ -1,0 +1,11 @@
+{# Bouton d'action LiveComponent, en composant Twig ANONYME (règle projet : les
+   composants d'UI sont des Twig components anonymes, pas des macros).
+   Déclenche une LiveAction `action` avec ses `params` (data-live-<clé>-param).
+   Ex : <twig:Button label="⏸" action="setSpeed" :params="{speed: 0}"
+                     title="Pause" :active="speed == 0" /> #}
+{% props label, action, params = {}, class = 'btn-ghost btn-small', title = null, active = false, disabled = false %}
+<button type="button" class="{{ class }}{{ active ? ' active' }}"
+    {{- title ? ' title="' ~ title ~ '"' }}{{ disabled ? ' disabled' }}
+    data-action="live#action" data-live-action-param="{{ action }}"
+    {%- for key, value in params %} data-live-{{ key }}-param="{{ value }}"{% endfor %}
+>{{- label -}}</button>
