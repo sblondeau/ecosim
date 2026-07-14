@@ -99,8 +99,12 @@ Persistance   src/Entity/ + src/Repository/  (Doctrine, entités anémiques = é
   anonymes** `templates/components/scene/*` (`<twig:scene:Occupant tier=…>`,
   `Boiler state=…`, `HouseShell insulation=…`, `Cloud`, `Tree`, `Garage`,
   `SolarPanels`, `Battery`, `HeatPump`) qui incluent le `.svg` brut (retouche
-  préservée) + classe de variante locale (CVA) ; ambiance scène-wide sur
-  `.scene`. Tests d'intégration LiveComponent (`tests/Integration/`,
+  préservée) + classe de variante locale posée par le composant
+  (`.occupant--cool`, `.boiler--fioul`… — CVA-manuel, pas `html_cva` : 1 prop
+  ×2-4 valeurs, Tailwind absent) ; ambiance scène-wide sur `.scene`. Le
+  graphisme de la scène vit dans **`assets/styles/scene.css`** (chargé après
+  `game.css` pour hériter du `:root`) ; `game.css` = chrome du dashboard
+  uniquement. Tests d'intégration LiveComponent (`tests/Integration/`,
   `InteractsWithLiveComponents`). **La boucle §15 est complète.** Reste :
   persistance Doctrine.
 

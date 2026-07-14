@@ -126,9 +126,9 @@ section > h2.section { font-size: .75rem; text-transform: uppercase; letter-spac
 .thermo-value { font-size: 1.5rem; font-weight: 700; min-width: 4.5rem; text-align: center; }
 .thermo-btn { width: 2.4rem; height: 2.4rem; padding: 0; font-size: 1.4rem; line-height: 1; border-radius: 50%; }
 .thermo-effect { font-size: .8rem; padding: .1rem 0; }
-.scene .thermostat { cursor: pointer; }
 
-/* ===== Vue locale : scène plein cadre + HUD superposé (game-design §17) ===== */
+/* ===== Vue locale : scène plein cadre + HUD superposé (game-design §17) =====
+   (le graphisme de la scène et des assets vit dans scene.css) */
 .game { max-width: 1500px; margin: 0 auto; }
 .game .top { padding: 0 .2rem .6rem; gap: 1rem; }
 .game .brand { display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap; }
@@ -136,7 +136,6 @@ section > h2.section { font-size: .75rem; text-transform: uppercase; letter-spac
 .game .top .progress { flex: 1; min-width: 120px; margin: 0; }
 
 .stage { position: relative; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--card); }
-.scene { display: block; width: 100%; height: auto; }
 
 /* cartes HUD superposées aux coins (info directe in-game) */
 .hud { position: absolute; z-index: 2; padding: .6rem .75rem; background: color-mix(in srgb, var(--card) 82%, transparent); backdrop-filter: blur(4px); border: 1px solid var(--line); border-radius: 12px; font-size: .82rem; max-width: 42%; }
@@ -167,89 +166,6 @@ button.hud-br { z-index: 2; }
 .works-links button { text-align: left; }
 details.card > summary { cursor: pointer; font-size: .78rem; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); font-weight: 600; }
 details.card[open] > summary { margin-bottom: .5rem; }
-
-/* --- slots cliquables --- */
-.slot { cursor: pointer; outline: none; }
-.slot .hit { fill: transparent; stroke: transparent; stroke-width: 2.5; }
-.slot:hover .hit, .slot:focus-visible .hit { stroke: var(--accent); stroke-dasharray: 7 5; }
-.slot.is-selected .hit { stroke: var(--accent); stroke-dasharray: none; }
-.room-temp { font-family: system-ui, sans-serif; font-size: 15px; fill: #dce8f2; opacity: .85; }
-
-/* --- ciel par saison (les stops du dégradé sont stylés en CSS) --- */
-.scene .sky-top { stop-color: #3d5a7a; }
-.scene .sky-bottom { stop-color: #c8d3dc; }
-.scene.season-spring .sky-top { stop-color: #4a7ba6; }
-.scene.season-spring .sky-bottom { stop-color: #cfe3ea; }
-.scene.season-summer .sky-top { stop-color: #3f7fc0; }
-.scene.season-summer .sky-bottom { stop-color: #d8ecf2; }
-.scene.season-autumn .sky-top { stop-color: #56718e; }
-.scene.season-autumn .sky-bottom { stop-color: #d3d7d2; }
-.scene .hill-far { fill: #8fa3b5; opacity: .55; }
-.scene .hill-near { fill: #a9bccb; opacity: .6; }
-.scene.season-summer .hill-far, .scene.season-spring .hill-far { fill: #7fa98c; }
-.scene.season-summer .hill-near, .scene.season-spring .hill-near { fill: #93bb9e; }
-
-/* --- nébulosité et soleil pilotés en continu par --cloud --- */
-.scene .sun { opacity: calc(1.05 - var(--cloud)); }
-.scene .cloud-1 { opacity: clamp(0, calc(var(--cloud) * 1.6 - 0.1), 1); }
-.scene .cloud-2 { opacity: clamp(0, calc(var(--cloud) * 1.8 - 0.5), 1); }
-.scene .cloud-3 { opacity: clamp(0, calc(var(--cloud) * 2 - 1), 0.9); }
-
-/* --- sol : herbe, ou neige quand il gèle --- */
-.scene .ground-grass { fill: #3d4a3a; }
-.scene.season-summer .ground-grass { fill: #4a6a42; }
-.scene.season-spring .ground-grass { fill: #46603f; }
-.scene .ground-snow { display: none; }
-.scene.frost .ground-snow { display: initial; }
-.scene .canopy-snow, .scene .roof-snow-cap { display: none; }
-.scene.frost .canopy-snow, .scene.frost .roof-snow-cap { display: initial; }
-
-/* --- neige de toiture : la fonte raconte l'isolation (palier local à HouseShell) --- */
-.scene .roof-snow { display: none; }
-.scene.frost .house--ins-0 .roof-snow-0 { display: initial; }
-.scene.frost .house--ins-1 .roof-snow-1 { display: initial; }
-.scene.frost .house--ins-2 .roof-snow-2 { display: initial; }
-
-/* --- isolation : la couche visible dans la coupe (variante locale à HouseShell) --- */
-.scene .ins-attic, .scene .ins-wall { display: none; }
-.house--ins-0 .ins-attic-0 { display: initial; }
-.house--ins-1 .ins-attic-1, .house--ins-1 .ins-wall-1 { display: initial; }
-.house--ins-2 .ins-attic-2, .house--ins-2 .ins-wall-2 { display: initial; }
-
-/* --- confort : la teinte du séjour (scène) + l'occupant (variante locale) --- */
-.scene .room-tint { fill: #31465c; }
-.scene.comfort-cool .room-tint { fill: #3d4a47; }
-.scene.comfort-warm .room-tint { fill: #4a3f2f; }
-.scene.comfort-hot .room-tint { fill: #5a3b30; }
-.scene .occ { display: none; }
-.occupant--cold .occ-cold,
-.occupant--cool .occ-cool,
-.occupant--warm .occ-warm,
-.occupant--hot .occ-hot { display: block; }
-
-/* --- chauffage : couches de la chaudière (variante locale) / PAC --- */
-.scene .flame, .scene .smoke, .scene .alarm, .scene .breakdown-sign { display: none; }
-.boiler--fioul .flame { display: initial; animation: sc-flick .5s infinite alternate ease-in-out; transform-origin: 48px 96px; }
-.boiler--fioul-broken .smoke, .boiler--fioul-broken .alarm, .boiler--fioul-broken .breakdown-sign { display: initial; }
-.boiler--fioul-broken .alarm { animation: sc-pulse 1.4s infinite ease-in-out; }
-.boiler--fioul-broken .gauge-needle { stroke: #e05341; }
-.heat-pump .fan { animation: sc-spin 2.2s infinite linear; transform-origin: 38px 26px; }
-
-/* --- cheminée : fume tant que du fioul brûle (scène) --- */
-.scene .chimney-smoke { display: none; }
-.scene.smoking .chimney-smoke { display: initial; }
-.scene .puff { animation: sc-drift 4s infinite linear; }
-.scene .puff.p2 { animation-delay: -1.3s; }
-.scene .puff.p3 { animation-delay: -2.6s; }
-
-/* --- panneaux : rendus seulement si posés ; reflet les jours de production --- */
-.scene.producing .solar .glint { animation: sc-glint 5s infinite ease-in-out; }
-
-@keyframes sc-pulse { 50% { opacity: .1; } }
-@keyframes sc-drift { from { transform: translate(0, 0); opacity: .55; } to { transform: translate(8px, -26px); opacity: 0; } }
-@keyframes sc-spin { to { transform: rotate(360deg); } }
-@keyframes sc-flick { to { transform: scaleY(1.18); } }
-@keyframes sc-glint { 0%, 70%, 100% { opacity: .1; } 82% { opacity: .45; } }
 
 .quote-actions { display: flex; gap: .6rem; margin-top: .8rem; flex-wrap: wrap; }
 .btn-small { padding: .45rem .9rem; font-size: .85rem; }
