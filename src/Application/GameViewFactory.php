@@ -448,7 +448,7 @@ final readonly class GameViewFactory
                 loanAllowed: $loanEligible = ($work->isLoanEligible()
                     && $state->loan->borrowedTotal->plus($net)->cents <= $loanCap->cents),
                 loanMonthlyLabel: $loanEligible ? Loan::none()->borrow($net)->monthlyPayment->format() : '',
-                effectLabels: self::effectLabels($before, $after),
+                effectLabels: $this->effectLabels($before, $after),
             );
         }
 
@@ -461,9 +461,18 @@ final readonly class GameViewFactory
      *
      * @return list<string>
      */
-    private static function effectLabels(AnnualOutcome $before, AnnualOutcome $after): array
+    private function effectLabels(AnnualOutcome $before, AnnualOutcome $after): array
     {
         $labels = [];
+
+        $dpeBefore = $this->dpeCertifier->certify($before->electricityKwh, $before->fuelOilLitres)->finalClass;
+        $dpeAfter = $this->dpeCertifier->certify($after->electricityKwh, $after->fuelOilLitres)->finalClass;
+        if ($dpeAfter !== $dpeBefore) {
+            $labels[] = sprintf('Étiquette DPE : %s → %s', $dpeBefore->label(), $dpeAfter->label());
+
+            $valueDelta = $this->property->valueFor($dpeAfter)->minus($this->property->valueFor($dpeBefore));
+            $labels[] = sprintf('Valeur du bien : %s%s', $valueDelta->isNegative() ? '' : '+', $valueDelta->format());
+        }
 
         // Nearest 10 € — quoting cents would be false precision for an estimate.
         $billDeltaEuros = 10 * (int) round(($after->netEnergyCost->cents - $before->netEnergyCost->cents) / 1000);

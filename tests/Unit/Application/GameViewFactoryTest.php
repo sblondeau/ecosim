@@ -98,6 +98,18 @@ final class GameViewFactoryTest extends TestCase
             $view->actions['home_battery']->effectLabels,
             'A battery with no panels stores nothing — an honest quote says so.',
         );
+
+        $insulationEffects = implode(' | ', $view->actions['insulation']->effectLabels);
+        self::assertMatchesRegularExpression(
+            '/Étiquette DPE : [A-G] → [A-G]/',
+            $insulationEffects,
+            'A tier of insulation is enough to move the DPE letter for this bare passoire.',
+        );
+        self::assertStringContainsString(
+            'Valeur du bien : +',
+            $insulationEffects,
+            'A better DPE letter raises the property value — the quote should say so.',
+        );
     }
 
     public function testTheSceneModelSpeaksInSemanticStates(): void
