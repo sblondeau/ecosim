@@ -48,6 +48,28 @@ avance » : chacune est notée avec son déclencheur.
   3. **Inertie (masse du bâti)** : modèle RC (résistance-capacité) où la
      température intérieure est un état lissé par la masse — version « propre »
      de (1)+(2), idéalement à pas infra-journalier.
+
+  **Face gameplay du levier 2 — programmation du thermostat** (idée joueur,
+  juillet 2026). Mécanique concrète : le joueur *configure* un planning de
+  consigne (réduit nuit à partir de ~23 h, éventuellement absence journée) — un
+  levier **non-monétaire** (le jeu est très « dépenser de l'argent » sinon) et un
+  gain d'efficacité quasi gratuit, exactement ce que l'ADEME recommande.
+  **Décision d'architecture actée** : NE PAS passer le tick à l'heure — cadence
+  du tick (décisions du joueur = journalière) ≠ résolution de la physique. On
+  intègre un **profil horaire dans la fonction pure du tick journalier**
+  (degrés-heures : `besoin = Σ_24h heatLoss × max(0, consigne(h) − Text(h))`),
+  le tick reste à 1 jour. Passer à un tick horaire multiplierait par 24 les
+  transitions d'état (~8 760/an), alourdirait persistance/rendu et casserait le
+  rythme temps réel, pour zéro gain (on ne décide rien à l'heure ; un « zoom
+  journée » serait de la présentation). **Garde-fous de design** : presets
+  (« confort constant » / « réduit nuit » / « réduit nuit + absence »), JAMAIS un
+  planificateur 24 curseurs (micro-management anti-pédagogie). **Dépendances** :
+  un **profil diurne de température** (nouvelle facette météo — aujourd'hui on ne
+  produit qu'une moyenne journalière), les **degrés-heures**, et le **confort
+  pondéré par l'occupation** (le réduit nuit ne doit pas pénaliser le ressenti :
+  on dort — sinon « baisser la nuit » deviendrait un faux malus). Pédagogie
+  sourcée : réduit ≠ inconfort ; et la nuance d'inertie (couper *complètement* la
+  nuit ne paie pas dans une maison lourde — surcoût de relance —, le *réduit* si).
   **Protocole scientifique NON BIAISÉ (exigence joueur, à respecter)** :
   construire le modèle sur des critères de *réalisme* (sources, ordres de
   grandeur), mesurer la sensibilité %/°C obtenue, PUIS seulement la comparer aux
