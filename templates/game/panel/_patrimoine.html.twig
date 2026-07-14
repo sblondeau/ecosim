@@ -1,0 +1,11 @@
+{% import 'game/_macros.html.twig' as ui %}
+{# Axe Patrimoine (coin ↘) : l'étiquette DPE officielle + la valeur du bien. #}
+<div class="card panel-head"><h2>🏠 Patrimoine · DPE {{ game.dpeLetter }}</h2></div>
+<div class="card">
+    <twig:DpeLabel
+        energyLetter="{{ game.dpeEnergyLetter }}" :energyValue="game.dpeEnergyIntensity" :energyFill="game.dpeEnergyBandPct"
+        climateLetter="{{ game.dpeClimateLetter }}" :climateValue="game.dpeClimateIntensity" :climateFill="game.dpeClimateBandPct"
+    />
+    <div class="row"><span class="k">Valeur du bien{{ ui.tip(game.help.propertyValue) }}</span><span>{{ game.propertyValueLabel }}</span></div>
+    <div class="row"><span class="k">Nature</span><span class="k">réalisable à la revente uniquement</span></div>
+</div>

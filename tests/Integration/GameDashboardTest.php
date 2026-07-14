@@ -66,11 +66,11 @@ final class GameDashboardTest extends KernelTestCase
         self::assertStringNotContainsString('intro-overlay', $html);
     }
 
-    public function testMenuPanelRendersTheOfficialDualDpeLabel(): void
+    public function testPatrimoineCornerRendersTheOfficialDualDpeLabel(): void
     {
         $component = $this->createLiveComponent(GameDashboard::class);
 
-        $html = (string) $component->call('selectSlot', ['slot' => 'menu'])->render();
+        $html = (string) $component->call('selectSlot', ['slot' => 'patrimoine'])->render();
 
         // Both official scales are drawn, each with exactly one highlighted class
         // (the letter itself depends on the house, so it is not pinned here).

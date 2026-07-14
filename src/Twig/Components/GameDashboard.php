@@ -42,8 +42,11 @@ final class GameDashboard
 {
     use DefaultActionTrait;
 
-    /** Clickable equipment slots, plus 'menu' for the totals/patrimoine drawer. */
-    private const array PANELS = ['roof', 'walls', 'heating', 'garage', 'living', 'menu'];
+    /** Openable panels: equipment slots, the four axis corners, and the options gear. */
+    private const array PANELS = [
+        'roof', 'walls', 'heating', 'garage', 'living',
+        'finances', 'comfort', 'energy', 'patrimoine', 'options',
+    ];
 
     /** The floating panel currently open over the scene (null = none, fullwidth). */
     #[LiveProp(writable: true)]

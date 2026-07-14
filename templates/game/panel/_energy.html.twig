@@ -1,0 +1,37 @@
+{% import 'game/_macros.html.twig' as ui %}
+{# Axe Énergie & climat (coin ↙) : flux du jour, empreinte du logement, météo. #}
+<div class="card panel-head"><h2>⚡ Énergie & climat</h2></div>
+<div class="card">
+    <div class="row"><span class="k">Production solaire</span><span>{{ game.productionKwh|number_format(1, ',', ' ') }} kWh</span></div>
+    <div class="row"><span class="k">Consommation élec.</span><span>{{ game.demandKwh|number_format(1, ',', ' ') }} kWh</span></div>
+    {% if game.fuelOilLitres > 0 %}
+        <div class="row"><span class="k">Fioul brûlé{{ ui.tip(game.help.fuelOil) }}</span><span>{{ game.fuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
+    {% endif %}
+    <div class="row"><span class="k">Autosuffisance{{ ui.tip(game.help.selfSufficiency) }}</span><span>{{ game.selfSufficiencyPct }} %</span></div>
+</div>
+<div class="card">
+    <h2>Empreinte du logement</h2>
+    <div class="row"><span class="k">Émissions · étiquette climat</span><span><strong>{{ game.dpeClimateIntensity }}</strong> kgCO₂/m²·an</span></div>
+    <div class="row"><span class="k">Consommation · étiquette énergie</span><span><strong>{{ game.dpeEnergyIntensity }}</strong> kWhEP/m²·an</span></div>
+    <p class="panel-note">Voir l'étiquette DPE complète dans le coin Patrimoine.</p>
+</div>
+<details class="card" open>
+    <summary>Météo — {{ game.temperatureC|number_format(1, ',', ' ') }} °C, {{ game.cloudPct }} % de nuages{{ ui.tip(game.help.cloud) }}</summary>
+    {% set spark = game.weatherSparkline %}
+    {% if spark.days > 1 %}
+        <div class="spark">
+            <div class="spark-head">
+                <span class="k">{{ spark.days }} derniers jours</span>
+                <span class="k">{{ spark.temperatureMinLabel }} … {{ spark.temperatureMaxLabel }}</span>
+            </div>
+            <svg viewBox="0 0 100 28" preserveAspectRatio="none" role="img" aria-label="Température et nébulosité des {{ spark.days }} derniers jours">
+                <polyline points="{{ spark.cloudPoints }}" fill="none" stroke="var(--cold)" stroke-width="0.7" opacity="0.55"/>
+                <polyline points="{{ spark.temperaturePoints }}" fill="none" stroke="var(--warn)" stroke-width="1"/>
+            </svg>
+            <div class="spark-legend">
+                <span><i style="background: var(--warn);"></i> température</span>
+                <span><i style="background: var(--cold);"></i> nébulosité</span>
+            </div>
+        </div>
+    {% endif %}
+</details>

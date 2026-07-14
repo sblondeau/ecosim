@@ -41,24 +41,34 @@
         <path d="M0 470 q160 14 340 4 q240 -12 460 6 q180 12 300 -4 v20 q-240 16 -560 6 q-320 -8 -540 2z" fill="#ffffff" opacity=".8"/>
     </g>
 
-    <twig:scene:Tree transform="translate(50 200)" />
+    <twig:scene:Tree transform="translate(50 216)" />
 
     {# ===== LA MAISON (coupe) + ses emplacements cliquables ===== #}
     <ellipse cx="500" cy="474" rx="290" ry="16" fill="#4a5866" opacity=".35"/>
     <g transform="translate(240 88)">
         <twig:scene:HouseShell insulation="{{ scene.insulationTier }}" />
 
-        {# slot toit : panneaux posés (rendus uniquement si installés) #}
+        {# slot toit : panneaux posés (rendus uniquement si installés). Les
+           tuiles (hTiles dans house-cutaway.svg) ne suivent PAS la pente
+           réelle du versant : elles restent au niveau à l'horizontale et
+           ne penchent qu'en biais (patternTransform="skewX(-24)"), un artifice
+           2D pour suggérer la perspective sans la calculer. Un panneau tourné
+           à la vraie pente (rotate, tenté d'abord) jure donc avec les tuiles —
+           deux conventions de « faux 3D » différentes sur la même surface.
+           On applique le même skewX(-24) au panneau : mêmes angles de grille
+           que les tuiles, cohérent visuellement, posé bien à plat dans le
+           versant gauche (translate choisi pour rester dans le triangle,
+           entre le faîtage et l'égout). #}
         <g class="slot slot-roof{{ selected == 'roof' ? ' is-selected' }}" tabindex="0" role="button"
            data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="roof">
             <title>Toit — {{ scene.roofLabel }}</title>
             {% if scene.roofState == 'installed' %}
-                <twig:scene:SolarPanels transform="translate(66 66) rotate(-25.5)" />
+                <twig:scene:SolarPanels transform="translate(110 103) skewX(-24) scale(.72)" />
             {% endif %}
             <polygon class="hit" points="2,142 260,18 518,142"/>
         </g>
 
-        {# slot isolation : les tranches de murs + la couche des combles #}
+        {# slot isolation : les tranches de murs #}
         <g class="slot slot-walls{{ selected == 'walls' ? ' is-selected' }}" tabindex="0" role="button"
            data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="walls">
             <title>Isolation — {{ scene.insulationLabel }}</title>
@@ -71,7 +81,7 @@
         <g class="slot slot-living{{ selected == 'living' ? ' is-selected' }}" tabindex="0" role="button"
            data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="living">
             <title>Séjour — ressenti {{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C</title>
-            <twig:scene:Occupant tier="{{ scene.comfortState }}" transform="translate(133 184) scale(.33)" />
+            <twig:scene:Occupant tier="{{ scene.comfortState }}" transform="translate(140 208) scale(.29)" />
             <text class="room-temp" x="64" y="182">{{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C ressenti</text>
             {# boîtier thermostat mural : affiche la consigne #}
             <g class="thermostat" transform="translate(300 214)">
@@ -109,9 +119,6 @@
         </g>
     </g>
 
-    {# repère DPE discret, centré en pied de scène #}
-    <g font-family="system-ui">
-        <rect x="474" y="524" width="152" height="26" rx="9" fill="#0f1720" opacity=".72"/>
-        <text x="550" y="542" font-size="13" fill="#c8d4e0" text-anchor="middle">DPE {{ game.dpeLetter }} · cliquez pour agir</text>
-    </g>
+    {# (le DPE vit maintenant dans le coin Patrimoine, et le contrôle du temps
+       dans le bandeau bas — plus de repère en pied de scène) #}
 </svg>
