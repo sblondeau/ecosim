@@ -1,0 +1,3 @@
+{# A cloud; the `variant` prop selects its opacity ramp (scene.css --cloud). #}
+{% props variant = '1' %}
+<g class="cloud cloud-{{ variant }}"{{ attributes }}>{{ include('game/scene/assets/cloud.svg') }}</g>

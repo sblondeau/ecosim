@@ -1,0 +1,4 @@
+{# The fuel-oil boiler. The `state` prop (fioul | fioul-broken) drives a local
+   variant class: running shows the flame, broken shows smoke + alarm + sign. #}
+{% props state = 'fioul' %}
+<g class="boiler boiler--{{ state }}"{{ attributes }}>{{ include('game/scene/assets/boiler-fioul.svg') }}</g>

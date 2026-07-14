@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 400" width="520" height="400" overflow="visible">
     <!-- La maison en COUPE : murs en tranche (couche d'isolant pilotée par
-         .ins-tier-N sur la scène), combles ouverts, séjour visible (teinte =
+         .house--ins-N du composant scene:HouseShell), combles ouverts, séjour visible (teinte =
          confort), local technique vide (le renderer y pose le chauffage).
          Pas de sous-sol, pas de porte de façade : on regarde DANS la maison. -->
     <defs>
