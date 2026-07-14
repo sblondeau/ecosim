@@ -27,6 +27,20 @@ use function substr;
 final class SeededNoise
 {
     /**
+     * Standard deviation of the centered smooth-noise field, `(smooth()−0.5)×2`,
+     * derived analytically. The value at phase t within a segment is
+     * lerp(low, high, S(t)) of two iid U(0,1) control points with S = smoothstep;
+     * its marginal variance is (1/12)·∫₀¹[(1−S)²+S²]dt = 0.7428/12, so the
+     * centered (×2) field has variance 0.2476 and std √0.2476 ≈ 0.4976.
+     *
+     * Callers that want noise of a target standard deviation σ (e.g. a sourced
+     * temperature-anomaly std) scale the centered field by σ / this — otherwise
+     * the smoothstep shape would silently deliver only ~half the intended
+     * spread. {@see self::smoothUnit()} does exactly that.
+     */
+    public const float SMOOTH_CENTERED_STD = 0.4976;
+
+    /**
      * White noise in [0, 1).
      */
     public static function uniform(int $seed, int $index, string $channel): float
@@ -63,6 +77,19 @@ final class SeededNoise
         $high = self::uniform($seed, $controlPoint + 1, $channel);
 
         return self::lerp($low, $high, self::smoothstep($t));
+    }
+
+    /**
+     * Smooth value noise centred on 0 and normalised to unit standard deviation,
+     * so multiplying it by σ yields persistent multi-index regimes whose spread
+     * actually has std σ. Same shape as {@see self::smooth()}, just recentred
+     * and rescaled by {@see self::SMOOTH_CENTERED_STD}.
+     *
+     * @param int<1, max> $period
+     */
+    public static function smoothUnit(int $seed, int $index, string $channel, int $period): float
+    {
+        return (self::smooth($seed, $index, $channel, $period) - 0.5) * 2.0 / self::SMOOTH_CENTERED_STD;
     }
 
     private static function lerp(float $a, float $b, float $t): float

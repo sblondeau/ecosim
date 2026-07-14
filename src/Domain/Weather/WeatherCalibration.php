@@ -36,15 +36,20 @@ final class WeatherCalibration
     /**
      * Half-amplitude of the seasonal swing of the daily-mean temperature
      * (peak summer mean ≈ annualMean + amplitude, deep winter ≈ annualMean − amplitude).
+     *
+     * Calibrated to a semi-continental "France type" reference (population-weighted,
+     * not oceanic-mild Paris alone): January mean ≈ 3.8 °C, July mean ≈ 21.2 °C —
+     * within Météo-France monthly-normal spreads and lifting the heating-degree-day
+     * total toward the ~2300-2500 French range. Upper part of the sourced band.
      */
     public function seasonalTemperatureAmplitudeC(): Coefficient
     {
         return new Coefficient(
-            value: 7.5,
+            value: 8.7,
             unit: '°C',
             min: 6.0,
             max: 9.0,
-            source: 'Météo-France, normales 1991-2020 (écart hiver/été des moyennes mensuelles)',
+            source: 'Météo-France, normales 1991-2020 (écart hiver/été des moyennes mensuelles, référence France semi-continentale)',
             reviewedOn: '2025-01-01',
         );
     }
@@ -66,8 +71,11 @@ final class WeatherCalibration
     }
 
     /**
-     * Mean half-width of the day-to-day temperature band around the seasonal
-     * mean (weather variability); the actual band swings with the season, see
+     * Standard deviation of the day-to-day temperature anomaly around the
+     * seasonal mean (weather variability). This is the REAL output std: the
+     * generator scales unit-std smooth noise by it ({@see SeededNoise::smoothUnit}),
+     * so the value here is delivered as-is — not halved by the smoothing shape as
+     * a raw band would be. The std swings with the season, see
      * {@see self::temperatureNoiseSeasonalAmplitudeC()}.
      */
     public function dailyTemperatureNoiseC(): Coefficient
@@ -77,20 +85,21 @@ final class WeatherCalibration
             unit: '°C',
             min: 2.0,
             max: 4.0,
-            source: 'Ordre de grandeur de l\'écart-type des anomalies journalières (Météo-France)',
+            source: 'Écart-type des anomalies de température journalière moyenne, France (Météo-France)',
             reviewedOn: '2025-01-01',
         );
     }
 
     /**
-     * Seasonal swing of the temperature-noise band: day-to-day variability is
+     * Seasonal swing of the anomaly standard deviation: day-to-day variability is
      * larger in winter (air-mass advection: oceanic mild vs continental cold)
-     * than in summer (radiation-dominated, steadier). Band ≈ mean ± this.
+     * than in summer (radiation-dominated, steadier). Winter std ≈ daily + this,
+     * summer std ≈ daily − this (so ≈ 4.2 °C in January, ≈ 1.8 °C in July).
      */
     public function temperatureNoiseSeasonalAmplitudeC(): Coefficient
     {
         return new Coefficient(
-            value: 1.0,
+            value: 1.2,
             unit: '°C',
             min: 0.5,
             max: 1.5,

@@ -51,13 +51,16 @@ final readonly class WeatherGenerator
         $amplitude = $this->calibration->seasonalTemperatureAmplitudeC()->value;
         $seasonal = $mean - $amplitude * $this->winterCycle($date);
 
-        // Wider band in winter, narrower in summer.
-        $noiseBand = $this->calibration->dailyTemperatureNoiseC()->value
+        // Target standard deviation of the day-to-day anomaly: wider in winter
+        // (air-mass advection), narrower in summer. These coefficients are the
+        // real anomaly std (sourced) — smoothUnit() honours it directly, so the
+        // model actually produces cold snaps instead of a flattened ±1 °C wobble.
+        $anomalyStd = $this->calibration->dailyTemperatureNoiseC()->value
             + $this->calibration->temperatureNoiseSeasonalAmplitudeC()->value * $this->winterCycle($date);
 
         // Persistent noise: a cold snap or a mild spell lasts a few days.
         $persistence = max(1, (int) round($this->calibration->temperaturePersistenceDays()->value));
-        $noise = (SeededNoise::smooth($seed, $date->dayIndex(), 'temp', $persistence) - 0.5) * 2.0 * $noiseBand;
+        $noise = SeededNoise::smoothUnit($seed, $date->dayIndex(), 'temp', $persistence) * $anomalyStd;
 
         return round($seasonal + $noise, 1);
     }
