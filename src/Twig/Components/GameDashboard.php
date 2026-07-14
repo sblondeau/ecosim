@@ -45,7 +45,7 @@ final class GameDashboard
     /** Openable panels: equipment slots, the four axis corners, and the options gear. */
     private const array PANELS = [
         'roof', 'walls', 'heating', 'garage', 'living',
-        'finances', 'comfort', 'energy', 'patrimoine', 'options',
+        'finances', 'comfort', 'energy', 'patrimoine', 'weather', 'options',
     ];
 
     /** The floating panel currently open over the scene (null = none, fullwidth). */

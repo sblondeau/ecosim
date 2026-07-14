@@ -3,7 +3,7 @@
 {% set selected = this.selectedSlot %}
 {% set slots = ['roof', 'walls', 'heating', 'garage', 'living'] %}
 {# Focused panels anchored to the corner they belong to (slots default to ↘). #}
-{% set panelPos = {finances: 'at-tl', comfort: 'at-tr', energy: 'at-bl', patrimoine: 'at-br', options: 'at-tr'} %}
+{% set panelPos = {finances: 'at-tl', comfort: 'at-tr', energy: 'at-bl', patrimoine: 'at-br', weather: 'at-top', options: 'at-bottom'} %}
 {# Welcome overlay: a brand-new game (day 1), until dismissed. Freezes the clock. #}
 {% set showIntro = not this.introDismissed and game.dayNumber == 1 and not game.finished %}
 <div{{ attributes }} class="game{{ game.finished ? ' is-finished' }}" {% if not game.finished and not showIntro %}data-poll="delay(4000)|$render"{% endif %}>
@@ -13,9 +13,9 @@
         {# progression de l'année : ligne fine tout en haut #}
         <div class="year-progress"><span style="width: {{ game.progressPct }}%"></span></div>
 
-        {# roue crantée : options & bilan de session (hors axes) #}
-        <button type="button" class="gear{{ selected == 'options' ? ' active' }}" title="Options & bilan de session"
-                data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="options">⚙</button>
+        {# puce météo (haut-centre) : le contexte du jour, ouvre son évolution #}
+        <button type="button" class="weather-chip{{ selected == 'weather' ? ' active' }}" title="Météo & évolution"
+                data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="weather">{{ game.seasonLabel }} · 🌡️{{ game.temperatureC|number_format(1, ',', ' ') }}° · ☁{{ game.cloudPct }}%</button>
 
         {# bandeaux transitoires, centrés au-dessus de la scène #}
         {% if this.notice is not empty %}
@@ -75,7 +75,7 @@
         {# bandeau de contrôle bas-centre : date · saison · météo · vitesse · jour+ #}
         {% if not game.finished %}
             <div class="controlbar">
-                <div class="cb-when">Jour {{ game.dayNumber }}/{{ game.horizonDays }} · {{ game.dateLabel }} · {{ game.seasonLabel }} · 🌡️{{ game.temperatureC|number_format(1, ',', ' ') }}° ☁{{ game.cloudPct }}%</div>
+                <div class="cb-when">Jour {{ game.dayNumber }}/{{ game.horizonDays }} · {{ game.dateLabel }}</div>
                 <div class="speed">
                     <button type="button" class="btn-ghost btn-small {{ speed == 0 ? 'active' }}" title="Pause"
                             data-action="live#action" data-live-action-param="setSpeed" data-live-speed-param="0">⏸</button>
@@ -88,6 +88,8 @@
                 </div>
                 <button type="button" class="btn-primary btn-small"
                         data-action="live#action" data-live-action-param="step">Jour suivant →</button>
+                <button type="button" class="gear{{ selected == 'options' ? ' active' }}" title="Options & bilan de session"
+                        data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="options">⚙</button>
             </div>
         {% endif %}
 
@@ -108,6 +110,8 @@
                     {{ include('game/panel/_energy.html.twig') }}
                 {% elseif selected == 'patrimoine' %}
                     {{ include('game/panel/_patrimoine.html.twig') }}
+                {% elseif selected == 'weather' %}
+                    {{ include('game/panel/_weather.html.twig') }}
                 {% elseif selected == 'options' %}
                     {{ include('game/panel/_options.html.twig') }}
                 {% endif %}
