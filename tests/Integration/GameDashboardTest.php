@@ -53,6 +53,19 @@ final class GameDashboardTest extends KernelTestCase
         self::assertNull($component->component()->selectedSlot);
     }
 
+    public function testWelcomeOverlayShowsOnAFreshGameThenDismisses(): void
+    {
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        // A brand-new game (day 1) greets the player with the welcome overlay.
+        self::assertStringContainsString('Bienvenue chez vous', (string) $component->render());
+
+        $html = (string) $component->call('dismissIntro')->render();
+
+        self::assertTrue($component->component()->introDismissed);
+        self::assertStringNotContainsString('intro-overlay', $html);
+    }
+
     public function testRefusedRenovationSurfacesAnErrorNoticeInsteadOfAFlash(): void
     {
         $component = $this->createLiveComponent(GameDashboard::class);

@@ -3,7 +3,10 @@
 {% set speed = this.speedValue %}
 {% set selected = this.selectedSlot %}
 {% set slots = ['roof', 'walls', 'heating', 'garage', 'living'] %}
-<div{{ attributes }} class="game{{ game.finished ? ' is-finished' }}" {% if not game.finished %}data-poll="delay(4000)|$render"{% endif %}>
+{# Welcome overlay: a brand-new game (day 1), until the player dismisses it.
+   While it is up the clock is frozen (no data-poll), so reading it costs no days. #}
+{% set showIntro = not this.introDismissed and game.dayNumber == 1 and not game.finished %}
+<div{{ attributes }} class="game{{ game.finished ? ' is-finished' }}" {% if not game.finished and not showIntro %}data-poll="delay(4000)|$render"{% endif %}>
     <header class="top">
         <div class="brand">
             <h1>🏠 EcoSim</h1>
@@ -63,6 +66,25 @@
 
         <button type="button" class="hud hud-br btn-ghost btn-small {{ selected == 'menu' ? 'active' }}"
                 data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="menu">≡ Bilan & options</button>
+
+        {# ===== écran de bienvenue (premier lancement) ===== #}
+        {% if showIntro %}
+            <div class="intro-overlay">
+                <div class="intro-card">
+                    <h2>🏠 Bienvenue chez vous</h2>
+                    <p class="lead">Vous êtes primo-accédant. Vous venez d'emménager dans une <strong>maison ancienne chauffée au fioul, classée DPE&nbsp;F</strong>, avec une épargne modeste.</p>
+                    <p class="intro-goal">Vivez-y un an. <strong>Il n'y a pas de partie perdue</strong> : à vous d'équilibrer vos trois axes.</p>
+                    <ul class="intro-axes">
+                        <li><span class="ax">💶</span> <span><strong>Finances</strong> — épargne, factures d'énergie, aides et prêt.</span></li>
+                        <li><span class="ax">🏠</span> <span><strong>Patrimoine</strong> — la classe DPE et la valeur du bien.</span></li>
+                        <li><span class="ax">🛋️</span> <span><strong>Confort</strong> — la température <em>ressentie</em> chez vous.</span></li>
+                    </ul>
+                    <p class="intro-how">Cliquez le <strong>toit</strong>, la <strong>chaudière</strong>, le <strong>garage</strong> ou le <strong>séjour</strong> pour agir. Le temps avance seul — <strong>⏸</strong> pour réfléchir. Des imprévus peuvent survenir.</p>
+                    <button type="button" class="btn-primary"
+                            data-action="live#action" data-live-action-param="dismissIntro">Commencer →</button>
+                </div>
+            </div>
+        {% endif %}
 
         {# ===== panneau flottant contextuel (au clic sur un élément) ===== #}
         {% if selected %}

@@ -167,6 +167,18 @@ button.hud-br { z-index: 2; }
 details.card > summary { cursor: pointer; font-size: .78rem; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); font-weight: 600; }
 details.card[open] > summary { margin-bottom: .5rem; }
 
+/* écran de bienvenue (premier lancement) — overlay centré sur la scène */
+.intro-overlay { position: absolute; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center; padding: 1rem; background: color-mix(in srgb, var(--bg) 68%, transparent); backdrop-filter: blur(3px); }
+.intro-card { max-width: 460px; max-height: 100%; overflow-y: auto; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 1.4rem 1.5rem; box-shadow: 0 20px 60px rgba(0, 0, 0, .45); }
+.intro-card h2 { margin: 0 0 .5rem; font-size: 1.3rem; }
+.intro-card .lead { margin: 0 0 .8rem; }
+.intro-card .intro-goal { margin: 0 0 .8rem; color: var(--ink); }
+.intro-axes { list-style: none; padding: 0; margin: 0 0 1rem; display: grid; gap: .5rem; font-size: .92rem; }
+.intro-axes li { display: flex; gap: .55rem; align-items: flex-start; }
+.intro-axes .ax { font-size: 1.2rem; line-height: 1.2; }
+.intro-card .intro-how { margin: 0 0 1.1rem; font-size: .85rem; color: var(--muted); }
+.intro-card .btn-primary { width: 100%; }
+
 .quote-actions { display: flex; gap: .6rem; margin-top: .8rem; flex-wrap: wrap; }
 .btn-small { padding: .45rem .9rem; font-size: .85rem; }
 button:disabled { opacity: .35; cursor: not-allowed; }
