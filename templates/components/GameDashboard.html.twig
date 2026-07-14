@@ -1,3 +1,4 @@
+{% import 'game/_macros.html.twig' as ui %}
 {% set game = this.game %}
 {% set speed = this.speedValue %}
 {% set selected = this.selectedSlot %}
@@ -66,8 +67,7 @@
                         <li><span class="ax">🛋️</span> <span><strong>Confort</strong> — la température <em>ressentie</em> chez vous.</span></li>
                     </ul>
                     <p class="intro-how">Cliquez le <strong>toit</strong>, la <strong>chaudière</strong>, le <strong>garage</strong> ou le <strong>séjour</strong> pour agir, et les <strong>quatre coins</strong> pour vos indicateurs. Le temps avance seul — <strong>⏸</strong> pour réfléchir. Des imprévus peuvent survenir.</p>
-                    <button type="button" class="btn-primary"
-                            data-action="live#action" data-live-action-param="dismissIntro">Commencer →</button>
+                    {{ ui.action('Commencer →', 'dismissIntro', {}, {class: 'btn-primary'}) }}
                 </div>
             </div>
         {% endif %}
@@ -77,19 +77,13 @@
             <div class="controlbar">
                 <div class="cb-when">Jour {{ game.dayNumber }}/{{ game.horizonDays }} · {{ game.dateLabel }}</div>
                 <div class="speed">
-                    <button type="button" class="btn-ghost btn-small {{ speed == 0 ? 'active' }}" title="Pause"
-                            data-action="live#action" data-live-action-param="setSpeed" data-live-speed-param="0">⏸</button>
-                    <button type="button" class="btn-ghost btn-small {{ speed == 1 ? 'active' }}" title="1 jour / 12 s"
-                            data-action="live#action" data-live-action-param="setSpeed" data-live-speed-param="1">▶</button>
-                    <button type="button" class="btn-ghost btn-small {{ speed == 2 ? 'active' }}" title="1 jour / 6 s"
-                            data-action="live#action" data-live-action-param="setSpeed" data-live-speed-param="2">×2</button>
-                    <button type="button" class="btn-ghost btn-small {{ speed == 3 ? 'active' }}" title="1 jour / 4 s"
-                            data-action="live#action" data-live-action-param="setSpeed" data-live-speed-param="3">×3</button>
+                    {{ ui.action('⏸', 'setSpeed', {speed: 0}, {title: 'Pause', active: speed == 0}) }}
+                    {{ ui.action('▶', 'setSpeed', {speed: 1}, {title: '1 jour / 12 s', active: speed == 1}) }}
+                    {{ ui.action('×2', 'setSpeed', {speed: 2}, {title: '1 jour / 6 s', active: speed == 2}) }}
+                    {{ ui.action('×3', 'setSpeed', {speed: 3}, {title: '1 jour / 4 s', active: speed == 3}) }}
                 </div>
-                <button type="button" class="btn-primary btn-small"
-                        data-action="live#action" data-live-action-param="step">Jour suivant →</button>
-                <button type="button" class="gear{{ selected == 'options' ? ' active' }}" title="Options & bilan de session"
-                        data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="options">⚙</button>
+                {{ ui.action('Jour suivant →', 'step', {}, {class: 'btn-primary btn-small'}) }}
+                {{ ui.action('⚙', 'selectSlot', {slot: 'options'}, {class: 'gear', active: selected == 'options', title: 'Options & bilan de session'}) }}
             </div>
         {% endif %}
 
@@ -101,8 +95,6 @@
         <button type="button" class="panel-backdrop" aria-label="Fermer"
                 data-action="click->live#action" data-live-action-param="closePanel"></button>
         <aside class="float-panel {{ panelPos[selected] ?? 'at-br' }}">
-            <button type="button" class="float-close btn-ghost btn-small"
-                    data-action="click->live#action" data-live-action-param="closePanel" aria-label="Fermer">✕</button>
             {% if selected in slots %}
                 {{ include('game/panel/_slot.html.twig') }}
             {% elseif selected == 'finances' %}

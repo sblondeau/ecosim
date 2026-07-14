@@ -16,6 +16,17 @@
     </div>
 {% endmacro %}
 
+{# Bouton d'une LiveAction : centralise le boilerplate (type, data-action, les
+   data-live-<clé>-param). `params` = les arguments de l'action ; `opts` porte
+   class / title / active / disabled. Ex :
+     {{ ui.action('⏸', 'setSpeed', {speed: 0}, {title: 'Pause', active: paused}) }} #}
+{% macro action(label, name, params = {}, opts = {}) -%}
+<button type="button" class="{{ opts.class|default('btn-ghost btn-small') }}{{ opts.active|default(false) ? ' active' }}"
+        {{- opts.title is defined ? ' title="' ~ opts.title ~ '"' }}{{ opts.disabled|default(false) ? ' disabled' }}
+        data-action="live#action" data-live-action-param="{{ name }}"
+        {%- for key, value in params %} data-live-{{ key }}-param="{{ value }}"{% endfor %}>{{ label }}</button>
+{%- endmacro %}
+
 {% macro quote_card(action) %}
     <div class="card quote">
         <h2>{{ action.title }}</h2>
@@ -34,13 +45,9 @@
             <div class="effects effects-none">Aucun effet mesurable sur votre installation actuelle.</div>
         {% endif %}
         <div class="quote-actions">
-            <button type="button" class="btn-primary btn-small" {{ action.cashAllowed ? '' : 'disabled' }}
-                    data-action="live#action" data-live-action-param="order"
-                    data-live-work-param="{{ action.work }}" data-live-financing-param="cash">Payer comptant</button>
+            {{ _self.action('Payer comptant', 'order', {work: action.work, financing: 'cash'}, {class: 'btn-primary btn-small', disabled: not action.cashAllowed}) }}
             {% if action.loanAllowed %}
-                <button type="button" class="btn-ghost btn-small"
-                        data-action="live#action" data-live-action-param="order"
-                        data-live-work-param="{{ action.work }}" data-live-financing-param="loan">Éco-PTZ · {{ action.loanMonthlyLabel }}/mois · 20 ans</button>
+                {{ _self.action('Éco-PTZ · ' ~ action.loanMonthlyLabel ~ '/mois · 20 ans', 'order', {work: action.work, financing: 'loan'}) }}
             {% endif %}
         </div>
     </div>
