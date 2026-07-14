@@ -250,6 +250,58 @@ final class EnergyCalibration
     }
 
     /**
+     * Primary-energy conversion factor of electricity (kWhPE per kWh final):
+     * the regulatory French convention behind the DPE energy label. Fossil
+     * fuels convert at 1.0 (their final energy IS primary), so only electricity
+     * carries a factor — which is why an all-electric passoire scores badly on
+     * the energy label even as it collapses on the climate one.
+     */
+    public function electricityPrimaryEnergyFactor(): Coefficient
+    {
+        return new Coefficient(
+            value: 2.3,
+            unit: 'kWhEP/kWh',
+            min: 2.3,
+            max: 2.3,
+            source: 'Convention réglementaire française (arrêté DPE 3 avril 2021 ; Code de la construction)',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
+    /**
+     * CO₂ content of domestic fuel oil, combustion + upstream — the DPE climate
+     * label factor. Fuel oil is one of the most carbon-intensive heating energies.
+     */
+    public function fuelOilCo2GramsPerKwh(): Coefficient
+    {
+        return new Coefficient(
+            value: 324.0,
+            unit: 'gCO2e/kWh',
+            min: 300.0,
+            max: 340.0,
+            source: 'Arrêté DPE 2021 / ADEME Base Carbone : facteur d\'émission du fioul domestique',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
+    /**
+     * CO₂ content of grid electricity used by the DPE climate label. France's
+     * mostly-nuclear/renewable mix makes this low — the reason a heat pump
+     * slashes emissions far more than it slashes primary energy or the bill.
+     */
+    public function electricityCo2GramsPerKwh(): Coefficient
+    {
+        return new Coefficient(
+            value: 79.0,
+            unit: 'gCO2e/kWh',
+            min: 60.0,
+            max: 80.0,
+            source: 'Arrêté DPE 2021 : facteur d\'émission conventionnel de l\'électricité (ADEME Base Carbone ~60 g en conso)',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
+    /**
      * Seasonal COP of the single Phase 0-1 heat-pump model, as measured in
      * real conditions (not the optimistic nameplate figure).
      */

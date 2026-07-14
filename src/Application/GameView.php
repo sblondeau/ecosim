@@ -76,7 +76,16 @@ final readonly class GameView
         /** Live preview of +1 °C on the yearly bill (empty at the upper bound). */
         public string $setpointUpEffectLabel,
         public string $insulationLabel,
+        /** Final DPE letter (the worse of the two labels below). */
         public string $dpeLetter,
+        /** DPE energy label: letter, primary-energy intensity (kWhEP/m²/an), cursor position in the band. */
+        public string $dpeEnergyLetter,
+        public int $dpeEnergyIntensity,
+        public int $dpeEnergyBandPct,
+        /** DPE climate label: letter, emissions (kgCO₂/m²/an), cursor position in the band. */
+        public string $dpeClimateLetter,
+        public int $dpeClimateIntensity,
+        public int $dpeClimateBandPct,
         public float $heatingElectricityKwh,
         public float $fuelOilLitres,
         public int $comfortScorePct,

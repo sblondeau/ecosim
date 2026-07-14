@@ -1,0 +1,30 @@
+{# Official-style DPE étiquette: the two French labels stacked — energy
+   (green→red) and climate/GES (purple) — as the signature A→G staircase.
+   The active class is highlighted; a cursor shows how far into the band the
+   value sits (near the right edge = about to drop a letter). Fed by GameView's
+   dpe* fields (real intensities, see DpeCertifier). #}
+{% props
+    energyLetter = 'G', energyValue = 0, energyFill = 0,
+    climateLetter = 'G', climateValue = 0, climateFill = 0
+%}
+{% set letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G'] %}
+<div class="dpe">
+    <div class="dpe-scale">
+        <div class="dpe-cap"><span>Consommation</span><span class="dpe-big">{{ energyValue }} <small>kWhEP/m²·an</small></span></div>
+        {% for c in letters %}
+            <div class="dpe-bar dpe-e-{{ c|lower }}{{ c == energyLetter ? ' is-active' }}" style="width: {{ 34 + loop.index0 * 11 }}%">
+                <span class="dpe-let">{{ c }}</span>
+                {% if c == energyLetter %}<span class="dpe-cursor" style="left: {{ energyFill }}%"></span>{% endif %}
+            </div>
+        {% endfor %}
+    </div>
+    <div class="dpe-scale">
+        <div class="dpe-cap"><span>Émissions GES</span><span class="dpe-big">{{ climateValue }} <small>kgCO₂/m²·an</small></span></div>
+        {% for c in letters %}
+            <div class="dpe-bar dpe-g-{{ c|lower }}{{ c == climateLetter ? ' is-active' }}" style="width: {{ 34 + loop.index0 * 11 }}%">
+                <span class="dpe-let">{{ c }}</span>
+                {% if c == climateLetter %}<span class="dpe-cursor" style="left: {{ climateFill }}%"></span>{% endif %}
+            </div>
+        {% endfor %}
+    </div>
+</div>

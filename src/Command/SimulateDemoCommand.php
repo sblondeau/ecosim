@@ -110,13 +110,12 @@ final class SimulateDemoCommand extends Command
 
         $io->title(sprintf('EcoSim — %d jours depuis %s', $days, $epochOption));
         $io->text(sprintf(
-            'Graine %d · Solaire %.1f kWc · Batterie %.1f kWh · Isolation %s · %s · DPE %s',
+            'Graine %d · Solaire %.1f kWc · Batterie %.1f kWh · Isolation %s · %s',
             $config->seed,
             $household->solarKwc,
             $household->batteryKwh,
             $household->insulation->label(),
             $household->heatingSystem->label(),
-            $household->dpeClass()->label(),
         ));
 
         $rows = [];

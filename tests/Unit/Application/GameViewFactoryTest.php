@@ -208,8 +208,8 @@ final class GameViewFactoryTest extends TestCase
     public function testEndReportMeasuresEachAxisAgainstDayZero(): void
     {
         $config = new GameConfig(2025, new DateTimeImmutable('2025-01-01'), 3);
-        // A renovated home (Retrofitted + heat pump = DPE C) with 5 000 € left
-        // and an éco-PTZ still running.
+        // A renovated home (Retrofitted + heat pump = computed DPE D) with 5 000 €
+        // left and an éco-PTZ still running.
         $renovated = new Household(3.0, 0.0, InsulationLevel::Retrofitted, HeatingSystem::HeatPump);
         $atHorizon = new GameState(3, $renovated, 0.0, Money::fromEuros(5000.0), Loan::none()->borrow(Money::fromEuros(24000.0)), new PeriodTotals());
 
@@ -221,10 +221,10 @@ final class GameViewFactoryTest extends TestCase
         self::assertSame('−2 750,00 €', $report->savingsDeltaLabel);
         self::assertTrue($report->savingsDeltaNegative);
         self::assertSame('G', $report->dpeStartLetter);
-        self::assertSame('C', $report->dpeEndLetter);
+        self::assertSame('D', $report->dpeEndLetter);
         self::assertSame('200 000,00 €', $report->propertyStartLabel);
-        self::assertSame('264 000,00 €', $report->propertyEndLabel, '4 DPE classes gained × 8 %.');
-        self::assertSame('+64 000,00 €', $report->propertyDeltaLabel);
+        self::assertSame('248 000,00 €', $report->propertyEndLabel, '3 DPE classes gained × 8 %.');
+        self::assertSame('+48 000,00 €', $report->propertyDeltaLabel);
         self::assertTrue($report->loanActive);
         self::assertSame('24 000,00 €', $report->loanRemainingLabel);
     }

@@ -7,6 +7,8 @@ namespace App\Application;
 use function abs;
 
 use App\Domain\Building\BuildingCalibration;
+use App\Domain\Building\DpeCertifier;
+use App\Domain\Building\DpeClass;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
 use App\Domain\Building\InsulationLevel;
@@ -70,6 +72,7 @@ final readonly class GameViewFactory
         private AnnualOutcomeEstimator $estimator = new AnnualOutcomeEstimator(),
         private BuildingCalibration $building = new BuildingCalibration(),
         private EnergyCalibration $energy = new EnergyCalibration(),
+        private DpeCertifier $dpeCertifier = new DpeCertifier(),
     ) {
     }
 
@@ -85,6 +88,9 @@ final readonly class GameViewFactory
         $currentAnnual = $this->estimator->estimate($household);
         $annualIncome = $this->finance->monthlyNetIncome()->value * 12.0;
         $effortRate = $currentAnnual->netEnergyCost->euros() / $annualIncome;
+
+        // The two official DPE labels (energy + climate), from the year's real energy.
+        $dpe = $this->dpeCertifier->certify($currentAnnual->electricityKwh, $currentAnnual->fuelOilLitres);
 
         return new GameView(
             dayNumber: min($state->currentDay + 1, $config->horizonDays),
@@ -117,7 +123,7 @@ final readonly class GameViewFactory
             )->format(),
             energyEffortPct: (int) round($effortRate * 100),
             inFuelPoverty: $effortRate > $this->finance->fuelPovertyEffortThreshold()->value,
-            propertyValueLabel: $this->property->valueFor($household->dpeClass())->format(),
+            propertyValueLabel: $this->property->valueFor($dpe->finalClass)->format(),
             loanActive: $state->loan->isActive(),
             loanMonthlyPaymentLabel: $state->loan->monthlyPayment->format(),
             loanRemainingLabel: $state->loan->remaining->format(),
@@ -132,7 +138,13 @@ final readonly class GameViewFactory
             setpointDownEffectLabel: $this->setpointEffect($household, $currentAnnual, -1.0),
             setpointUpEffectLabel: $this->setpointEffect($household, $currentAnnual, 1.0),
             insulationLabel: $household->insulation->label(),
-            dpeLetter: $household->dpeClass()->label(),
+            dpeLetter: $dpe->finalClass->label(),
+            dpeEnergyLetter: $dpe->energyClass->label(),
+            dpeEnergyIntensity: (int) round($dpe->energyIntensity),
+            dpeEnergyBandPct: (int) round($dpe->energyBandFillPct),
+            dpeClimateLetter: $dpe->climateClass->label(),
+            dpeClimateIntensity: (int) round($dpe->climateIntensity),
+            dpeClimateBandPct: (int) round($dpe->climateBandFillPct),
             heatingElectricityKwh: $snapshot->heating->electricityKwh,
             fuelOilLitres: $snapshot->heating->fuelOilLitres,
             comfortScorePct: $snapshot->comfort->score,
@@ -168,8 +180,8 @@ final readonly class GameViewFactory
     {
         $initial = $this->scenario->initialState();
         $initialSavings = $initial->savings;
-        $initialDpe = $initial->household->dpeClass();
-        $finalDpe = $state->household->dpeClass();
+        $initialDpe = $this->dpeFinalClass($initial->household);
+        $finalDpe = $this->dpeFinalClass($state->household);
 
         $initialProperty = $this->property->valueFor($initialDpe);
         $finalProperty = $this->property->valueFor($finalDpe);
@@ -363,6 +375,14 @@ final readonly class GameViewFactory
         }
 
         return implode(' ', $points);
+    }
+
+    /** Final DPE class of a house, from its reference-year energy (energy + climate labels). */
+    private function dpeFinalClass(Household $household): DpeClass
+    {
+        $annual = $this->estimator->estimate($household);
+
+        return $this->dpeCertifier->certify($annual->electricityKwh, $annual->fuelOilLitres)->finalClass;
     }
 
     /**

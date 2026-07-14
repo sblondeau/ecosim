@@ -66,6 +66,20 @@ final class GameDashboardTest extends KernelTestCase
         self::assertStringNotContainsString('intro-overlay', $html);
     }
 
+    public function testMenuPanelRendersTheOfficialDualDpeLabel(): void
+    {
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        $html = (string) $component->call('selectSlot', ['slot' => 'menu'])->render();
+
+        // Both official scales are drawn, each with exactly one highlighted class
+        // (the letter itself depends on the house, so it is not pinned here).
+        self::assertStringContainsString('Consommation', $html);
+        self::assertStringContainsString('kgCO₂/m²·an', $html);
+        self::assertMatchesRegularExpression('/dpe-e-[a-g] is-active/', $html);
+        self::assertMatchesRegularExpression('/dpe-g-[a-g] is-active/', $html);
+    }
+
     public function testRefusedRenovationSurfacesAnErrorNoticeInsteadOfAFlash(): void
     {
         $component = $this->createLiveComponent(GameDashboard::class);

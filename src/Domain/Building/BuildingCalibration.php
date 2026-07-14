@@ -107,6 +107,24 @@ final class BuildingCalibration
     }
 
     /**
+     * Habitable floor area of the scenario house — the denominator of the DPE
+     * intensities (kWhEP/m²/an and kgCO₂/m²/an). One fixed house this phase, so
+     * it is a single reference value; when several dwellings exist it becomes a
+     * per-house parameter (see docs/backlog.md, "taille du logement").
+     */
+    public function referenceFloorAreaM2(): Coefficient
+    {
+        return new Coefficient(
+            value: 100.0,
+            unit: 'm²',
+            min: 90.0,
+            max: 110.0,
+            source: 'Scénario primo-accédant : maison ancienne ~100 m² (game-design §15)',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
+    /**
      * Heat loss of the unrenovated scenario house, per degree-day.
      */
     public function heatLossKwhPerDegreeDay(): Coefficient

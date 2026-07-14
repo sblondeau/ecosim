@@ -23,7 +23,6 @@ final class PrimoAccedantScenarioTest extends TestCase
         self::assertSame(InsulationLevel::Original, $household->insulation);
         self::assertSame(HeatingSystem::FuelOilBoiler, $household->heatingSystem);
         self::assertFalse($household->boilerBroken, 'The boiler still runs on day 0 — the breakdown is scripted later.');
-        self::assertSame('G', $household->dpeClass()->label());
     }
 
     public function testTheInitialStateCarriesTheCalibratedSavings(): void

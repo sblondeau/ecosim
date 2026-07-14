@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\Building;
 
-use App\Domain\Building\DpeClass;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
 use App\Domain\Building\InsulationLevel;
@@ -19,7 +18,8 @@ final class HouseholdTest extends TestCase
 
         self::assertSame(3.0, $household->solarKwc);
         self::assertSame(5.0, $household->batteryKwh);
-        self::assertSame(DpeClass::G, $household->dpeClass(), 'The starting passoire is a G.');
+        self::assertSame(InsulationLevel::Original, $household->insulation);
+        self::assertSame(HeatingSystem::FuelOilBoiler, $household->heatingSystem);
     }
 
     public function testRejectsNegativeSolarPower(): void

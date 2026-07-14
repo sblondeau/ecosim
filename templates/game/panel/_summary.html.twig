@@ -65,9 +65,13 @@
     <div class="row"><span class="k">Coût énergie net</span><span><strong>{{ game.totalNetEnergyCostLabel }}</strong></span></div>
 </details>
 
-<details class="card">
-    <summary>Patrimoine{{ ui.tip(game.help.propertyValue) }}</summary>
-    <div class="row"><span class="k">Valeur du bien (DPE {{ game.dpeLetter }})</span><span>{{ game.propertyValueLabel }}</span></div>
+<details class="card" open>
+    <summary>Patrimoine · DPE {{ game.dpeLetter }}{{ ui.tip(game.help.propertyValue) }}</summary>
+    <twig:DpeLabel
+        energyLetter="{{ game.dpeEnergyLetter }}" :energyValue="game.dpeEnergyIntensity" :energyFill="game.dpeEnergyBandPct"
+        climateLetter="{{ game.dpeClimateLetter }}" :climateValue="game.dpeClimateIntensity" :climateFill="game.dpeClimateBandPct"
+    />
+    <div class="row"><span class="k">Valeur du bien</span><span>{{ game.propertyValueLabel }}</span></div>
     <div class="row"><span class="k">Nature</span><span class="k">réalisable à la revente uniquement</span></div>
 </details>
 
