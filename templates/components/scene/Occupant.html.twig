@@ -1,6 +1,8 @@
-{# The household occupant, embodying felt comfort. The `tier` prop drives a
-   local variant class (cold/cool/warm/hot) — the visible state is picked in
-   scene.css from that class, no dependence on a distant ancestor. Wraps the
-   hand-editable occupant.svg (§17). #}
+{# The household occupant, embodying felt comfort. The `tier` prop
+   (cold | cool | warm | hot, from HouseSceneView::comfortState) selects one of
+   four hand-designed full-body SVGs — one whole character per state, so there
+   is no CSS layer toggling: the component just includes the right file. The
+   `occupant--{{ tier }}` class stays as a semantic hook (future per-state
+   ambience), not a visibility switch. #}
 {% props tier = 'warm' %}
-<g class="occupant occupant--{{ tier }}"{{ attributes }}>{{ include('game/scene/assets/occupant.svg') }}</g>
+<g class="occupant occupant--{{ tier }}"{{ attributes }}>{{ include('game/scene/assets/occupant-' ~ tier ~ '.svg') }}</g>

@@ -71,7 +71,7 @@
         <g class="slot slot-living{{ selected == 'living' ? ' is-selected' }}" tabindex="0" role="button"
            data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="living">
             <title>Séjour — ressenti {{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C</title>
-            <twig:scene:Occupant tier="{{ scene.comfortState }}" transform="translate(150 202) scale(.6)" />
+            <twig:scene:Occupant tier="{{ scene.comfortState }}" transform="translate(133 184) scale(.33)" />
             <text class="room-temp" x="64" y="182">{{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C ressenti</text>
             {# boîtier thermostat mural : affiche la consigne #}
             <g class="thermostat" transform="translate(300 214)">

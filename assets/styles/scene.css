@@ -62,16 +62,13 @@
 .house--ins-1 .ins-attic-1, .house--ins-1 .ins-wall-1 { display: initial; }
 .house--ins-2 .ins-attic-2, .house--ins-2 .ins-wall-2 { display: initial; }
 
-/* --- confort : la teinte du séjour (scène) + l'occupant (variante locale) --- */
+/* --- confort : la teinte du séjour (scène) ; l'occupant est un fichier SVG
+       complet par état (scene:Occupant inclut occupant-<tier>.svg), donc plus
+       aucune bascule de couches ici. --- */
 .scene .room-tint { fill: #31465c; }
 .scene.comfort-cool .room-tint { fill: #3d4a47; }
 .scene.comfort-warm .room-tint { fill: #4a3f2f; }
 .scene.comfort-hot .room-tint { fill: #5a3b30; }
-.scene .occ { display: none; }
-.occupant--cold .occ-cold,
-.occupant--cool .occ-cool,
-.occupant--warm .occ-warm,
-.occupant--hot .occ-hot { display: block; }
 
 /* --- chauffage : couches de la chaudière (variante locale) / PAC --- */
 .scene .flame, .scene .smoke, .scene .alarm, .scene .breakdown-sign { display: none; }
