@@ -527,7 +527,44 @@ volontairement différé :
 
 - ~~Versionner le format de session~~ : fait (champ `version` + reset si mismatch).
 - ~~CSRF sur les POST~~ : fait (`csrf_token('game')` + vérification contrôleur).
-- **Phase dupliquée dans la calibration** : `WeatherCalibration::coldestDayOfYear`
-  et `EnergyCalibration::householdDemandPeakDayOfYear` encodent la même réalité
-  (creux thermique de mi-janvier) en deux endroits — risque de dérive, à
-  rapprocher.
+- ~~**Phase dupliquée dans la calibration**~~ : fait (juillet 2026).
+  `EnergyCalibration::householdDemandPeakDayOfYear` **dérive** désormais de
+  `WeatherCalibration::coldestDayOfYear` (source unique de vérité, plus de
+  risque de dérive).
+
+## Persistance & méta-jeu (étape dédiée, décidée en bloc)
+
+**Décision actée (juillet 2026)** : la persistance Doctrine **attend une étape
+dédiée**, pensée en bloc avec toute son UX — pas un simple portage session→DB.
+Raisonnement (joueur) : copier la session en base est de la **plomberie
+invisible** qui ne sert pas le gameplay ; quitte à persister, il faut **tout ce
+qui va autour** pour que ça vaille le coup. À faire ensemble, comme une vraie
+feature de méta-jeu :
+
+- **Comptes / login** (le seul cas où Symfony Security se justifie enfin :
+  portabilité multi-appareils, vraie identité — cf. la mise au point ci-dessous).
+- **Reprendre une partie** : boutons explicites (« Continuer », « Nouvelle
+  partie »), plus la reprise implicite au chargement.
+- **Parties multiples en parallèle** (plusieurs foyers/scénarios sauvegardés).
+- **Historique** : liste des parties terminées avec leur bilan (comparer ses
+  runs — pédagogie).
+- **Stats** : agrégats inter-parties (progression, meilleurs bilans par axe…).
+
+**Point d'honnêteté à ne pas réoublier** : un cookie anonyme n'apporte **pas
+plus d'identité** que la session actuelle (elle est déjà keyée par cookie). La
+vraie plus-value de la persistance = (1) **durabilité** (la session PHP expire /
+meurt à la fermeture du navigateur, or le jeu se joue sur plusieurs jours réels
+via `PausesWhileAway` → une partie longue s'évapore), (2) **historique**
+(la session ne tient qu'une partie), (3) **cycle de vie des données** (sauvegarde,
+migration, stats, socle des phases suivantes). Si un jour on ne veut QUE la
+durabilité sans le reste, un chemin cheap existe (session persistée en base via
+`PdoSessionHandler` + cookie longue durée, ~config seule) — mais c'est un
+demi-pas qui n'apporte ni historique ni modèle de données.
+
+**Terrain déjà prêt** (le gros du travail technique est fait) : `GameStore` est
+une **interface** (présentation découplée), la (dé)sérialisation `Game ⇄ array de
+primitifs` existe dans `SessionGameStore` (`dehydrate`/`hydrate` + `FORMAT_VERSION`,
+extractible vers un `GameSnapshot` partagé), Doctrine est configuré (Postgres
+prod / SQLite `_test`), `src/Entity/` est vierge. Un `DoctrineGameStore` stockera
+le même snapshot en JSON versionné, keyé par l'identité choisie. Déclencheur :
+l'étape méta-jeu dédiée, quand le contenu justifie de sauver/comparer des parties.
