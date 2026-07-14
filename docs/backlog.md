@@ -99,6 +99,22 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
 
 ## Énergie / gameplay
 
+- **Orientation des panneaux (rendement par pan de toit)** (déclencheur :
+  quand un second pan devient jouable, ou un axe réalisme PV plus fin).
+  Réflexion joueur juillet 2026, à l'occasion d'un fix de position des
+  panneaux dans la scène (§17) : la scène différencie déjà visuellement les
+  deux versants (gauche/droit, cf. `_cutaway.html.twig`), ce qui en ferait un
+  point d'accroche naturel pour modéliser l'orientation. Constat réel :
+  l'orientation/inclinaison est, avec l'ombrage, le facteur qui pèse le plus
+  sur le productible PV après la puissance crête — un pan mal orienté (est/
+  ouest, pire nord) produit sensiblement moins qu'un pan sud, au même kWc.
+  En vrai, on installe quasi toujours sur le(s) pan(s) le(s) plus favorable(s)
+  (rarement les deux, le rendement/€ du mauvais pan étant souvent
+  insuffisant) — donc un choix de pan avec rendement différent par pan est
+  fidèle au réel ET cohérent avec le principe du jeu (le levier reste le
+  coût/choix, jamais une magnitude truquée). À calibrer avec source (PVGIS/
+  ADEME) le jour où c'est fait, pas de coefficient à vue.
+
 - ~~Bruit journalier sur la demande~~ : fait (`householdDemandDailyNoiseKwh`,
   bruit blanc semé ±1,5 kWh/j).
 - ~~UX batterie~~ : fait (la jauge montre l'énergie restituée à la maison le
@@ -568,3 +584,17 @@ extractible vers un `GameSnapshot` partagé), Doctrine est configuré (Postgres
 prod / SQLite `_test`), `src/Entity/` est vierge. Un `DoctrineGameStore` stockera
 le même snapshot en JSON versionné, keyé par l'identité choisie. Déclencheur :
 l'étape méta-jeu dédiée, quand le contenu justifie de sauver/comparer des parties.
+
+**Payoff gameplay qui justifie la persistance — le graphe conso/CO₂ multi-années
+avec marqueurs de travaux** (décidé juillet 2026). La consommation (et le CO₂)
+dépend de l'**historique d'équipement** — contrairement à la météo (recalculable
+car semée), elle **doit être stockée** point par point. Feature cible : une
+timeline de la conso (kWh/m²/an) et des émissions (kgCO₂/an) sur plusieurs
+années, avec un **marqueur à chaque travaux** (« isolation → −30 % », « PAC →
+−encore, et le CO₂ s'effondre »). C'est *le* retour visuel qui rend tangible
+l'effet cumulé des décisions — et c'est exactement le genre de contenu qui rend
+la persistance utile plutôt qu'invisible. Dans une seule année, une version
+réduite est possible en stockant la série en session (~365 points) ; le
+multi-années exige la vraie persistance. À concevoir avec l'axe Environnement
+(la facette climat du DPE + l'intensité conso sont posées côté MVP — voir
+ci-dessous « Environnement / CO₂ »).
