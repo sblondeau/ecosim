@@ -2,14 +2,14 @@
 {# Météo (puce haut-centre) : le temps du jour + son évolution récente. #}
 <div class="card panel-head"><h2>🌤️ Météo — {{ game.seasonLabel }}</h2></div>
 <div class="card">
-    <div class="row"><span class="k">Température</span><span>{{ game.temperatureC|number_format(1, ',', ' ') }} °C</span></div>
-    <div class="row"><span class="k">Nébulosité{{ ui.tip(game.help.cloud) }}</span><span>{{ game.cloudPct }} %</span></div>
+    <div class="row"><span class="key">Température</span><span>{{ game.temperatureC|number_format(1, ',', ' ') }} °C</span></div>
+    <div class="row"><span class="key">Nébulosité{{ ui.tip(game.help.cloud) }}</span><span>{{ game.cloudPct }} %</span></div>
     {% set spark = game.weatherSparkline %}
     {% if spark.days > 1 %}
         <div class="spark">
             <div class="spark-head">
-                <span class="k">{{ spark.days }} derniers jours</span>
-                <span class="k">{{ spark.temperatureMinLabel }} … {{ spark.temperatureMaxLabel }}</span>
+                <span class="key">{{ spark.days }} derniers jours</span>
+                <span class="key">{{ spark.temperatureMinLabel }} … {{ spark.temperatureMaxLabel }}</span>
             </div>
             <svg viewBox="0 0 100 28" preserveAspectRatio="none" role="img" aria-label="Température et nébulosité des {{ spark.days }} derniers jours">
                 <polyline points="{{ spark.cloudPoints }}" fill="none" stroke="var(--cold)" stroke-width="0.7" opacity="0.55"/>

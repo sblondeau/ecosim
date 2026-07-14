@@ -22,39 +22,39 @@
 
 <div class="card">
     {% if selected == 'roof' %}
-        <div class="row"><span class="k">Production aujourd'hui</span><span>{{ game.productionKwh|number_format(1, ',', ' ') }} kWh</span></div>
-        <div class="row"><span class="k">Nébulosité{{ ui.tip(game.help.cloud) }}</span><span>{{ game.cloudPct }} %</span></div>
-        <div class="row"><span class="k">Exporté aujourd'hui{{ ui.tip(game.help.surplus) }}</span><span>{{ game.gridExportKwh|number_format(1, ',', ' ') }} kWh</span></div>
+        <div class="row"><span class="key">Production aujourd'hui</span><span>{{ game.productionKwh|number_format(1, ',', ' ') }} kWh</span></div>
+        <div class="row"><span class="key">Nébulosité{{ ui.tip(game.help.cloud) }}</span><span>{{ game.cloudPct }} %</span></div>
+        <div class="row"><span class="key">Exporté aujourd'hui{{ ui.tip(game.help.surplus) }}</span><span>{{ game.gridExportKwh|number_format(1, ',', ' ') }} kWh</span></div>
     {% elseif selected == 'walls' %}
-        <div class="row"><span class="k">DPE</span><span><strong>{{ game.dpeLetter }}</strong></span></div>
-        <div class="row"><span class="k">Valeur du bien{{ ui.tip(game.help.propertyValue) }}</span><span>{{ game.propertyValueLabel }}</span></div>
-        <div class="row"><span class="k">Confort ressenti{{ ui.tip(game.help.comfort) }}</span><span>{{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
+        <div class="row"><span class="key">DPE</span><span><strong>{{ game.dpeLetter }}</strong></span></div>
+        <div class="row"><span class="key">Valeur du bien{{ ui.tip(game.help.propertyValue) }}</span><span>{{ game.propertyValueLabel }}</span></div>
+        <div class="row"><span class="key">Confort ressenti{{ ui.tip(game.help.comfort) }}</span><span>{{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
     {% elseif selected == 'heating' %}
         {% if game.boilerBroken %}
-            <div class="row"><span class="k">État</span><span class="neg"><strong>En panne</strong> — appoint électrique forcé</span></div>
-            <div class="row"><span class="k">Élec. de chauffage (jour)</span><span class="neg">{{ game.heatingElectricityKwh|number_format(1, ',', ' ') }} kWh</span></div>
+            <div class="row"><span class="key">État</span><span class="neg"><strong>En panne</strong> — appoint électrique forcé</span></div>
+            <div class="row"><span class="key">Élec. de chauffage (jour)</span><span class="neg">{{ game.heatingElectricityKwh|number_format(1, ',', ' ') }} kWh</span></div>
         {% else %}
             {% if game.fuelOilLitres > 0 %}
-                <div class="row"><span class="k">Fioul brûlé (jour){{ ui.tip(game.help.fuelOil) }}</span><span>{{ game.fuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
+                <div class="row"><span class="key">Fioul brûlé (jour){{ ui.tip(game.help.fuelOil) }}</span><span>{{ game.fuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
             {% endif %}
             {% if game.heatingElectricityKwh > 0 %}
-                <div class="row"><span class="k">Élec. de chauffage (jour)</span><span>{{ game.heatingElectricityKwh|number_format(1, ',', ' ') }} kWh</span></div>
+                <div class="row"><span class="key">Élec. de chauffage (jour)</span><span>{{ game.heatingElectricityKwh|number_format(1, ',', ' ') }} kWh</span></div>
             {% endif %}
         {% endif %}
-        <div class="row"><span class="k">Air intérieur</span><span>{{ game.indoorTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
+        <div class="row"><span class="key">Air intérieur</span><span>{{ game.indoorTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
     {% elseif selected == 'garage' %}
         {% if game.batteryCapacityKwh > 0 %}
-            <div class="row"><span class="k">Batterie → maison ce soir</span><span>{{ game.batteryDischargedKwh|number_format(1, ',', ' ') }} kWh</span></div>
+            <div class="row"><span class="key">Batterie → maison ce soir</span><span>{{ game.batteryDischargedKwh|number_format(1, ',', ' ') }} kWh</span></div>
             <div class="gauge"><span style="width: {{ game.batteryCapacityKwh > 0 ? (100 * game.batteryDischargedKwh / game.batteryCapacityKwh)|round : 0 }}%; background: var(--warn);"></span></div>
         {% else %}
-            <div class="row"><span class="k">Batterie</span><span>—</span></div>
+            <div class="row"><span class="key">Batterie</span><span>—</span></div>
         {% endif %}
-        <div class="row"><span class="k">Autosuffisance (jour){{ ui.tip(game.help.selfSufficiency) }}</span><span>{{ game.selfSufficiencyPct }} %</span></div>
+        <div class="row"><span class="key">Autosuffisance (jour){{ ui.tip(game.help.selfSufficiency) }}</span><span>{{ game.selfSufficiencyPct }} %</span></div>
     {% elseif selected == 'living' %}
-        <div class="row"><span class="k">Confort thermique{{ ui.tip(game.help.comfort) }}</span><span>{{ game.comfortScorePct }} %</span></div>
+        <div class="row"><span class="key">Confort thermique{{ ui.tip(game.help.comfort) }}</span><span>{{ game.comfortScorePct }} %</span></div>
         <div class="gauge"><span style="width: {{ game.comfortScorePct }}%; background: var(--accent);"></span></div>
-        <div class="row" style="margin-top:.5rem"><span class="k">Ressenti</span><span>{{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
-        <div class="row"><span class="k">Air intérieur</span><span>{{ game.indoorTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
+        <div class="row" style="margin-top:.5rem"><span class="key">Ressenti</span><span>{{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
+        <div class="row"><span class="key">Air intérieur</span><span>{{ game.indoorTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
     {% endif %}
 </div>
 

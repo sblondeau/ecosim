@@ -29,7 +29,7 @@
              data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="finances">
             <div class="hud-title">💶 Finances</div>
             <div class="big {{ game.savingsNegative ? 'neg' }}">{{ game.savingsLabel }}</div>
-            <div class="hud-line"><span class="k">Aujourd'hui</span><span class="{{ game.dayNetNegative ? 'neg' : 'pos' }}">{{ game.dayNetLabel }}</span></div>
+            <div class="hud-line"><span class="key">Aujourd'hui</span><span class="{{ game.dayNetNegative ? 'neg' : 'pos' }}">{{ game.dayNetLabel }}</span></div>
             {% if game.inFuelPoverty %}<div class="precarity-badge">⚠️ Précarité · {{ game.energyEffortPct }} %</div>{% endif %}
         </div>
 
@@ -43,8 +43,8 @@
         <div class="hud hud-bl card" role="button" tabindex="0" title="Énergie & climat — détails"
              data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="energy">
             <div class="hud-title">⚡ Énergie & climat</div>
-            <div class="hud-line"><span class="k">Prod. / conso</span><span>{{ game.productionKwh|number_format(1, ',', ' ') }} / {{ game.demandKwh|number_format(1, ',', ' ') }} kWh</span></div>
-            <div class="hud-line"><span class="k">CO₂ logement</span><span>{{ game.dpeClimateIntensity }} kgCO₂/m²·an</span></div>
+            <div class="hud-line"><span class="key">Prod. / conso</span><span>{{ game.productionKwh|number_format(1, ',', ' ') }} / {{ game.demandKwh|number_format(1, ',', ' ') }} kWh</span></div>
+            <div class="hud-line"><span class="key">CO₂ logement</span><span>{{ game.dpeClimateIntensity }} kgCO₂/m²·an</span></div>
         </div>
 
         <div class="hud hud-br card" role="button" tabindex="0" title="Patrimoine — étiquette DPE"
@@ -128,29 +128,29 @@
             <div class="grid">
                 <div class="card">
                     <h2>Finances</h2>
-                    <div class="row"><span class="k">Épargne au départ</span><span>{{ report.savingsStartLabel }}</span></div>
-                    <div class="row"><span class="k">Épargne à la fin</span><span>{{ report.savingsEndLabel }}</span></div>
-                    <div class="row"><span class="k">Évolution</span><span class="{{ report.savingsDeltaNegative ? 'neg' : 'pos' }}"><strong>{{ report.savingsDeltaLabel }}</strong></span></div>
+                    <div class="row"><span class="key">Épargne au départ</span><span>{{ report.savingsStartLabel }}</span></div>
+                    <div class="row"><span class="key">Épargne à la fin</span><span>{{ report.savingsEndLabel }}</span></div>
+                    <div class="row"><span class="key">Évolution</span><span class="{{ report.savingsDeltaNegative ? 'neg' : 'pos' }}"><strong>{{ report.savingsDeltaLabel }}</strong></span></div>
                 </div>
                 <div class="card">
                     <h2>Patrimoine</h2>
-                    <div class="row"><span class="k">DPE</span><span>{{ report.dpeStartLetter }} → <strong>{{ report.dpeEndLetter }}</strong></span></div>
-                    <div class="row"><span class="k">Valeur du bien</span><span>{{ report.propertyStartLabel }} → {{ report.propertyEndLabel }}</span></div>
-                    <div class="row"><span class="k">Évolution</span><span><strong>{{ report.propertyDeltaLabel }}</strong> <span class="k">(réalisable à la revente uniquement)</span></span></div>
+                    <div class="row"><span class="key">DPE</span><span>{{ report.dpeStartLetter }} → <strong>{{ report.dpeEndLetter }}</strong></span></div>
+                    <div class="row"><span class="key">Valeur du bien</span><span>{{ report.propertyStartLabel }} → {{ report.propertyEndLabel }}</span></div>
+                    <div class="row"><span class="key">Évolution</span><span><strong>{{ report.propertyDeltaLabel }}</strong> <span class="key">(réalisable à la revente uniquement)</span></span></div>
                     {% if report.loanActive %}
-                        <div class="row"><span class="k">Éco-PTZ restant à rembourser</span><span class="neg">{{ report.loanRemainingLabel }}</span></div>
+                        <div class="row"><span class="key">Éco-PTZ restant à rembourser</span><span class="neg">{{ report.loanRemainingLabel }}</span></div>
                     {% endif %}
                 </div>
                 <div class="card">
                     <h2>Confort</h2>
                     <div class="big">{{ report.averageComfortPct }} %</div>
-                    <div class="row"><span class="k">Confort thermique moyen sur l'année</span><span></span></div>
+                    <div class="row"><span class="key">Confort thermique moyen sur l'année</span><span></span></div>
                 </div>
                 <div class="card">
                     <h2>Énergie</h2>
-                    <div class="row"><span class="k">Fioul consommé</span><span>{{ report.totalFuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
-                    <div class="row"><span class="k">Autosuffisance électrique</span><span>{{ report.totalSelfSufficiencyPct }} %</span></div>
-                    <div class="row"><span class="k">Coût énergie net sur l'année</span><span>{{ report.totalNetEnergyCostLabel }}</span></div>
+                    <div class="row"><span class="key">Fioul consommé</span><span>{{ report.totalFuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
+                    <div class="row"><span class="key">Autosuffisance électrique</span><span>{{ report.totalSelfSufficiencyPct }} %</span></div>
+                    <div class="row"><span class="key">Coût énergie net sur l'année</span><span>{{ report.totalNetEnergyCostLabel }}</span></div>
                 </div>
             </div>
             <button type="button" class="btn-primary" style="margin-top: 1rem"

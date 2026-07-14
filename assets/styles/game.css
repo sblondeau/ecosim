@@ -15,6 +15,10 @@
     --on-warn: #241a06;
     /* Elevated overlay surfaces (tooltips…). */
     --overlay: #0b1118;
+    /* Surfaces translucides posées sur la scène (verre flouté) : HUD, puce,
+       bandeau de contrôle ; et la surface plus opaque des panneaux. */
+    --surface-glass: color-mix(in srgb, var(--card) 82%, transparent);
+    --surface-panel: color-mix(in srgb, var(--card) 97%, transparent);
 }
 
 * {
@@ -112,8 +116,11 @@ h1 {
     border-top: 0;
 }
 
-.row .k {
+/* .key = le libellé (clé) d'une ligne clé/valeur : muté et un cran plus petit
+   que son contexte (relatif, donc correct dans une carte comme dans le HUD). */
+.key {
     color: var(--muted);
+    font-size: .9em;
 }
 
 .gauge {
@@ -417,7 +424,7 @@ section>h2.section {
     padding: .3rem .75rem;
     font-size: .8rem;
     border-radius: 20px;
-    background: color-mix(in srgb, var(--card) 82%, transparent);
+    background: var(--surface-glass);
     backdrop-filter: blur(4px);
     border: 1px solid var(--line);
     color: var(--ink);
@@ -466,7 +473,7 @@ section>h2.section {
     position: absolute;
     z-index: 2;
     padding: .6rem .75rem;
-    background: color-mix(in srgb, var(--card) 82%, transparent);
+    background: var(--surface-glass);
     backdrop-filter: blur(4px);
     border: 1px solid var(--line);
     border-radius: 12px;
@@ -525,7 +532,8 @@ section>h2.section {
     padding: .1rem 0;
 }
 
-.hud-line .k {
+.hud-line .key {
+    /* couvert par .key ; conservé comme point d'accroche si le HUD diverge */
     color: var(--muted);
 }
 
@@ -552,7 +560,7 @@ section>h2.section {
     flex-wrap: wrap;
     justify-content: center;
     padding: .45rem .7rem;
-    background: color-mix(in srgb, var(--card) 85%, transparent);
+    background: var(--surface-glass);
     backdrop-filter: blur(4px);
     border: 1px solid var(--line);
     border-radius: 12px;
@@ -607,7 +615,7 @@ section>h2.section {
     flex-direction: column;
     gap: .7rem;
     padding: .8rem;
-    background: color-mix(in srgb, var(--card) 97%, transparent);
+    background: var(--surface-panel);
     border: 1px solid var(--line);
     border-radius: 14px;
     box-shadow: 0 12px 40px rgba(0, 0, 0, .45);
@@ -776,139 +784,7 @@ details.card[open]>summary {
     width: 100%;
 }
 
-/* étiquette DPE officielle (double échelle énergie + climat, barres en escalier) */
-.dpe {
-    display: grid;
-    gap: .7rem;
-    margin: .3rem 0 .1rem;
-}
-
-.dpe-scale {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
-
-.dpe-cap {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    font-size: .72rem;
-    color: var(--muted);
-    margin-bottom: .1rem;
-}
-
-.dpe-big {
-    color: var(--ink);
-    font-weight: 700;
-    font-size: .9rem;
-}
-
-.dpe-big small {
-    color: var(--muted);
-    font-weight: 400;
-    font-size: .68rem;
-}
-
-.dpe-bar {
-    position: relative;
-    height: 20px;
-    min-width: 34px;
-    border-radius: 0 4px 4px 0;
-    display: flex;
-    align-items: center;
-    padding-left: .45rem;
-    opacity: .48;
-}
-
-.dpe-bar.is-active {
-    opacity: 1;
-    box-shadow: 0 0 0 2px var(--ink);
-    z-index: 1;
-}
-
-.dpe-let {
-    font-size: .74rem;
-    font-weight: 700;
-    color: #fff;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, .55);
-}
-
-.dpe-cursor {
-    position: absolute;
-    top: -2px;
-    bottom: -2px;
-    width: 2px;
-    background: #fff;
-    box-shadow: 0 0 3px rgba(0, 0, 0, .7);
-}
-
-.dpe-cursor::before {
-    content: "";
-    position: absolute;
-    top: -5px;
-    left: -3px;
-    border: 4px solid transparent;
-    border-top-color: #fff;
-}
-
-/* couleurs officielles — énergie (vert → rouge) */
-.dpe-e-a {
-    background: #319834;
-}
-
-.dpe-e-b {
-    background: #52b153;
-}
-
-.dpe-e-c {
-    background: #a2c93a;
-}
-
-.dpe-e-d {
-    background: #f5e001;
-}
-
-.dpe-e-e {
-    background: #f2a900;
-}
-
-.dpe-e-f {
-    background: #ec6b1f;
-}
-
-.dpe-e-g {
-    background: #d3161e;
-}
-
-/* climat / GES (mauve clair → foncé) */
-.dpe-g-a {
-    background: #ddc9ee;
-}
-
-.dpe-g-b {
-    background: #c9a9e2;
-}
-
-.dpe-g-c {
-    background: #b184d4;
-}
-
-.dpe-g-d {
-    background: #9861c2;
-}
-
-.dpe-g-e {
-    background: #7f43ab;
-}
-
-.dpe-g-f {
-    background: #672f8f;
-}
-
-.dpe-g-g {
-    background: #4f1f72;
-}
+/* étiquette DPE : extraite dans components/dpe.css (chargée après game.css) */
 
 .quote-actions {
     display: flex;

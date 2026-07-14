@@ -2,15 +2,15 @@
 <div class="card panel-head"><h2>⚙ Partie · jour {{ game.dayNumber }} / {{ game.horizonDays }}</h2></div>
 <details class="card" open>
     <summary>Bilan de session — depuis le début</summary>
-    <div class="row"><span class="k">Production cumulée</span><span>{{ game.totalProductionKwh|number_format(1, ',', ' ') }} kWh</span></div>
-    <div class="row"><span class="k">Importé / exporté</span><span>{{ game.totalImportKwh|number_format(1, ',', ' ') }} / {{ game.totalExportKwh|number_format(1, ',', ' ') }} kWh</span></div>
-    <div class="row"><span class="k">Autosuffisance globale</span><span>{{ game.totalSelfSufficiencyPct }} %</span></div>
-    <div class="row"><span class="k">Fioul consommé</span><span>{{ game.totalFuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
-    <div class="row"><span class="k">Confort moyen</span><span>{{ game.averageComfortPct }} %</span></div>
-    <div class="row"><span class="k">Facture électricité</span><span class="neg">−{{ game.totalElectricityCostLabel }}</span></div>
-    <div class="row"><span class="k">Facture fioul</span><span class="neg">−{{ game.totalFuelOilCostLabel }}</span></div>
-    <div class="row"><span class="k">Revente cumulée</span><span class="pos">+{{ game.totalSurplusRevenueLabel }}</span></div>
-    <div class="row"><span class="k">Coût énergie net</span><span><strong>{{ game.totalNetEnergyCostLabel }}</strong></span></div>
+    <div class="row"><span class="key">Production cumulée</span><span>{{ game.totalProductionKwh|number_format(1, ',', ' ') }} kWh</span></div>
+    <div class="row"><span class="key">Importé / exporté</span><span>{{ game.totalImportKwh|number_format(1, ',', ' ') }} / {{ game.totalExportKwh|number_format(1, ',', ' ') }} kWh</span></div>
+    <div class="row"><span class="key">Autosuffisance globale</span><span>{{ game.totalSelfSufficiencyPct }} %</span></div>
+    <div class="row"><span class="key">Fioul consommé</span><span>{{ game.totalFuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
+    <div class="row"><span class="key">Confort moyen</span><span>{{ game.averageComfortPct }} %</span></div>
+    <div class="row"><span class="key">Facture électricité</span><span class="neg">−{{ game.totalElectricityCostLabel }}</span></div>
+    <div class="row"><span class="key">Facture fioul</span><span class="neg">−{{ game.totalFuelOilCostLabel }}</span></div>
+    <div class="row"><span class="key">Revente cumulée</span><span class="pos">+{{ game.totalSurplusRevenueLabel }}</span></div>
+    <div class="row"><span class="key">Coût énergie net</span><span><strong>{{ game.totalNetEnergyCostLabel }}</strong></span></div>
 </details>
 <div class="panel-footer">
     <button type="button" class="btn-ghost btn-small"

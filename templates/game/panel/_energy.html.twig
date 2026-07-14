@@ -2,16 +2,16 @@
 {# Axe Énergie & climat (coin ↙) : flux du jour, empreinte du logement, météo. #}
 <div class="card panel-head"><h2>⚡ Énergie & climat</h2></div>
 <div class="card">
-    <div class="row"><span class="k">Production solaire</span><span>{{ game.productionKwh|number_format(1, ',', ' ') }} kWh</span></div>
-    <div class="row"><span class="k">Consommation élec.</span><span>{{ game.demandKwh|number_format(1, ',', ' ') }} kWh</span></div>
+    <div class="row"><span class="key">Production solaire</span><span>{{ game.productionKwh|number_format(1, ',', ' ') }} kWh</span></div>
+    <div class="row"><span class="key">Consommation élec.</span><span>{{ game.demandKwh|number_format(1, ',', ' ') }} kWh</span></div>
     {% if game.fuelOilLitres > 0 %}
-        <div class="row"><span class="k">Fioul brûlé{{ ui.tip(game.help.fuelOil) }}</span><span>{{ game.fuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
+        <div class="row"><span class="key">Fioul brûlé{{ ui.tip(game.help.fuelOil) }}</span><span>{{ game.fuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
     {% endif %}
-    <div class="row"><span class="k">Autosuffisance{{ ui.tip(game.help.selfSufficiency) }}</span><span>{{ game.selfSufficiencyPct }} %</span></div>
+    <div class="row"><span class="key">Autosuffisance{{ ui.tip(game.help.selfSufficiency) }}</span><span>{{ game.selfSufficiencyPct }} %</span></div>
 </div>
 <div class="card">
     <h2>Empreinte du logement</h2>
-    <div class="row"><span class="k">Émissions · étiquette climat</span><span><strong>{{ game.dpeClimateIntensity }}</strong> kgCO₂/m²·an</span></div>
-    <div class="row"><span class="k">Consommation · étiquette énergie</span><span><strong>{{ game.dpeEnergyIntensity }}</strong> kWhEP/m²·an</span></div>
+    <div class="row"><span class="key">Émissions · étiquette climat</span><span><strong>{{ game.dpeClimateIntensity }}</strong> kgCO₂/m²·an</span></div>
+    <div class="row"><span class="key">Consommation · étiquette énergie</span><span><strong>{{ game.dpeEnergyIntensity }}</strong> kWhEP/m²·an</span></div>
     <p class="panel-note">Étiquette DPE complète dans le coin Patrimoine · météo en haut.</p>
 </div>

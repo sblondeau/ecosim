@@ -1,0 +1,114 @@
+/* Étiquette DPE officielle — les deux échelles A→G (énergie + climat), en
+   escalier. Palette officielle 2021 en variables ; l'échelle climat est un
+   unique violet éclairci par paliers via color-mix (dégradé cohérent, une seule
+   teinte à maintenir). Chargée après game.css — voir game/dashboard.html.twig.
+   Utilisée par le composant DpeLabel et la pastille .dpe-chip du coin Patrimoine. */
+
+:root {
+    /* énergie : dégradé officiel vert → rouge */
+    --dpe-a: #319834;
+    --dpe-b: #52b153;
+    --dpe-c: #a2c93a;
+    --dpe-d: #f5e001;
+    --dpe-e: #f2a900;
+    --dpe-f: #ec6b1f;
+    --dpe-g: #d3161e;
+    /* climat : un violet de base, éclairci par paliers (color-mix ci-dessous) */
+    --ges: #4f1f72;
+}
+
+.dpe {
+    display: grid;
+    gap: .7rem;
+    margin: .3rem 0 .1rem;
+}
+
+.dpe-scale {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+/* en-tête d'une échelle : intitulé + valeur chiffrée */
+.dpe-cap {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: .72rem;
+    color: var(--muted);
+    margin-bottom: .1rem;
+}
+
+.dpe-big {
+    color: var(--ink);
+    font-weight: 700;
+    font-size: .9rem;
+}
+
+.dpe-big small {
+    color: var(--muted);
+    font-weight: 400;
+    font-size: .68rem;
+}
+
+/* une barre de classe (largeur croissante A→G, gérée en inline dans le composant) */
+.dpe-bar {
+    position: relative;
+    height: 20px;
+    min-width: 34px;
+    border-radius: 0 4px 4px 0;
+    display: flex;
+    align-items: center;
+    padding-left: .45rem;
+    opacity: .48;
+}
+
+.dpe-bar.is-active {
+    opacity: 1;
+    box-shadow: 0 0 0 2px var(--ink);
+    z-index: 1;
+}
+
+.dpe-let {
+    font-size: .74rem;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .55);
+}
+
+/* curseur de position dans la bande (triangle + trait), placé en % dans le composant */
+.dpe-cursor {
+    position: absolute;
+    top: -2px;
+    bottom: -2px;
+    width: 2px;
+    background: #fff;
+    box-shadow: 0 0 3px rgba(0, 0, 0, .7);
+}
+
+.dpe-cursor::before {
+    content: "";
+    position: absolute;
+    top: -5px;
+    left: -3px;
+    border: 4px solid transparent;
+    border-top-color: #fff;
+}
+
+/* barres — énergie (la palette officielle en variables) */
+.dpe-e-a { background: var(--dpe-a); }
+.dpe-e-b { background: var(--dpe-b); }
+.dpe-e-c { background: var(--dpe-c); }
+.dpe-e-d { background: var(--dpe-d); }
+.dpe-e-e { background: var(--dpe-e); }
+.dpe-e-f { background: var(--dpe-f); }
+.dpe-e-g { background: var(--dpe-g); }
+
+/* barres — climat (un seul violet, éclairci par paliers) */
+.dpe-g-a { background: color-mix(in srgb, var(--ges) 20%, #fff); }
+.dpe-g-b { background: color-mix(in srgb, var(--ges) 33%, #fff); }
+.dpe-g-c { background: color-mix(in srgb, var(--ges) 48%, #fff); }
+.dpe-g-d { background: color-mix(in srgb, var(--ges) 62%, #fff); }
+.dpe-g-e { background: color-mix(in srgb, var(--ges) 76%, #fff); }
+.dpe-g-f { background: color-mix(in srgb, var(--ges) 88%, #fff); }
+.dpe-g-g { background: var(--ges); }
