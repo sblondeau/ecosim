@@ -142,34 +142,116 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
   l'événement panne, et matérialise le levier coût-d'accès du §1 (prix/délai/
   prérequis, jamais magnitude truquée). Voir `RenovationQuoter` (« travaux
   instantanés en Phase 0-1 »).
-- **Frais d'entretien annuels par équipement** (déclencheur : écran de ROI, ou
-  V1.1 quand le coût complet de possession devient un axe de comparaison).
-  Aujourd'hui `monthlyExpenses` est un forfait de vie (INSEE) insensible à
-  l'installation. Or l'entretien est réglementé et diffère par équipement :
-  chaudière fioul = entretien **annuel obligatoire** (décret 2009-649,
-  ~150-200 €/an), PAC = entretien obligatoire **tous les 2 ans** (décret
-  2020-912, PAC 4-70 kW, ~150-300 €/an), panneaux ≈ 0 (nettoyage), batterie ≈ 0.
-  À intégrer en `Coefficient` sourcés (décrets + ADEME) comme ligne de charge
-  périodique — l'écart d'entretien fait partie de la comparaison honnête
-  fioul/PAC (§13), même s'il est faible devant l'écart de facture énergie
-  (~3 000 €/an). Sans effet sur les décisions au MVP → différé.
-- **Durée de vie des équipements** (déclencheur : le même écran de ROI). Aucun
-  modèle d'usure au MVP — la seule matérialisation « fin de vie » est la panne
-  de chaudière **scriptée** (étape 7, choix du §15 : 1 événement scripté, pas
-  un compteur d'usure). À l'horizon fixe du MVP (quelques centaines de jours),
-  une PAC (~17 ans) ou des panneaux (~30 ans) ne s'usent jamais en partie. Les
-  durées de vie sourcées (ADEME) deviennent nécessaires dès qu'on affiche un
-  ROI : le game-design §8 exige de montrer qu'un retour > 40 ans dépasse la
-  durée de vie des équipements — même déclencheur que la dégradation batterie
-  ci-dessous.
-- **Durée de vie / dégradation de la batterie dans le ROI** (déclencheur :
-  étape finances, calculs de retour sur investissement). L'autodécharge
-  (~1-3 %/mois) est volontairement ignorée : négligeable au tick journalier,
-  et la batterie se vide chaque nuit de toute façon. En revanche la **perte de
-  capacité** (~2-3 %/an, garanties typiques 70-80 % après 10 ans) participe au
-  mauvais ROI de la batterie seule (retour 15-20+ ans, game-design §8) — à
-  intégrer en `Coefficient` sourcé quand les calculs de ROI arriveront, pour
-  rester fidèle au principe « ne jamais forcer un ROI positif ».
+- **Durée des travaux (chantier + délais amont/aval, le levier « délai » du §1
+  généralisé)** (déclencheur : Phase 4 économie complète, ou passe réalisme des
+  aides — même chantier que le délai éco-PTZ ci-dessus, à traiter ensemble).
+  Aujourd'hui un travaux est **instantané** : clic → équipement posé dans la
+  seconde. Irréaliste et surtout ça **annule le levier délai** du §1 (le coût
+  d'accès n'est pas que le prix). Un vrai travaux est une **chaîne de phases**,
+  chacune un délai à modéliser :
+  1. **Délai de démarrage** (le plus long et le plus sous-estimé) : devis →
+     prise de RDV artisan RGE → carnet de commandes. Souvent **plusieurs
+     semaines à quelques mois**, très **saisonnier** (forte demande chauffage en
+     automne/hiver → délais qui explosent quand on en a le plus besoin). C'est le
+     délai qui rend une panne de chaudière en janvier réellement subie.
+  2. **Durée du chantier** lui-même. Ordres de grandeur (guides pro/ADEME, à
+     **vérifier sur sources primaires avant codage** — §13) : remplacement
+     chaudière/PAC air-eau ~1-3 j ; isolation combles soufflés ~1 j ; ITE
+     (murs par l'extérieur) ~1-3 semaines ; pose PV ~1-2 j sur toiture.
+  3. **Délais administratifs / raccordement** propres au PV : déclaration
+     préalable en mairie (**~1 mois**, réglementaire), puis Consuel + mise en
+     service Enedis (**plusieurs semaines**) — on produit APRÈS, pas au clic.
+  4. **Délai de déblocage des fonds** (déjà couvert : éco-PTZ 4-8 semaines).
+  5. **Décalage de trésorerie des aides** : MaPrimeRénov' est **versée après
+     travaux** → il faut **avancer l'argent**. Une aide n'améliore pas la
+     trésorerie du jour du chantier, seulement après — leçon de cash-flow réelle.
+  6. **Conséquence pendant le chantier** : remplacer la chaudière = **jours sans
+     chauffage** (appoint / inconfort), ITE = gêne. Le chantier n'est pas neutre.
+
+  **Le délai est ASYMÉTRIQUE par nature de travaux — c'est voulu, ça porte la
+  leçon.** La **réparation d'urgence de la chaudière fioul est l'exception
+  rapide** : dépannage chauffagiste **~24-72 h** (au tick journalier ≈ +0-2 j),
+  réparation ~quelques heures ; seule réserve réaliste = disponibilité d'une
+  pièce sur chaudière ancienne (nuance optionnelle). À l'opposé, la PAC porte
+  toute la chaîne longue (RGE + carnet saisonnier + éventuel éco-PTZ +
+  raccordement). Cet écart **crée** l'arbitrage de la panne au lieu de le
+  casser : réparer = court/modéré/mauvais-long-terme (reste fioul), remplacer =
+  long/cher/bon. Sous urgence, le délai court rend *réparer* rationnel sur le
+  moment — donc la seule façon d'avoir la PAC sans subir le délai est de
+  l'installer AVANT la panne. Si la réparation était lente aussi, il n'y aurait
+  plus de choix, juste deux mauvaises options.
+
+  **Effet de design** (converge avec le §1 et l'événement panne §15) : le délai
+  transforme « j'achète quand je veux » en « je dois **anticiper** » — poser la
+  PAC *avant* l'hiver / *avant* la panne devient la stratégie gagnante, subir en
+  urgence coûte cher (comptant + inconfort d'attente). Matérialise le levier
+  coût-d'accès = **prix + délai + prérequis**, jamais une magnitude truquée.
+  Implémentation cohérente avec le moteur : un travaux commandé n'est pas
+  appliqué au tick courant mais **programmé** (date de fin = tick + délai,
+  déterministe et semé comme le reste) ; l'`EndReport`/HUD montre les chantiers
+  en cours. Voir `RenovationQuoter`/`RenovationHandler` (« travaux instantanés en
+  Phase 0-1 ») et l'entrée **délai éco-PTZ** ci-dessus (à unifier : les deux
+  délais se composent — obtention du prêt PUIS chantier).
+
+Le **cycle de vie des équipements** (usure, entretien, panne, dégradation
+batterie) est un système à part entière, décrit dans sa section dédiée plus bas.
+
+## Cycle de vie des équipements — usure, entretien, panne (V1.x)
+
+**Déclencheur : écran de ROI / V1.x** (coût complet de possession comme axe de
+comparaison). Cette section **consolide et remplace** trois entrées jadis
+éparses (frais d'entretien annuels, durée de vie, dégradation batterie) et y
+raccroche la proposition joueur « âge/durabilité + jauge de risque + entretien
+manuel » (juillet 2026). Conçu pour donner la **pression active « quitte le
+fioul »** qui manque aujourd'hui — au-delà de la seule facture — sans casser le
+déterminisme ni la leçon garantie de la panne.
+
+**Le MVP ne bouge PAS.** La panne du 20/01 reste **scriptée** (§15 : « 1
+événement scripté, pas un compteur d'usure ») = **leçon garantie**, tout le
+monde la vit. Un système d'usure la rendrait *contingente* (un joueur diligent
+pourrait ne jamais tomber en panne → rater la leçon). Réconciliation prévue pour
+V1.x : la panne scriptée devient un **plancher** (la chaudière est vieille, elle
+lâche de toute façon), l'entretien la **retardant sans l'annuler** — préserve la
+garantie tout en récompensant l'entretien. À trancher au moment de V1.x.
+
+**Modèle (déterministe, jamais un dé — §5).** Chaque équipement porte un **âge**
+et une **santé qui décroît de façon déterministe** (âge + entretien sauté). La
+« jauge de risque de panne » est le **même patron que la jauge moisissures** :
+elle monte au fil des jours, la panne se déclenche **au passage d'un seuil
+visible** → le joueur la voit venir et agit. Aucune probabilité cachée, cohérent
+avec le moteur semé. Durées de vie de référence sourcées (ADEME, à revérifier) :
+chaudière fioul ~15-20 ans, PAC ~17 ans, panneaux ~30 ans, batterie ~10-15 ans.
+
+**Entretien = action manuelle (mini-travaux).** Déclenché à la main, avec un
+**rappel UI « c'est le moment »** à l'échéance :
+- **Obligation réglementaire réelle et différenciée** (corrige l'idée « tout type
+  de chaudière ») : fioul/gaz/bois 4-400 kW = **annuel** (décret 2009-649,
+  consolidé décret 2020-912) ; PAC 4-70 kW = **tous les 2 ans** (décret 2020-912) ;
+  **électrique pur (effet Joule) = aucune obligation** (pas de combustion) ;
+  panneaux/batterie ≈ 0.
+- **Coût** ~150 € (fourchette 150-200 €/an, ADEME) — ferme.
+- **Délai** ~1 semaine : ⚠️ **pas de source dure**, ordre de grandeur (prise de
+  RDV, visite ~1 h) — à assumer comme tel, pas à maquiller en chiffre sourcé.
+- **Effet** : sauter l'entretien **accélère la décroissance déterministe de
+  santé → rapproche la panne**. ⚠️ **Discipline §13** : on ne code PAS un
+  « −X % de risque » (magnitude **non sourçable**). On modélise « l'entretien
+  retarde la panne / prolonge la vie » (direction sourçable ADEME) →
+  concrètement, l'entretien **repousse la date de panne déterministe de N
+  jours**, pas une probabilité. C'est ce qui garde le système honnête ET semé.
+
+**Batterie : usure = capacité, pas panne.** L'autodécharge (~1-3 %/mois) reste
+ignorée (négligeable au tick journalier, la batterie se vide chaque nuit). La
+**perte de capacité** (~2-3 %/an, garanties typiques 70-80 % après 10 ans)
+s'intègre au même système comme **« santé = capacité résiduelle »** (dégradation
+continue, pas seuil de panne) — elle nourrit le mauvais ROI de la batterie seule
+(retour 15-20+ ans, §8), fidèle au principe « ne jamais forcer un ROI positif ».
+
+**Lien ROI (§8).** Les durées de vie sourcées deviennent **nécessaires** dès
+l'écran de ROI : le §8 exige de montrer qu'un retour > 40 ans **dépasse la durée
+de vie** des équipements. Tout passe par des `Coefficient` sourcés (décrets +
+ADEME) ; l'entretien devient une **ligne de charge périodique** (l'écart
+d'entretien fioul/PAC fait partie de la comparaison honnête §13, même s'il est
+faible ~150 € devant l'écart de facture énergie ~3 000 €/an).
 
 ## Interface / pédagogie (retours de la première partie complète, juillet 2026)
 
