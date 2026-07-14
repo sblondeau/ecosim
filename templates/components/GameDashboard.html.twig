@@ -93,31 +93,33 @@
             </div>
         {% endif %}
 
-        {# ===== panneau focalisé (au clic sur un coin, un slot ou la roue) ===== #}
-        {% if selected %}
-            <button type="button" class="panel-backdrop" aria-label="Fermer"
-                    data-action="click->live#action" data-live-action-param="closePanel"></button>
-            <aside class="float-panel {{ panelPos[selected] ?? 'at-br' }}">
-                <button type="button" class="float-close btn-ghost btn-small"
-                        data-action="click->live#action" data-live-action-param="closePanel" aria-label="Fermer">✕</button>
-                {% if selected in slots %}
-                    {{ include('game/panel/_slot.html.twig') }}
-                {% elseif selected == 'finances' %}
-                    {{ include('game/panel/_finances.html.twig') }}
-                {% elseif selected == 'comfort' %}
-                    {{ include('game/panel/_comfort.html.twig') }}
-                {% elseif selected == 'energy' %}
-                    {{ include('game/panel/_energy.html.twig') }}
-                {% elseif selected == 'patrimoine' %}
-                    {{ include('game/panel/_patrimoine.html.twig') }}
-                {% elseif selected == 'weather' %}
-                    {{ include('game/panel/_weather.html.twig') }}
-                {% elseif selected == 'options' %}
-                    {{ include('game/panel/_options.html.twig') }}
-                {% endif %}
-            </aside>
-        {% endif %}
     </div>
+
+    {# panneau focalisé — HORS du .stage (qui a overflow:hidden) pour que les
+       infobulles débordent librement ; positionné dans le .game #}
+    {% if selected %}
+        <button type="button" class="panel-backdrop" aria-label="Fermer"
+                data-action="click->live#action" data-live-action-param="closePanel"></button>
+        <aside class="float-panel {{ panelPos[selected] ?? 'at-br' }}">
+            <button type="button" class="float-close btn-ghost btn-small"
+                    data-action="click->live#action" data-live-action-param="closePanel" aria-label="Fermer">✕</button>
+            {% if selected in slots %}
+                {{ include('game/panel/_slot.html.twig') }}
+            {% elseif selected == 'finances' %}
+                {{ include('game/panel/_finances.html.twig') }}
+            {% elseif selected == 'comfort' %}
+                {{ include('game/panel/_comfort.html.twig') }}
+            {% elseif selected == 'energy' %}
+                {{ include('game/panel/_energy.html.twig') }}
+            {% elseif selected == 'patrimoine' %}
+                {{ include('game/panel/_patrimoine.html.twig') }}
+            {% elseif selected == 'weather' %}
+                {{ include('game/panel/_weather.html.twig') }}
+            {% elseif selected == 'options' %}
+                {{ include('game/panel/_options.html.twig') }}
+            {% endif %}
+        </aside>
+    {% endif %}
 
     {% if game.endReport %}
         {% set report = game.endReport %}
