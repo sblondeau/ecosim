@@ -56,11 +56,10 @@
 .scene.frost .house--ins-1 .roof-snow-1 { display: initial; }
 .scene.frost .house--ins-2 .roof-snow-2 { display: initial; }
 
-/* --- isolation : la couche visible dans la coupe (variante locale à HouseShell) --- */
-.scene .ins-attic, .scene .ins-wall { display: none; }
-.house--ins-0 .ins-attic-0 { display: initial; }
-.house--ins-1 .ins-attic-1, .house--ins-1 .ins-wall-1 { display: initial; }
-.house--ins-2 .ins-attic-2, .house--ins-2 .ins-wall-2 { display: initial; }
+/* --- isolation : la couche visible dans la coupe des murs (variante locale à HouseShell) --- */
+.scene .ins-wall { display: none; }
+.house--ins-1 .ins-wall-1 { display: initial; }
+.house--ins-2 .ins-wall-2 { display: initial; }
 
 /* --- confort : la teinte du séjour (scène) ; l'occupant est un fichier SVG
        complet par état (scene:Occupant inclut occupant-<tier>.svg), donc plus
