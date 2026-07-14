@@ -1,6 +1,6 @@
 {% import 'game/_macros.html.twig' as ui %}
 {# Axe Confort (coin ↗) : l'état du ressenti. Le réglage vit sur le séjour. #}
-<div class="card panel-head"><h2>🛋️ Confort</h2></div>
+{{ ui.panel_head('🛋️ Confort') }}
 <div class="card">
     <div class="big">{{ game.comfortScorePct }} %</div>
     <div class="gauge"><span style="width: {{ game.comfortScorePct }}%; background: var(--accent);"></span></div>

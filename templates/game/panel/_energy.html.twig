@@ -1,6 +1,6 @@
 {% import 'game/_macros.html.twig' as ui %}
 {# Axe Énergie & climat (coin ↙) : flux du jour, empreinte du logement, météo. #}
-<div class="card panel-head"><h2>⚡ Énergie & climat</h2></div>
+{{ ui.panel_head('⚡ Énergie & climat') }}
 <div class="card">
     <div class="row"><span class="key">Production solaire</span><span>{{ game.productionKwh|number_format(1, ',', ' ') }} kWh</span></div>
     <div class="row"><span class="key">Consommation élec.</span><span>{{ game.demandKwh|number_format(1, ',', ' ') }} kWh</span></div>

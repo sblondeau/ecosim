@@ -1,6 +1,6 @@
 {% import 'game/_macros.html.twig' as ui %}
 {# Axe Patrimoine (coin ↘) : l'étiquette DPE officielle + la valeur du bien. #}
-<div class="card panel-head"><h2>🏠 Patrimoine · DPE {{ game.dpeLetter }}</h2></div>
+{{ ui.panel_head('🏠 Patrimoine · DPE ' ~ game.dpeLetter) }}
 <div class="card">
     <twig:DpeLabel
         energyLetter="{{ game.dpeEnergyLetter }}" :energyValue="game.dpeEnergyIntensity" :energyFill="game.dpeEnergyBandPct"

@@ -16,7 +16,7 @@
 .float-panel {
     position: absolute;
     z-index: 4;
-    width: min(340px, 92%);
+    width: min(400px, 92%);
     overflow: visible;
     display: flex;
     flex-direction: column;
@@ -190,22 +190,63 @@ details.card[open]>summary {
 
 /* étiquette DPE : extraite dans components/dpe.css (chargée après game.css) */
 
-/* travaux : traitement commun à tous les devis (quote_card), pour qu'ils se
-   distinguent d'un coup d'œil des blocs d'info — jamais posé macro par macro,
-   toujours par la classe .quote pour rester garanti cohérent. */
+/* travaux : traitement commun à tous les devis (<twig:QuoteCard>), pour
+   qu'ils se distinguent d'un coup d'œil des blocs d'info — jamais posé
+   composant par composant, toujours par la classe .quote pour rester
+   garanti cohérent. */
 .quote {
     border-left: 4px solid var(--accent);
     background: color-mix(in srgb, var(--accent) 7%, var(--card));
 }
 
-.quote h2 {
-    display: flex;
-    align-items: center;
-    gap: .4rem;
+.quote-eyebrow {
+    margin: 0 0 .5rem;
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    font-weight: 600;
     color: var(--accent);
 }
 
-.quote h2::before {
-    content: '🛠️';
-    font-size: .85rem;
+.quote-head {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    margin-bottom: .6rem;
+}
+
+.quote-icon {
+    flex: 0 0 auto;
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--accent) 12%, var(--bg));
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.quote-icon svg {
+    width: 78%;
+    height: 78%;
+    display: block;
+    overflow: visible;
+}
+
+/* la chaudière-aperçu montre l'état RÉPARÉ (flamme), pas les calques panne
+   de l'asset scène (l'icône n'a pas l'ambiance .scene qui les masque déjà). */
+.quote-icon .alarm,
+.quote-icon .smoke,
+.quote-icon .breakdown-sign {
+    display: none;
+}
+
+.quote-head h2 {
+    margin: 0;
+    font-size: .95rem;
+    text-transform: none;
+    letter-spacing: normal;
+    color: var(--ink);
+    font-weight: 700;
 }
