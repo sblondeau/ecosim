@@ -92,6 +92,14 @@ final readonly class GameViewFactory
         // The two official DPE labels (energy + climate), from the year's real energy.
         $dpe = $this->dpeCertifier->certify($currentAnnual->electricityKwh, $currentAnnual->fuelOilLitres);
 
+        // Monthly budget split by nature (living / energy / debt) so the Finances
+        // panel shows where the money goes. Energy is the reference year ÷ 12 (an
+        // average — the real bill is seasonal), net of solar resale.
+        $monthlyIncome = Money::fromEuros($this->finance->monthlyNetIncome()->value);
+        $monthlyLiving = Money::fromEuros($this->finance->monthlyLivingExpenses()->value);
+        $monthlyEnergy = Money::fromCents(intdiv($currentAnnual->netEnergyCost->cents, 12));
+        $monthlyLeftover = $monthlyIncome->minus($monthlyLiving)->minus($monthlyEnergy)->minus($state->loan->monthlyPayment);
+
         return new GameView(
             dayNumber: min($state->currentDay + 1, $config->horizonDays),
             dateLabel: $this->frenchDate($snapshot->date),
@@ -116,11 +124,11 @@ final readonly class GameViewFactory
             incomeCreditedToday: $snapshot->incomeCredited->cents > 0,
             dayNetLabel: self::signed($dayNet = $snapshot->incomeCredited->minus($snapshot->bill->netCost())->minus($snapshot->loanPayment)),
             dayNetNegative: $dayNet->isNegative(),
-            monthlyIncomeLabel: Money::fromEuros($this->finance->monthlyNetIncome()->value)->format(),
-            monthlyExpensesLabel: Money::fromEuros($this->finance->monthlyLivingExpenses()->value)->format(),
-            monthlyNetIncomeLabel: Money::fromEuros(
-                $this->finance->monthlyNetIncome()->value - $this->finance->monthlyLivingExpenses()->value,
-            )->format(),
+            monthlyIncomeLabel: $monthlyIncome->format(),
+            monthlyExpensesLabel: $monthlyLiving->format(),
+            monthlyEnergyCostLabel: $monthlyEnergy->format(),
+            monthlyLeftoverLabel: $monthlyLeftover->format(),
+            monthlyLeftoverNegative: $monthlyLeftover->isNegative(),
             energyEffortPct: (int) round($effortRate * 100),
             inFuelPoverty: $effortRate > $this->finance->fuelPovertyEffortThreshold()->value,
             propertyValueLabel: $this->property->valueFor($dpe->finalClass)->format(),

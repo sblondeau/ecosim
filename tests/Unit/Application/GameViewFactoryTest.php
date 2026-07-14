@@ -48,13 +48,17 @@ final class GameViewFactoryTest extends TestCase
         self::assertFalse($view->finished);
     }
 
-    public function testMonthlyBudgetShowsIncomeExpensesAndNet(): void
+    public function testMonthlyBudgetSplitsLivingEnergyAndLeftover(): void
     {
         $view = new GameViewFactory()->build(self::config(), GameState::start(self::passoire(), Money::fromEuros(8000.0)));
 
         self::assertSame('2 800,00 €', $view->monthlyIncomeLabel);
         self::assertSame('2 100,00 €', $view->monthlyExpensesLabel);
-        self::assertSame('700,00 €', $view->monthlyNetIncomeLabel, 'Net = income − living expenses.');
+        // The passoire's energy (reference year ÷ 12, net of solar resale) eats
+        // into the leftover: 2800 − 2100 − 338.28 = 361.72, not the misleading 700.
+        self::assertSame('338,28 €', $view->monthlyEnergyCostLabel);
+        self::assertSame('361,72 €', $view->monthlyLeftoverLabel, 'Leftover = income − living − energy − debt.');
+        self::assertFalse($view->monthlyLeftoverNegative);
     }
 
     public function testPercentagesStayWithinBounds(): void

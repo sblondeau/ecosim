@@ -44,8 +44,13 @@ final readonly class GameView
         public string $dayNetLabel,
         public bool $dayNetNegative,
         public string $monthlyIncomeLabel,
+        /** Living-cost forfait (INSEE) — the "vie courante" monthly line. */
         public string $monthlyExpensesLabel,
-        public string $monthlyNetIncomeLabel,
+        /** Estimated monthly energy cost (reference year ÷ 12, net of resale). */
+        public string $monthlyEnergyCostLabel,
+        /** True disposable income: income − living − energy − loan. */
+        public string $monthlyLeftoverLabel,
+        public bool $monthlyLeftoverNegative,
         // Fuel poverty (ONPE taux d'effort énergétique)
         /** Share of annual income spent on housing energy, in whole percent. */
         public int $energyEffortPct,
