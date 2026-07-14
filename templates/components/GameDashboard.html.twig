@@ -20,8 +20,15 @@
         {# bandeaux transitoires, centrés au-dessus de la scène #}
         {% if this.notice is not empty %}
             <div class="stage-banner banner {{ this.noticeIsError ? '' : 'banner-ok' }}">{{ this.noticeIsError ? '⚠️' : '✅' }} {{ this.notice }}</div>
-        {% elseif game.boilerBroken and not game.finished %}
-            <div class="stage-banner banner">🚨 Chaudière en panne — appoint électrique forcé (~16 °C), l'électricité flambe. Cliquez la chaudière pour réparer ou remplacer.{% if speed == 0 %} Temps en pause (▶ pour relancer).{% endif %}</div>
+        {% endif %}
+
+        {# événement scripté (panne) : modale one-shot, puis l'état « en panne »
+           de la scène suffit — plus de bannière permanente (doublon) #}
+        {% if game.boilerBroken and not this.breakdownSeen and not game.finished %}
+            <twig:Modal title="🚨 Panne de chaudière" closeAction="acknowledgeBreakdown" closeLabel="Compris — je décide">
+                <p>Votre chaudière fioul vient de <strong>tomber en panne</strong>. Le temps est en <strong>pause</strong> : décidez sans précipitation.</p>
+                <p>En attendant, des convecteurs électriques d'appoint tiennent péniblement ~16 °C — et l'électricité <strong>flambe</strong> (effet Joule, le pire des chauffages). Fermez cette fenêtre, puis cliquez la <strong>chaudière</strong> pour la <strong>réparer</strong> (rapide, mais toujours au fioul) ou la <strong>remplacer par une PAC</strong>.</p>
+            </twig:Modal>
         {% endif %}
 
         {# ===== 4 coins = 4 axes (clic → panneau focalisé) ===== #}

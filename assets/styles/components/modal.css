@@ -1,0 +1,43 @@
+/* Modale centrée pour un événement scripté qui met le jeu en pause (panne…) :
+   un scrim couvre la scène (donc on lit avant d'agir), une carte au centre.
+   Chargée après game.css. Se ferme via un <twig:Button> ; ensuite l'état
+   « en panne » de la scène suffit (plus d'alerte permanente). */
+.modal-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: color-mix(in srgb, var(--bg) 62%, transparent);
+    backdrop-filter: blur(3px);
+}
+
+.modal-card {
+    max-width: 460px;
+    max-height: 100%;
+    overflow-y: auto;
+    background: var(--card);
+    border: 1px solid var(--warn);
+    border-radius: 16px;
+    padding: 1.4rem 1.5rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
+}
+
+.modal-title {
+    margin: 0 0 .6rem;
+    font-size: 1.25rem;
+}
+
+.modal-body {
+    margin-bottom: 1.1rem;
+}
+
+.modal-body p {
+    margin: 0 0 .6rem;
+}
+
+.modal-actions .btn-primary {
+    width: 100%;
+}

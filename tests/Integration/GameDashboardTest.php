@@ -53,6 +53,19 @@ final class GameDashboardTest extends KernelTestCase
         self::assertNull($component->component()->selectedSlot);
     }
 
+    public function testModalComponentRendersItsSlotAndCloseAction(): void
+    {
+        $twig = self::getContainer()->get('twig');
+        self::assertInstanceOf(\Twig\Environment::class, $twig);
+
+        $html = $twig->createTemplate(
+            '<twig:Modal title="Panne" closeAction="acknowledgeBreakdown" closeLabel="OK"><p>corps de la modale</p></twig:Modal>',
+        )->render();
+
+        self::assertStringContainsString('corps de la modale', $html, 'The slot body renders.');
+        self::assertStringContainsString('acknowledgeBreakdown', $html, 'The close button triggers the action.');
+    }
+
     public function testWelcomeOverlayShowsOnAFreshGameThenDismisses(): void
     {
         $component = $this->createLiveComponent(GameDashboard::class);

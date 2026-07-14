@@ -67,6 +67,14 @@ final class GameDashboard
     #[LiveProp(writable: true)]
     public bool $introDismissed = false;
 
+    /**
+     * A scripted pause event (boiler breakdown) shows a one-shot modal, dismissed
+     * into the persistent "en panne" scene state. A LiveProp so it survives polls;
+     * reset on a new game so a fresh breakdown pops the modal again.
+     */
+    #[LiveProp(writable: true)]
+    public bool $breakdownSeen = false;
+
     private ?Game $game = null;
     private ?GameView $view = null;
 
@@ -110,6 +118,13 @@ final class GameDashboard
         $this->introDismissed = true;
         $game = $this->store->current();
         $this->commit($game->withProgression($game->progression->withSpeed($game->progression->speed, new DateTimeImmutable())));
+    }
+
+    /** Acknowledge the breakdown modal; the game stays paused, the scene keeps the "en panne" state. */
+    #[LiveAction]
+    public function acknowledgeBreakdown(): void
+    {
+        $this->breakdownSeen = true;
     }
 
     /** Manual step: live the current day now, restarting the real-time clock. */
@@ -182,6 +197,7 @@ final class GameDashboard
     {
         $this->selectedSlot = null;
         $this->notice = '';
+        $this->breakdownSeen = false;
         $this->game = $this->store->reset();
         $this->view = null;
     }
