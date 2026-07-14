@@ -13,24 +13,72 @@ avance » : chacune est notée avec son déclencheur.
 - ~~Extraire le value noise vers `Domain/Math`~~ : fait (`SeededNoise` :
   `uniform`/`centered`/`smooth`, canaux indépendants).
 
-- **Amplitude des extrêmes trop faible (recalibration, sourcé Météo-France)**.
-  Diagnostic (juillet 2026, en creusant la sensibilité du thermostat) : la
-  moyenne saisonnière est juste (janvier ~5 °C, juillet ~20 °C), mais les
-  **extrêmes journaliers** sont écrasés — jour le plus froid ~+2 °C (France
-  réelle ~−5), jour le plus chaud ~21 °C (France ~28-30). Conséquence mesurée
-  sur 6 années simulées : **DJU base 18 ~2 090** (France ~2 500), **269 jours
-  de chauffe/365** (trop, car tous *un peu* sous 18), d'où une **sensibilité
-  au thermostat de ~11 %/°C** au lieu des ~7 % ADEME. Cause = le bruit
-  jour-à-jour (±3-4 °C lissé) ne produit pas de vraies vagues de froid/chaleur.
-  Correctif = **renforcer l'amplitude du bruit/persistance hivernale (et
-  estivale)** pour retrouver DJU ~2 500 et des coups de froid à ~−5 °C. Effet
-  attendu : sensibilité → **~9 %/°C** par la physique (le résidu 9→7 % = inertie
-  + intermittence réelles, non modélisées au tick journalier — simplification
-  ASSUMÉE et documentée, jamais un facteur correctif caché). Bonus : débloque
-  l'**été/canicule** pour le pan confort d'été (§16), aujourd'hui impossible
-  (plafond ~21 °C). Cascades : production solaire, équilibrage (hivers plus
-  rudes = factures plus salées), tests météo (bornes, sauts jour-à-jour,
-  moyennes saisonnières) — recalibration à mener proprement, pas un one-liner.
+- ~~**Amplitude des extrêmes trop faible (recalibration, sourcé Météo-France)**~~
+  : **fait** (juillet 2026). La cause racine n'était pas « coefficients trop
+  petits » mais un **bug de mapping** : `dailyTemperatureNoiseC` était sourcé
+  comme un *écart-type d'anomalie journalière* (~3 °C) mais consommé comme une
+  *demi-bande* que le smoothstep atténuait de moitié (écart-type réel ~1,5 °C).
+  Correctif : `SeededNoise::smoothUnit()` (bruit lissé normalisé à écart-type 1)
+  → le coefficient sourcé est délivré tel quel. + amplitude saisonnière montée
+  à 8,7 (dans la fourchette 6-9, référence France semi-continentale : janvier
+  ~4 °C, juillet ~21 °C). Résultats mesurés : **DJU 2 131 → 2 275**, vraies
+  vagues de froid (**−4,5 °C**, contre +1,1 avant), fin des jours de chauffe
+  estivaux absurdes. **Correction d'un pronostic** : la sensibilité ne tombe PAS
+  à 9 % — mesurée **13,9 % → 12 %/°C**. Le modèle degrés-jours journalier est
+  *structurellement* sur-sensible (chaque +1 °C de consigne frappe tous les
+  jours de chauffe) ; l'écart 12 → 7 % ADEME relève des amortisseurs non
+  modélisés → voir « Modèle d'inertie/intermittence » ci-dessous. La
+  canicule (~30 °C) reste pour la **Phase 5** (couche d'événements extrêmes : un
+  bruit symétrique ne peut pas faire hiver-froid ET canicule à la fois).
+
+- **Modèle d'inertie/intermittence thermique (post-MVP, le vrai correctif de la
+  sensibilité)** (déclencheur : axe réalisme thermique fin, ou quand la
+  pédagogie de la consigne devient centrale). Constat mesuré : le degrés-jours
+  journalier donne une sensibilité thermostat de ~12 %/°C, ~1,7× l'ADEME (~7 %),
+  parce qu'il suppose la maison tenue *pile à la consigne 24 h/24, tous les
+  jours*. Trois amortisseurs réels, tous modélisables et **déterministes** :
+  1. **Apports gratuits variables** (le plus gros levier, gratuit chez nous) :
+     `base = consigne − apports(soleil, occupants)` au lieu d'une base fixe à
+     18 °C → les jours doux/ensoleillés, la maison flotte au-dessus de la
+     consigne, la chaudière ne tire pas, monter la consigne ne coûte rien. **On
+     a déjà le modèle nébulosité/irradiance** pour piloter les apports solaires.
+  2. **Intermittence / réduit de nuit** : passer en **degrés-heures** avec un
+     planning d'occupation (réduit ~16 °C la nuit) → +1 °C de consigne de confort
+     n'affecte que les heures occupées (~0,6-0,7 des heures).
+  3. **Inertie (masse du bâti)** : modèle RC (résistance-capacité) où la
+     température intérieure est un état lissé par la masse — version « propre »
+     de (1)+(2), idéalement à pas infra-journalier.
+
+  **Face gameplay du levier 2 — programmation du thermostat** (idée joueur,
+  juillet 2026). Mécanique concrète : le joueur *configure* un planning de
+  consigne (réduit nuit à partir de ~23 h, éventuellement absence journée) — un
+  levier **non-monétaire** (le jeu est très « dépenser de l'argent » sinon) et un
+  gain d'efficacité quasi gratuit, exactement ce que l'ADEME recommande.
+  **Décision d'architecture actée** : NE PAS passer le tick à l'heure — cadence
+  du tick (décisions du joueur = journalière) ≠ résolution de la physique. On
+  intègre un **profil horaire dans la fonction pure du tick journalier**
+  (degrés-heures : `besoin = Σ_24h heatLoss × max(0, consigne(h) − Text(h))`),
+  le tick reste à 1 jour. Passer à un tick horaire multiplierait par 24 les
+  transitions d'état (~8 760/an), alourdirait persistance/rendu et casserait le
+  rythme temps réel, pour zéro gain (on ne décide rien à l'heure ; un « zoom
+  journée » serait de la présentation). **Garde-fous de design** : presets
+  (« confort constant » / « réduit nuit » / « réduit nuit + absence »), JAMAIS un
+  planificateur 24 curseurs (micro-management anti-pédagogie). **Dépendances** :
+  un **profil diurne de température** (nouvelle facette météo — aujourd'hui on ne
+  produit qu'une moyenne journalière), les **degrés-heures**, et le **confort
+  pondéré par l'occupation** (le réduit nuit ne doit pas pénaliser le ressenti :
+  on dort — sinon « baisser la nuit » deviendrait un faux malus). Pédagogie
+  sourcée : réduit ≠ inconfort ; et la nuance d'inertie (couper *complètement* la
+  nuit ne paie pas dans une maison lourde — surcoût de relance —, le *réduit* si).
+  **Protocole scientifique NON BIAISÉ (exigence joueur, à respecter)** :
+  construire le modèle sur des critères de *réalisme* (sources, ordres de
+  grandeur), mesurer la sensibilité %/°C obtenue, PUIS seulement la comparer aux
+  ~7 % ADEME comme **validation a posteriori**. Le 7 % reste « inconnu » pendant
+  la fabrication — jamais un paramètre à ajuster (ce serait le fudge refusé).
+  Estimation (à tester, pas à viser) : intermittence ×~0,65 + apports variables
+  ×~0,85 → **~7,5 %**, donc l'ordre de grandeur tomberait probablement seul.
+  Réserve : le 7 % ADEME est lui-même une règle empirique avec son périmètre ;
+  « être dans 7-10 % » vaudra validation, pas une constante à matcher au dixième.
 
 En Phase 5 (météo complète), la **pression atmosphérique** devient la variable
 pivot qui corrèle température/nébulosité/vent (game-design §5) — l'anticyclone

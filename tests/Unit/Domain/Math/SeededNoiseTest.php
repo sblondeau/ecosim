@@ -7,6 +7,8 @@ namespace App\Tests\Unit\Domain\Math;
 use App\Domain\Math\SeededNoise;
 use PHPUnit\Framework\TestCase;
 
+use function sqrt;
+
 final class SeededNoiseTest extends TestCase
 {
     public function testUniformIsDeterministic(): void
@@ -67,5 +69,28 @@ final class SeededNoiseTest extends TestCase
         // Steepest smoothstep slope is 1.5/period = 0.3 per index here — far
         // below the jumps white noise would produce (up to ~1.0).
         self::assertLessThan(0.35, $maxStep);
+    }
+
+    public function testSmoothUnitIsNormalisedToUnitStandardDeviation(): void
+    {
+        $sum = 0.0;
+        $sumSquares = 0.0;
+        $count = 0;
+        for ($seed = 1; $seed <= 40; ++$seed) {
+            for ($i = 0; $i < 250; ++$i) {
+                $value = SeededNoise::smoothUnit($seed, $i, 'temp', 5);
+                $sum += $value;
+                $sumSquares += $value * $value;
+                ++$count;
+            }
+        }
+
+        $mean = $sum / $count;
+        $std = sqrt($sumSquares / $count - $mean * $mean);
+
+        // Centred on 0 with std ≈ 1, so scaling it by σ yields noise of std σ —
+        // the whole point of the normalisation (a raw band delivers only ~half).
+        self::assertEqualsWithDelta(0.0, $mean, 0.05);
+        self::assertEqualsWithDelta(1.0, $std, 0.05);
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Energy;
 
 use App\Domain\Calibration\Coefficient;
+use App\Domain\Weather\WeatherCalibration;
 
 use function sqrt;
 
@@ -23,6 +24,13 @@ use function sqrt;
  */
 final class EnergyCalibration
 {
+    public function __construct(
+        // The winter demand peak shares the weather's thermal-minimum anchor;
+        // deriving it from there keeps the two calendars from drifting apart.
+        private WeatherCalibration $weather = new WeatherCalibration(),
+    ) {
+    }
+
     /**
      * Day of the year of maximum clear-sky solar potential. Purely geometric
      * (no thermal lag, unlike temperature): the clear-sky component peaks at
@@ -124,7 +132,18 @@ final class EnergyCalibration
     /** Day of the year of peak demand (winter, aligned with the thermal minimum). */
     public function householdDemandPeakDayOfYear(): Coefficient
     {
-        return new Coefficient(15.0, 'day-of-year', 5.0, 25.0, 'RTE: pointe hivernale de la demande résidentielle', '2025-01-01');
+        // Same mid-January anchor as the coldest day: derive it from the single
+        // source of truth so the demand peak and the thermal minimum stay in sync.
+        $coldest = $this->weather->coldestDayOfYear();
+
+        return new Coefficient(
+            value: $coldest->value,
+            unit: 'day-of-year',
+            min: $coldest->min,
+            max: $coldest->max,
+            source: 'RTE : pointe hivernale de la demande résidentielle, alignée sur le minimum thermique (WeatherCalibration::coldestDayOfYear)',
+            reviewedOn: '2025-01-01',
+        );
     }
 
     /** Half-width of the day-to-day demand noise (laundry days, guests, absences…). */
