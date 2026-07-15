@@ -10,9 +10,6 @@
     <div class="stage">
         {{ include('game/scene/_cutaway.html.twig') }}
 
-        {# progression de l'année : ligne fine tout en haut #}
-        <div class="year-progress"><span style="width: {{ game.progressPct }}%"></span></div>
-
         {# puce météo (haut-centre) : le contexte du jour, ouvre son évolution #}
         <button type="button" class="weather-chip{{ selected == 'weather' ? ' active' }}" title="Météo & évolution"
                 data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="weather">{{ game.seasonLabel }} · 🌡️{{ game.temperatureC|number_format(1, ',', ' ') }}° · ☁{{ game.cloudPct }}%</button>
@@ -50,14 +47,22 @@
         <div class="hud hud-bl card" role="button" tabindex="0" title="Énergie & climat — détails"
              data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="energy">
             <div class="hud-title">⚡ Énergie & climat</div>
-            <div class="hud-line"><span class="key">Prod. / conso</span><span>{{ game.productionKwh|number_format(1, ',', ' ') }} / {{ game.demandKwh|number_format(1, ',', ' ') }} kWh</span></div>
-            <div class="hud-line"><span class="key">CO₂ logement</span><span>{{ game.dpeClimateIntensity }} kgCO₂/m²·an</span></div>
+            <div class="big">{{ game.co2EmittedLabel }}</div>
+            <div class="hud-cap">CO₂ émis</div>
+            {% if game.solarKwc > 0 %}
+                <div class="hud-line"><span class="key">Prod / conso</span><span>{{ game.productionKwh|number_format(1, ',', ' ') }} / {{ game.demandKwh|number_format(1, ',', ' ') }} kWh</span></div>
+            {% else %}
+                <div class="hud-line"><span class="key">Conso du jour</span><span>{{ game.demandKwh|number_format(1, ',', ' ') }} kWh</span></div>
+            {% endif %}
         </div>
 
         <div class="hud hud-br card" role="button" tabindex="0" title="Patrimoine — étiquette DPE"
              data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="patrimoine">
             <div class="hud-title">🏠 Patrimoine</div>
-            <div class="dpe-chip dpe-e-{{ game.dpeLetter|lower }}">DPE {{ game.dpeLetter }}</div>
+            <div class="dpe-chips">
+                <span class="dpe-chip dpe-e-{{ game.dpeLetter|lower }}">DPE {{ game.dpeLetter }}</span>
+                <span class="dpe-chip dpe-g-{{ game.dpeClimateLetter|lower }}">GES {{ game.dpeClimateLetter }}</span>
+            </div>
         </div>
 
         {# ===== écran de bienvenue (premier lancement) ===== #}
@@ -81,7 +86,12 @@
         {# bandeau de contrôle bas-centre : date · saison · météo · vitesse · jour+ #}
         {% if not game.finished %}
             <div class="controlbar">
-                <div class="cb-when">Jour {{ game.dayNumber }}/{{ game.horizonDays }} · {{ game.dateLabel }}</div>
+                <div class="cb-date">
+                    <div class="cb-when">{{ game.dateLabel }}</div>
+                    {# la position dans l'horizon est déjà dite par la date ; la barre
+                       en donne la version visuelle, pas la peine de dupliquer "jour X/Y". #}
+                    <div class="cb-progress" title="Jour {{ game.dayNumber }}/{{ game.horizonDays }}"><span style="width: {{ game.progressPct }}%"></span></div>
+                </div>
                 <div class="speed">
                     <twig:Button label="⏸" action="setSpeed" :params="{speed: 0}" title="Pause" :active="speed == 0" />
                     <twig:Button label="▶" action="setSpeed" :params="{speed: 1}" title="1 jour / 12 s" :active="speed == 1" />
@@ -145,9 +155,10 @@
                     <div class="row"><span class="key">Confort thermique moyen sur l'année</span><span></span></div>
                 </div>
                 <div class="card">
-                    <h2>Énergie</h2>
+                    <h2>Énergie & climat</h2>
                     <div class="row"><span class="key">Fioul consommé</span><span>{{ report.totalFuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
                     <div class="row"><span class="key">Autosuffisance électrique</span><span>{{ report.totalSelfSufficiencyPct }} %</span></div>
+                    <div class="row"><span class="key">CO₂ émis sur l'année</span><span><strong>{{ report.totalCo2EmittedLabel }}</strong></span></div>
                     <div class="row"><span class="key">Coût énergie net sur l'année</span><span>{{ report.totalNetEnergyCostLabel }}</span></div>
                 </div>
             </div>

@@ -1,13 +1,41 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 275" width="150" height="275" overflow="visible">
-    <!-- Arbre du jardin — tronc affirmé ; la neige de canopée s'affiche sous .frost. -->
+    <!-- Arbre du jardin — tronc affirmé, feuillage par saison (scene.css :
+         .canopy-main/.canopy-highlight n'ont pas de fill ici, piloté par
+         .scene.season-*). Trois états de branchage :
+         - été/automne : la canopée (cercles) couvre tout ;
+         - printemps : canopée claire + floraison (.blossoms) posée dessus ;
+         - hiver : canopée masquée, la silhouette nue (.branches) prend le
+           relais — un vrai arbre défeuillé, pas juste le tronc.
+         Neige de canopée sous .frost, masquée en hiver. -->
     <ellipse cx="74" cy="258" rx="70" ry="12" fill="#adbfd0" opacity=".4"/>
     <path d="M62 258 q2 -52 0 -92 q-12 -18 -26 -26 q16 2 28 12 q-2 -26 4 -46 q6 22 8 46 q12 -12 28 -16 q-14 10 -26 28 q-2 42 2 94z" fill="#4c3a2c"/>
     <path d="M66 258 q0 -48 0 -90 l10 -2 q2 44 4 92z" fill="#5d4936"/>
-    <g fill="#2e4a38">
+
+    <!-- Silhouette nue (hiver) : 5 charpentières fourchant depuis le haut du
+         tronc, chacune en segment bas puis haut puis 2 rameaux — largeurs
+         décroissantes (6 → 4 → 2) pour l'effilement, bouts arrondis. -->
+    <g class="branches" fill="none" stroke="#4c3a2c" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke-width="6" d="M66 168 Q54 152 44 138 M68 150 Q57 130 48 110 M72 146 Q71 121 70 96 M76 150 Q85 127 92 104 M78 166 Q88 153 98 140"/>
+        <path stroke-width="4" d="M44 138 Q36 128 30 120 M48 110 Q42 98 38 86 M70 96 Q68 78 66 60 M92 104 Q97 91 100 78 M98 140 Q106 132 112 124"/>
+        <path stroke-width="2" d="M30 120 Q24 112 20 104 M30 120 Q32 110 34 100 M38 86 Q31 78 26 70 M38 86 Q43 76 46 66 M66 60 Q61 50 58 40 M66 60 Q70 52 74 44 M100 78 Q107 70 112 62 M100 78 Q96 68 94 58 M112 124 Q118 116 122 108 M112 124 Q110 115 108 106"/>
+    </g>
+
+    <g class="canopy-main">
         <circle cx="72" cy="66" r="46"/><circle cx="36" cy="102" r="36"/><circle cx="110" cy="98" r="38"/><circle cx="72" cy="128" r="40"/>
     </g>
-    <g fill="#3d5c46">
+    <g class="canopy-highlight">
         <circle cx="60" cy="82" r="30"/><circle cx="94" cy="108" r="26"/>
     </g>
+
+    <!-- Floraison (printemps) : petites fleurs pâles semées sur la canopée. -->
+    <g class="blossoms">
+        <circle cx="60" cy="56" r="3"/><circle cx="82" cy="70" r="2.6" class="bloom-pale"/>
+        <circle cx="40" cy="96" r="3"/><circle cx="30" cy="112" r="2.4" class="bloom-pale"/>
+        <circle cx="104" cy="90" r="2.8" class="bloom-pale"/><circle cx="116" cy="104" r="2.5"/>
+        <circle cx="66" cy="120" r="3"/><circle cx="86" cy="132" r="2.6" class="bloom-pale"/>
+        <circle cx="52" cy="116" r="2.4"/><circle cx="96" cy="118" r="2.8"/>
+        <circle cx="72" cy="88" r="2.6" class="bloom-pale"/><circle cx="48" cy="74" r="2.5"/>
+    </g>
+
     <path class="canopy-snow" d="M30 76 q40 -34 84 -6 q-18 -10 -40 -8 q-26 0 -44 14z" fill="#eef4f9" opacity=".9"/>
 </svg>

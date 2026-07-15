@@ -4,9 +4,16 @@
    (season/frost/clouds/smoke/production) drives the .scene root; per-equipment
    state is a component prop. Slots are clickable (LiveAction selectSlot). #}
 {% set scene = game.scene %}
+{# Au-delà de 60 % de nébulosité, les nuages distincts s'effacent (repris par
+   la nappe grise plein ciel, scene.css .overcast) plutôt que de rester
+   posés en plus d'elle — sinon on garde des nuages bien visibles sous un
+   voile, jamais un ciel qui se referme. Pleinement effacés à 75 %, pour que
+   la nappe (déjà nettement majoritaire à ce stade) ne montre plus de nuages
+   distincts en transparence dessous. #}
+{% set cloudFade = scene.cloudPct <= 60 ? 1 : (scene.cloudPct >= 75 ? 0 : (75 - scene.cloudPct) / 15) %}
 <svg viewBox="0 0 1100 560"
      class="scene season-{{ scene.season }} comfort-{{ scene.comfortState }}{{ scene.frost ? ' frost' }}{{ scene.chimneySmoking ? ' smoking' }}{{ scene.producing ? ' producing' }}"
-     style="--cloud: {{ scene.cloudPct / 100 }}"
+     style="--cloud: {{ scene.cloudPct / 100 }}; --cloud-fade: {{ cloudFade }}"
      role="img"
      aria-label="Votre maison — cliquez un élément pour agir"
 >
@@ -20,23 +27,61 @@
         </radialGradient>
     </defs>
 
-    {# ciel, soleil (voilé par la nébulosité), collines #}
+    {# ciel, soleil (derrière collines/nuages/toit — occulté par eux comme un
+       vrai soleil), collines. #}
     <rect width="1100" height="470" fill="url(#scSky)"/>
+    {# Course du soleil : un point par jour (le jeu n'a pas d'heure, un tick =
+       1 jour), pas une trajectoire lever-coucher en une journée.
+       - hauteur (cy) = élévation solaire réelle du jour, même cycle
+         saisonnier que la production PV (bas l'hiver, haut l'été) ;
+       - abscisse (cx) = avancement dans la partie (progressPct) : balayage
+         gauche→droite continu sur tout l'horizon.
+       Combinés, les deux tracent un arc (bas aux extrémités de l'année, haut
+       au milieu, proche du solstice d'été) — un repère qui avance chaque
+       jour, contrairement au changement de saison (4×/an). Bornes choisies
+       pour qu'il n'exige pas de la place au-dessus du canevas au plus haut
+       (corona effleure y=0) tout en restant nettement au-dessus des toits le
+       reste du temps — il peut malgré tout se faire cacher par le faîtage
+       quand il passe pile derrière, comme un vrai soleil bas. #}
+    {% set sunCx = 100 + (game.progressPct / 100) * 900 %}
+    {% set sunCy = 250 - scene.sunElevationRatio * 135 %}
     <g class="sun">
-        <circle cx="930" cy="105" r="115" fill="url(#scSun)"/>
-        <circle cx="930" cy="105" r="32" fill="#f8ecc4"/>
+        <circle cx="{{ sunCx }}" cy="{{ sunCy }}" r="115" fill="url(#scSun)"/>
+        <circle cx="{{ sunCx }}" cy="{{ sunCy }}" r="32" fill="#f8ecc4"/>
     </g>
     <path class="hill hill-far" d="M0 400 q140 -70 300 -34 q200 44 400 -12 q220 -56 400 22 v144 H0z"/>
     <path class="hill hill-near" d="M0 430 q180 -50 380 -14 q240 40 420 -8 q160 -38 300 18 v94 H0z"/>
 
-    {# nuages : le même asset à 3 échelles, opacité pilotée par --cloud #}
-    <twig:scene:Cloud variant="1" transform="translate(120 46)" />
-    <twig:scene:Cloud variant="2" transform="translate(620 100) scale(.8)" />
-    <twig:scene:Cloud variant="3" transform="translate(800 200) scale(1.05)" />
+    {# nuages : le même asset, 6 positions/échelles réparties dans le ciel,
+       révélées progressivement (scene.css) à mesure que la nébulosité monte
+       — pour que la surface couverte suive le %, pas seulement l'opacité de
+       3 nuages toujours aux mêmes 3 endroits.
+       Léger déplacement quotidien (même principe que la pose de l'occupant :
+       dayNumber % 7, déterministe, pas un vrai vent animé) : chaque nuage
+       pioche dans le même jeu de 7 décalages mais avec un décalage d'index
+       différent (+0/+1/+2…), pour qu'ils ne bougent pas tous du même pas le
+       même jour — juste assez pour que le ciel d'hier ne soit pas celui
+       d'aujourd'hui. #}
+    {% set cloudDrift = [-22, 16, 30, -10, 24, -28, 8] %}
+    <twig:scene:Cloud variant="1" transform="translate({{ 120 + cloudDrift[game.dayNumber % 7] }} 46)" />
+    <twig:scene:Cloud variant="2" transform="translate({{ 620 + cloudDrift[(game.dayNumber + 2) % 7] }} 100) scale(.8)" />
+    <twig:scene:Cloud variant="3" transform="translate({{ 800 + cloudDrift[(game.dayNumber + 4) % 7] }} 200) scale(1.05)" />
+    <twig:scene:Cloud variant="4" transform="translate({{ 320 + cloudDrift[(game.dayNumber + 1) % 7] }} 150) scale(.9)" />
+    <twig:scene:Cloud variant="5" transform="translate({{ 950 + cloudDrift[(game.dayNumber + 5) % 7] }} 60) scale(.75)" />
+    <twig:scene:Cloud variant="6" transform="translate({{ 40 + cloudDrift[(game.dayNumber + 3) % 7] }} 230) scale(.85)" />
+    {# nappe grise plein ciel : prend le relais des nuages distincts au-delà
+       de ~70 % de nébulosité (un ciel couvert n'a plus de nuages séparés). #}
+    <rect class="overcast" width="1100" height="470"/>
 
-    {# sol : herbe, recouverte de neige sous .frost #}
+    {# sol : herbe, recouverte de neige — accumulation/fonte progressive
+       (scene.snowDepthPct, ~15 jours rejoués, pas juste "il gèle aujourd'hui
+       ou pas"). Le groupe entier glisse verticalement : à profondeur nulle il
+       est décalé de 90px sous la bande d'herbe (invisible), à pleine
+       profondeur il est à sa position d'origine (neige pleine bande) — la
+       neige "monte" du sol au lieu d'un simple on/off. #}
     <rect class="ground-grass" y="470" width="1100" height="90"/>
-    <g class="ground-snow">
+    {% set snowSlide = 90 - scene.snowDepthPct / 100 * 90 %}
+    <g class="ground-snow" style="opacity: {{ scene.snowDepthPct > 0 ? 1 : 0 }}" transform="translate(0 {{ snowSlide }})">
         <rect y="470" width="1100" height="90" fill="#dbe5ee"/>
         <path d="M0 470 q160 14 340 4 q240 -12 460 6 q180 12 300 -4 v20 q-240 16 -560 6 q-320 -8 -540 2z" fill="#ffffff" opacity=".8"/>
     </g>
@@ -81,12 +126,21 @@
         <g class="slot slot-living{{ selected == 'living' ? ' is-selected' }}" tabindex="0" role="button"
            data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="living">
             <title>Séjour — ressenti {{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C</title>
-            <twig:scene:Occupant tier="{{ scene.comfortState }}" transform="translate(140 208) scale(.29)" />
-            <text class="room-temp" x="64" y="182">{{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C ressenti</text>
-            {# boîtier thermostat mural : affiche la consigne #}
-            <g class="thermostat" transform="translate(300 214)">
-                <rect x="0" y="0" width="40" height="30" rx="5" fill="#1b232d" stroke="#3a4756" stroke-width="1.5"/>
-                <text x="20" y="20" text-anchor="middle" font-size="15" font-weight="700" fill="#5fd8a0">{{ game.setpointC }}°</text>
+            <twig:scene:Occupant tier="{{ scene.comfortState }}" :pose="game.dayNumber % 7" transform="translate(140 208) scale(.29)" />
+            {# Thermostat mural = ce qu'un appareil mesure : la température de
+               l'air ACTUELLE + la CONSIGNE réglée. En hiver, chaudière OK, les
+               deux coïncident ; en panne l'air décroche sous la consigne (signal
+               in-world). Le RESSENTI (perception air + parois froides) n'est PAS
+               affiché ici : c'est l'occupant (teinte) et le panneau Confort qui
+               le portent. #}
+            <g class="thermostat" transform="translate(300 204)">
+                <title>Thermostat — air {{ game.indoorTemperatureC|number_format(1, ',', ' ') }} °C · consigne {{ game.setpointC }} °C</title>
+                <rect x="0" y="0" width="46" height="42" rx="6" fill="#1b232d" stroke="#3a4756" stroke-width="1.5"/>
+                <text x="23" y="15" text-anchor="middle" font-size="14" font-weight="700" fill="#dce8f2">{{ game.indoorTemperatureC|number_format(0, ',', ' ') }}°</text>
+                <text x="23" y="21" text-anchor="middle" font-size="5" fill="#8aa0b2" letter-spacing=".5">ACTUELLE</text>
+                <line x1="9" y1="25" x2="37" y2="25" stroke="#33414f" stroke-width="1"/>
+                <text x="23" y="35" text-anchor="middle" font-size="11" font-weight="700" fill="#5fd8a0">{{ game.setpointC }}°</text>
+                <text x="23" y="40" text-anchor="middle" font-size="5" fill="#4f9e7a" letter-spacing=".5">CONSIGNE</text>
             </g>
             <rect class="hit" x="50" y="156" width="298" height="212"/>
         </g>
@@ -107,7 +161,7 @@
     </g>
 
     {# ===== LE GARAGE : slot batterie ===== #}
-    <g transform="translate(800 208)">
+    <g transform="translate(800 216)">
         <twig:scene:Garage />
         <g class="slot slot-garage{{ selected == 'garage' ? ' is-selected' }}" tabindex="0" role="button"
            data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="garage">

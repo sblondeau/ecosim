@@ -12,6 +12,7 @@ use App\Domain\Building\DpeClass;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
 use App\Domain\Building\InsulationLevel;
+use App\Domain\Energy\CarbonAccountant;
 use App\Domain\Energy\EnergyCalibration;
 use App\Domain\Finance\FinanceCalibration;
 use App\Domain\Finance\Loan;
@@ -19,6 +20,7 @@ use App\Domain\Finance\Money;
 use App\Domain\Finance\PropertyValuator;
 use App\Domain\Finance\Renovation;
 use App\Domain\Finance\RenovationQuoter;
+use App\Domain\Math\SeasonalCycle;
 use App\Domain\Scenario\PrimoAccedantScenario;
 use App\Domain\Scenario\Scenario;
 use App\Domain\Simulation\AnnualOutcome;
@@ -57,11 +59,6 @@ final readonly class GameViewFactory
         9 => 'septembre', 10 => 'octobre', 11 => 'novembre', 12 => 'décembre',
     ];
 
-    private const array WEEKDAYS_FR = [
-        1 => 'lundi', 2 => 'mardi', 3 => 'mercredi', 4 => 'jeudi',
-        5 => 'vendredi', 6 => 'samedi', 7 => 'dimanche',
-    ];
-
     public function __construct(
         private SimulationEngine $engine = new SimulationEngine(),
         private FinanceCalibration $finance = new FinanceCalibration(),
@@ -73,6 +70,7 @@ final readonly class GameViewFactory
         private BuildingCalibration $building = new BuildingCalibration(),
         private EnergyCalibration $energy = new EnergyCalibration(),
         private DpeCertifier $dpeCertifier = new DpeCertifier(),
+        private CarbonAccountant $carbon = new CarbonAccountant(),
     ) {
     }
 
@@ -102,7 +100,7 @@ final readonly class GameViewFactory
 
         return new GameView(
             dayNumber: min($state->currentDay + 1, $config->horizonDays),
-            dateLabel: $this->frenchDate($snapshot->date),
+            dateLabel: $this->frenchDate($snapshot->date, $state->currentDay),
             seasonLabel: $snapshot->date->season()->label(),
             horizonDays: $config->horizonDays,
             finished: $this->engine->isFinished($config, $state),
@@ -110,7 +108,7 @@ final readonly class GameViewFactory
             cloudPct: (int) round($snapshot->weather->cloudCover * 100),
             temperatureC: $snapshot->weather->temperatureC,
             weatherSparkline: $this->weatherSparkline($config, $state),
-            scene: $this->houseScene($snapshot, $household),
+            scene: $this->houseScene($snapshot, $household, $this->snowAccumulationPct($config, $state)),
             productionKwh: $balance->productionKwh,
             demandKwh: $balance->demandKwh,
             selfSufficiencyPct: (int) round($balance->selfSufficiencyRatio() * 100),
@@ -131,7 +129,11 @@ final readonly class GameViewFactory
             monthlyLeftoverNegative: $monthlyLeftover->isNegative(),
             energyEffortPct: (int) round($effortRate * 100),
             inFuelPoverty: $effortRate > $this->finance->fuelPovertyEffortThreshold()->value,
-            propertyValueLabel: $this->property->valueFor($dpe->finalClass)->format(),
+            propertyValueLabel: ($propertyValue = $this->property->valueFor($dpe->finalClass))->format(),
+            propertyPurchaseLabel: ($purchasePrice = Money::fromEuros($this->finance->housePurchasePrice()->value))->format(),
+            propertyClassesGained: $dpe->finalClass->stepsAboveWorst(),
+            propertyStepPct: (int) round($this->finance->dpeClassValueStep()->value * 100),
+            propertyGreenValueLabel: self::signed($propertyValue->minus($purchasePrice)),
             loanActive: $state->loan->isActive(),
             loanMonthlyPaymentLabel: $state->loan->monthlyPayment->format(),
             loanRemainingLabel: $state->loan->remaining->format(),
@@ -173,6 +175,7 @@ final readonly class GameViewFactory
             totalFuelOilCostLabel: $totals->fuelOilCost->format(),
             totalSurplusRevenueLabel: $totals->surplusRevenue->format(),
             totalNetEnergyCostLabel: $totals->netEnergyCost()->format(),
+            co2EmittedLabel: self::co2Label($this->carbon->emittedKg($totals->fuelOilLitres, $totals->importKwh)),
             help: $this->helpTexts(),
             actions: $this->actionsFor($state, $currentAnnual),
             endReport: $this->engine->isFinished($config, $state) ? $this->endReport($state) : null,
@@ -213,7 +216,22 @@ final readonly class GameViewFactory
             totalFuelOilLitres: round($state->totals->fuelOilLitres, 1),
             totalSelfSufficiencyPct: (int) round($state->totals->selfSufficiencyRatio() * 100),
             totalNetEnergyCostLabel: $state->totals->netEnergyCost()->format(),
+            totalCo2EmittedLabel: self::co2Label($this->carbon->emittedKg($state->totals->fuelOilLitres, $state->totals->importKwh)),
         );
+    }
+
+    /**
+     * A CO₂ mass with an adaptive unit: tonnes past 1 000 kg (a fuel-oil year
+     * runs into several), kilograms below. Rounded — false precision would
+     * imply a certainty the emission factors don't carry (§13).
+     */
+    private static function co2Label(float $kg): string
+    {
+        if ($kg >= 1000.0) {
+            return sprintf('%s t', number_format($kg / 1000.0, 1, ',', ' '));
+        }
+
+        return sprintf('%s kg', number_format(round($kg), 0, ',', ' '));
     }
 
     /**
@@ -243,6 +261,11 @@ final readonly class GameViewFactory
                 $this->building->comfortLossPerDegree()->value,
             ),
             'selfSufficiency' => 'Part de votre consommation électrique couverte par votre propre production (directement ou via la batterie) au lieu d\'être achetée au réseau.',
+            'co2Emitted' => sprintf(
+                'CO₂ réellement émis depuis le début : fioul brûlé (%s g/kWh) + électricité achetée au réseau (%s g/kWh, mix français bas-carbone). Le solaire autoconsommé n\'émet rien. À ne pas confondre avec l\'étiquette climat du DPE, qui note le logement sur une année type — ici c\'est votre empreinte vécue, qui monte jour après jour.',
+                number_format($this->energy->fuelOilCo2GramsPerKwh()->value, 0, ',', ' '),
+                number_format($this->energy->electricityCo2GramsPerKwh()->value, 0, ',', ' '),
+            ),
             'cloud' => sprintf(
                 'Couverture nuageuse du jour : sous un ciel totalement couvert, les panneaux perdent jusqu\'à %.0f %% de leur production (calibration sourcée).',
                 $this->energy->solarCloudLossFactor()->value * 100,
@@ -278,8 +301,11 @@ final readonly class GameViewFactory
             ),
             'worksEstimate' => 'Effets estimés en simulant une année météo type complète avec et sans les travaux, via le moteur du jeu lui-même. L\'effet réel dépendra de la météo de VOTRE partie et de la date des travaux.',
             'propertyValue' => sprintf(
-                'Prix d\'achat de la maison (Notaires de France) revalorisé de +%.0f %% par classe DPE gagnée. Cette valeur n\'est réalisable qu\'à la revente — elle ne s\'additionne jamais à l\'épargne.',
+                'La « valeur verte » (Notaires de France) : le marché paie la CLASSE DPE, pas la facture des travaux. Chaque classe gagnée revalorise le prix d\'achat de +%.0f %% — %s sur cette maison. Donc %s € investis dans une PAC n\'ajoutent pas %s € de valeur : ils n\'en ajoutent que s\'ils font gagner une classe (et alors le gain est le même quels que soient les travaux qui l\'ont produit). Valeur réalisable à la revente uniquement — jamais additionnée à l\'épargne.',
                 $this->finance->dpeClassValueStep()->value * 100,
+                Money::fromEuros($this->finance->housePurchasePrice()->value * $this->finance->dpeClassValueStep()->value)->format(),
+                '10 000',
+                '10 000',
             ),
         ];
     }
@@ -298,12 +324,16 @@ final readonly class GameViewFactory
      * Translates the simulation facts into the semantic scene model — states
      * and buckets only, never geometry (game-design §17).
      */
-    private function houseScene(DailySnapshot $snapshot, Household $household): HouseSceneView
+    private function houseScene(DailySnapshot $snapshot, Household $household, int $snowDepthPct): HouseSceneView
     {
         return new HouseSceneView(
             season: $snapshot->date->season()->value,
             cloudPct: (int) round($snapshot->weather->cloudCover * 100),
+            // Same seasonal sinusoid as the solar production model (peaks the
+            // same day) — a diegetic, daily-moving cue, not a new coefficient.
+            sunElevationRatio: (SeasonalCycle::at($snapshot->date->dayOfYear(), $this->energy->solarPeakDayOfYear()->value) + 1.0) / 2.0,
             frost: $snapshot->weather->temperatureC <= 0.0,
+            snowDepthPct: $snowDepthPct,
             producing: $snapshot->balance->productionKwh > 0.0,
             chimneySmoking: $snapshot->heating->fuelOilLitres > 0.0,
             roofState: $household->solarKwc > 0.0 ? 'installed' : 'empty',
@@ -336,6 +366,30 @@ final readonly class GameViewFactory
     }
 
     private const int SPARKLINE_DAYS = 30;
+    private const int SNOW_LOOKBACK_DAYS = 15;
+    private const int SNOW_MAX_TIER = 4;
+
+    /**
+     * Ground snow accumulation, 0-100: +1 tier per consecutive freezing day,
+     * −1 per thaw day (capped both ways), replayed over the last ≤15 days —
+     * no persisted state, same "the weather is seeded, the past needs no
+     * storage" trick as {@see self::weatherSparkline()}. A gradual pile-up
+     * and melt instead of the same-day frost on/off.
+     */
+    private function snowAccumulationPct(GameConfig $config, GameState $state): int
+    {
+        $firstDay = max(0, $state->currentDay - (self::SNOW_LOOKBACK_DAYS - 1));
+
+        $tier = 0;
+        foreach (range($firstDay, $state->currentDay) as $day) {
+            $weather = $this->weather->for($config->seed, GameDate::fromDayIndex($config->epoch, $day));
+            $tier = $weather->temperatureC <= 0.0
+                ? min($tier + 1, self::SNOW_MAX_TIER)
+                : max($tier - 1, 0);
+        }
+
+        return (int) round($tier / self::SNOW_MAX_TIER * 100);
+    }
 
     /**
      * The last ≤30 days of weather, recomputed on the fly: the generator is
@@ -501,13 +555,14 @@ final readonly class GameViewFactory
         return $labels;
     }
 
-    private function frenchDate(GameDate $date): string
+    private function frenchDate(GameDate $date, int $currentDay): string
     {
-        $weekday = self::WEEKDAYS_FR[(int) $date->format('N')];
         $day = (int) $date->format('j');
         $month = self::MONTHS_FR[(int) $date->format('n')];
-        $year = $date->format('Y');
+        // "Année de jeu" (1, 2...) — un compte de 365 jours vécus, pas l'année
+        // calendaire réelle (retirée : sans intérêt pour un horizon d'un an).
+        $year = intdiv($currentDay, 365) + 1;
 
-        return sprintf('%s %d %s %s', $weekday, $day, $month, $year);
+        return sprintf('%d %s · année %d', $day, $month, $year);
     }
 }

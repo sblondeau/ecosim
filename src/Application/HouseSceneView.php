@@ -18,8 +18,21 @@ final readonly class HouseSceneView
         /** Season key: winter|spring|summer|autumn. */
         public string $season,
         public int $cloudPct,
-        /** Freezing ambience (ground/roof snow dressing). */
+        /**
+         * Sun height in its yearly cycle: 0 (winter solstice, lowest) to 1
+         * (summer solstice, highest) — same seasonal sinusoid the solar
+         * production model runs on, read here as a fact, not re-derived.
+         */
+        public float $sunElevationRatio,
+        /** Freezing ambience today (roof/canopy snow dressing — instant). */
         public bool $frost,
+        /**
+         * Ground snow accumulation: 0-100, built from ~15 days of replayed
+         * weather (+1 tier per consecutive freezing day, −1 per thaw day,
+         * capped) — a gradual pile-up/melt, unlike the same-day {@see $frost}
+         * used for the roof/canopy dusting.
+         */
+        public int $snowDepthPct,
         /** The panels produced today (glint). */
         public bool $producing,
         /** The boiler burnt fuel today (chimney smoke tracks combustion). */
