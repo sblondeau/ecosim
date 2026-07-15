@@ -10,8 +10,13 @@
     <div class="row"><span class="key">Autosuffisance{{ ui.tip(game.help.selfSufficiency) }}</span><span>{{ game.selfSufficiencyPct }} %</span></div>
 </div>
 <div class="card">
+    <h2>Empreinte réelle</h2>
+    <div class="row"><span class="key">CO₂ émis depuis le début{{ ui.tip(game.help.co2Emitted) }}</span><span><strong>{{ game.co2EmittedLabel }}</strong></span></div>
+    <p class="panel-note">Ce que vous avez vraiment mis dans l'air (fioul + réseau) — monte jour après jour.</p>
+</div>
+<div class="card">
     <h2>Empreinte du logement</h2>
     <div class="row"><span class="key">Émissions · étiquette climat</span><span><strong>{{ game.dpeClimateIntensity }}</strong> kgCO₂/m²·an</span></div>
     <div class="row"><span class="key">Consommation · étiquette énergie</span><span><strong>{{ game.dpeEnergyIntensity }}</strong> kWhEP/m²·an</span></div>
-    <p class="panel-note">Étiquette DPE complète dans le coin Patrimoine · météo en haut.</p>
+    <p class="panel-note">La <em>note</em> du bâti sur une année type · étiquette DPE dans le coin Patrimoine.</p>
 </div>

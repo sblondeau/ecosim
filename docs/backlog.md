@@ -598,3 +598,36 @@ réduite est possible en stockant la série en session (~365 points) ; le
 multi-années exige la vraie persistance. À concevoir avec l'axe Environnement
 (la facette climat du DPE + l'intensité conso sont posées côté MVP — voir
 ci-dessous « Environnement / CO₂ »).
+
+## Environnement / CO₂
+
+**Fait (MVP, juillet 2026).** L'axe Environnement est posé au sens *empreinte
+vécue* :
+- **Facette climat du DPE** — double étiquette officielle (énergie kWhEP/m²/an +
+  climat kgCO₂/m²/an, classe finale = la pire des deux), rendu officiel dans le
+  coin Patrimoine (`DpeCertifier`, `DpeAssessment`).
+- **Compteur d'émissions réelles cumulées** — `CarbonAccountant::emittedKg(fioul,
+  import réseau)` : le CO₂ *réellement* mis dans l'air depuis le jour 1, distinct
+  de la note DPE (le solaire autoconsommé n'émet rien → seul l'import réseau
+  compte). Affiché dans le coin Énergie & climat, détaillé dans son panneau
+  (« empreinte réelle » vs « empreinte du logement ») et repris au bilan de fin.
+  Facteurs sourcés (arrêté DPE 2021 : fioul 324 g/kWh, élec 79 g/kWh) partagés
+  avec l'étiquette climat pour une histoire cohérente.
+
+**Reste à faire.**
+- **Graphe conso/CO₂ multi-années** avec marqueurs de travaux — le vrai payoff,
+  mais il exige la persistance (voir « Persistance & méta-jeu » ci-dessus). Le
+  `CarbonAccountant` fournit déjà le point d'émission annuel ; ne manque que le
+  stockage de la série.
+- **Affiner le facteur électricité** — le compteur réutilise le facteur *DPE
+  conventionnel* (79 g/kWh) pour rester cohérent avec l'étiquette. Un facteur
+  *consommation ADEME Base Carbone* (~60 g) serait plus juste pour l'empreinte
+  vécue ; à trancher (deux facteurs = deux sources, plus de complexité) le jour
+  où le contenu carbone horaire du réseau entrera en jeu (cf. entrée
+  « inertie / intermittence » : CO₂ selon le mix horaire).
+- **Canicule = PAS ici.** La gestion des canicules est du **confort d'été**
+  (Phase 5 / §16), pas de l'empreinte : c'est l'impact du climat sur le confort,
+  pas l'inverse. Elle a son propre jalon (« V1.x confort d'été » + générateur de
+  canicules) et son prérequis physique (modèle de confort estival, aujourd'hui
+  hiver-only). La boucle pédagogique « émettre → réchauffer → plus de canicules »
+  est du climat long terme, hors scope MVP/V1 — fil narratif, pas mécanique.
