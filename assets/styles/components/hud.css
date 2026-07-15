@@ -2,37 +2,31 @@
    (les 4 axes), bandeau de contrôle, roue crantée, puce météo, progression.
    Chargé après game.css (réutilise ses tokens et classes de base). */
 
-/* ===== Vue locale : scène plein cadre + HUD superposé (game-design §17) =====
-   (le graphisme de la scène et des assets vit dans scene.css) */
+/* ===== Vue locale : scène plein écran + HUD superposé (game-design §17) =====
+   (le graphisme de la scène et des assets vit dans scene.css)
+   .game porte le ratio intrinsèque du SVG (1100×560) et se contraint aux deux
+   dimensions du viewport (largeur du .wrap-game qui fait toute la largeur
+   dispo, hauteur via max-height) : le navigateur calcule seul la plus grande
+   taille qui tient sans jamais déformer ni rogner l'image — pas de JS. .stage
+   et le SVG (.scene, scene.css) remplissent .game à 100 %/100 % puisque son
+   ratio est déjà le bon. Neutralisé sous le seuil "petit écran" (cf. media
+   query plus bas) où .stage repasse en empilement naturel. */
 .game {
-    max-width: 1700px;
+    width: 100%;
+    max-height: 100dvh;
+    aspect-ratio: 1100 / 560;
     margin: 0 auto;
     position: relative;
 }
 
 .stage {
+    width: 100%;
+    height: 100%;
     position: relative;
     border: 1px solid var(--line);
     border-radius: 14px;
     overflow: hidden;
     background: var(--card);
-}
-
-/* progression de l'année : ligne fine tout en haut de la scène */
-.year-progress {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: var(--bar-bg);
-    z-index: 2;
-}
-
-.year-progress>span {
-    display: block;
-    height: 100%;
-    background: var(--accent);
 }
 
 /* puce météo (haut-centre) : le contexte du jour, ouvre son évolution */
@@ -146,6 +140,14 @@
     margin-bottom: .1rem;
 }
 
+/* Petite légende sous une grosse valeur, quand celle-ci n'est pas auto-parlante
+   (« 6,5 t » a besoin de « CO₂ émis » ; l'épargne en € n'en a pas besoin). */
+.hud-cap {
+    font-size: .7rem;
+    color: var(--muted);
+    margin: -.15rem 0 .15rem;
+}
+
 .hud-line {
     display: flex;
     justify-content: space-between;
@@ -158,9 +160,18 @@
     color: var(--muted);
 }
 
+/* Les deux étiquettes officielles côte à côte (comme une annonce immobilière) :
+   DPE = la classe finale (pire des deux, palette énergie A→G), GES = l'étiquette
+   climat (palette violette). Le détail chiffré vit dans le panneau Patrimoine. */
+.dpe-chips {
+    display: flex;
+    gap: .35rem;
+    flex-wrap: wrap;
+    margin-top: .25rem;
+}
+
 .dpe-chip {
     display: inline-block;
-    margin-top: .2rem;
     padding: .15rem .55rem;
     border-radius: 6px;
     font-weight: 700;
@@ -188,9 +199,35 @@
     max-width: calc(100% - 1.4rem);
 }
 
+.controlbar .cb-date {
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+    min-width: 132px;
+}
+
 .controlbar .cb-when {
     font-size: .8rem;
     color: var(--muted);
+    white-space: nowrap;
+}
+
+/* progression de l'horizon (jours écoulés / durée totale), à côté de la date
+   plutôt qu'en filet perdu tout en haut de la scène — plus lisible et plus
+   proche du repère temporel qu'elle qualifie. Plus haute qu'un simple filet
+   car elle porte seule ce repère (le "jour X/Y" textuel a été retiré : la
+   date + cette barre disent déjà la même chose). */
+.controlbar .cb-progress {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--bar-bg);
+    overflow: hidden;
+}
+
+.controlbar .cb-progress>span {
+    display: block;
+    height: 100%;
+    background: var(--accent);
 }
 
 .controlbar .speed {
@@ -198,10 +235,22 @@
     gap: .3rem;
 }
 
-@media (max-width: 780px) {
+/* Petit écran EN LARGEUR (mobile portrait) ou EN HAUTEUR (mobile paysage,
+   fenêtre desktop basse) : dans les deux cas le HUD superposé + le ratio
+   figé du plein écran n'ont plus la place — on repasse .stage en empilement
+   naturel (chrome au-dessus/dessous du SVG, page qui défile), et .game
+   retrouve une hauteur libre (le ratio 1100/560 forcerait sinon une scène
+   minuscule pour ne pas dépasser une hauteur de viewport très réduite). */
+@media (max-width: 780px), (max-height: 480px) {
+    .game {
+        max-height: none;
+        aspect-ratio: auto;
+    }
+
     .stage {
         display: flex;
         flex-direction: column;
+        height: auto;
     }
 
     .hud,
