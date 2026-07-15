@@ -119,7 +119,9 @@ final readonly class RenovationQuoter
 
     private function batteryQuote(Household $household): ?RenovationQuote
     {
-        if ($household->batteryKwh > 0.0) {
+        // A battery only stores solar production (the MVP's sole source) —
+        // offering it before panels are installed would let it sit unused.
+        if ($household->batteryKwh > 0.0 || $household->solarKwc <= 0.0) {
             return null;
         }
 

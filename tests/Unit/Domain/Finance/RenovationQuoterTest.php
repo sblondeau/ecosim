@@ -55,14 +55,31 @@ final class RenovationQuoterTest extends TestCase
         $quoter = new RenovationQuoter();
 
         $solar = $quoter->quote(Renovation::SolarPanels, self::barePassoire());
-        $battery = $quoter->quote(Renovation::HomeBattery, self::barePassoire());
-
         self::assertNotNull($solar);
-        self::assertNotNull($battery);
         self::assertSame(0, $solar->subsidy->cents);
-        self::assertSame(0, $battery->subsidy->cents);
         self::assertSame(3.0, $solar->resultingHousehold->solarKwc);
+
+        // The battery only makes sense once panels are installed.
+        $battery = $quoter->quote(Renovation::HomeBattery, $solar->resultingHousehold);
+        self::assertNotNull($battery);
+        self::assertSame(0, $battery->subsidy->cents);
         self::assertSame(5.0, $battery->resultingHousehold->batteryKwh);
+    }
+
+    public function testBatteryIsOnlyQuotedOnceSolarIsInstalled(): void
+    {
+        $quoter = new RenovationQuoter();
+
+        self::assertNull(
+            $quoter->quote(Renovation::HomeBattery, self::barePassoire()),
+            'No panels yet: a battery would store nothing, so it is not offered.',
+        );
+
+        $withSolar = self::barePassoire()->withSolarKwc(3.0);
+        $quote = $quoter->quote(Renovation::HomeBattery, $withSolar);
+
+        self::assertNotNull($quote, 'Once panels are installed, the battery becomes a real option.');
+        self::assertSame(5.0, $quote->resultingHousehold->batteryKwh);
     }
 
     public function testBoilerRepairIsOnlyQuotedWhenBroken(): void
