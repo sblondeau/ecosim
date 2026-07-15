@@ -1,0 +1,18 @@
+{% import 'game/_macros.html.twig' as ui %}
+{# Axe Patrimoine (coin ↘) : l'étiquette DPE officielle + la valeur du bien. #}
+{{ ui.panel_head('🏠 Patrimoine · DPE ' ~ game.dpeLetter) }}
+<div class="card">
+    <twig:DpeLabel
+        energyLetter="{{ game.dpeEnergyLetter }}" :energyValue="game.dpeEnergyIntensity" :energyFill="game.dpeEnergyBandPct"
+        climateLetter="{{ game.dpeClimateLetter }}" :climateValue="game.dpeClimateIntensity" :climateFill="game.dpeClimateBandPct"
+    />
+    <div class="row"><span class="key">Prix d'achat (maison classée G)</span><span>{{ game.propertyPurchaseLabel }}</span></div>
+    {% if game.propertyClassesGained > 0 %}
+        <div class="row"><span class="key">Valeur verte{{ ui.tip(game.help.propertyValue) }} · +{{ game.propertyClassesGained }} classe{{ game.propertyClassesGained > 1 ? 's' }} × {{ game.propertyStepPct }} %</span><span class="pos">{{ game.propertyGreenValueLabel }}</span></div>
+        <div class="row"><span class="key">Valeur potentielle à la revente</span><span><strong>{{ game.propertyValueLabel }}</strong></span></div>
+    {% else %}
+        <div class="row"><span class="key">Valeur potentielle à la revente{{ ui.tip(game.help.propertyValue) }}</span><span><strong>{{ game.propertyValueLabel }}</strong></span></div>
+        <p class="panel-note">Encore une passoire (DPE G) : la valeur verte n'a pas bougé. Gagner une classe la revalorise de +{{ game.propertyStepPct }} %.</p>
+    {% endif %}
+    <p class="panel-note">Le marché paie la <strong>classe DPE</strong>, pas le montant des travaux : ces {{ game.propertyValueLabel }} ne sont réalisables qu'à la <strong>revente</strong> et ne s'ajoutent jamais à votre épargne.</p>
+</div>

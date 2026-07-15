@@ -1,5 +1,7 @@
-{# The cutaway house shell: walls, roof, attic, living room, utility recess.
-   The `insulation` prop (0|1|2) drives the visible insulation layer locally;
-   roof snow, room tint and chimney smoke follow scene-wide ambience classes. #}
+{# The cutaway house shell: walls, roof, living room, utility recess. The roof
+   itself is a plain solid gable (no cutaway) so solar panels have a single
+   unambiguous surface to sit flush on. The `insulation` prop (0|1|2) drives
+   the visible wall insulation layer locally; roof snow, room tint and
+   chimney smoke follow scene-wide ambience classes. #}
 {% props insulation = 0 %}
 <g class="house house--ins-{{ insulation }}"{{ attributes }}>{{ include('game/scene/assets/house-cutaway.svg') }}</g>

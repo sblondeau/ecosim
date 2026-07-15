@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Application;
 
 use App\Application\GameViewFactory;
+use App\Application\HouseSceneView;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
 use App\Domain\Building\InsulationLevel;
@@ -38,7 +39,9 @@ final class GameViewFactoryTest extends TestCase
 
         self::assertSame(1, $view->dayNumber);
         self::assertSame('Hiver', $view->seasonLabel);
-        self::assertStringContainsString('janvier 2025', $view->dateLabel);
+        self::assertStringContainsString('janvier', $view->dateLabel);
+        self::assertStringContainsString('année 1', $view->dateLabel, 'Année de jeu (1, 2...), pas l\'année calendaire réelle.');
+        self::assertStringNotContainsString('2025', $view->dateLabel, 'L\'année calendaire n\'apporte rien à un horizon d\'un an — elle est retirée de l\'affichage.');
         self::assertSame(3.0, $view->solarKwc);
         self::assertSame(5.0, $view->batteryCapacityKwh);
         self::assertSame('Chaudière fioul', $view->heatingLabel);
@@ -48,13 +51,54 @@ final class GameViewFactoryTest extends TestCase
         self::assertFalse($view->finished);
     }
 
-    public function testMonthlyBudgetShowsIncomeExpensesAndNet(): void
+    public function testMonthlyBudgetSplitsLivingEnergyAndLeftover(): void
     {
         $view = new GameViewFactory()->build(self::config(), GameState::start(self::passoire(), Money::fromEuros(8000.0)));
 
         self::assertSame('2 800,00 €', $view->monthlyIncomeLabel);
         self::assertSame('2 100,00 €', $view->monthlyExpensesLabel);
-        self::assertSame('700,00 €', $view->monthlyNetIncomeLabel, 'Net = income − living expenses.');
+        // The passoire's energy (reference year ÷ 12, net of solar resale) eats
+        // into the leftover: 2800 − 2100 − 338.28 = 361.72, not the misleading 700.
+        self::assertSame('338,28 €', $view->monthlyEnergyCostLabel);
+        self::assertSame('361,72 €', $view->monthlyLeftoverLabel, 'Leftover = income − living − energy − debt.');
+        self::assertFalse($view->monthlyLeftoverNegative);
+    }
+
+    public function testLivedCarbonFootprintUsesAnAdaptiveUnit(): void
+    {
+        $factory = new GameViewFactory();
+        $config = self::config();
+
+        // Kilograms below a tonne: 100 L fuel + 1 000 kWh grid ≈ 402 kg.
+        $modest = new GameState(9, self::passoire(), 0.0, Money::zero(), Loan::none(), new PeriodTotals(importKwh: 1000.0, fuelOilLitres: 100.0));
+        self::assertSame('402 kg', $factory->build($config, $modest)->co2EmittedLabel);
+
+        // A full fuel-oil year runs into tonnes: 2 000 L ≈ 6,5 t.
+        $heavy = new GameState(9, self::passoire(), 0.0, Money::zero(), Loan::none(), new PeriodTotals(fuelOilLitres: 2000.0));
+        self::assertSame('6,5 t', $factory->build($config, $heavy)->co2EmittedLabel);
+    }
+
+    public function testPropertyValueBreaksDownAsGreenValueOverThePurchasePrice(): void
+    {
+        $factory = new GameViewFactory();
+        $config = self::config();
+
+        // Passoire G: value floored at the purchase price, no green value yet —
+        // proving invested money ≠ value: nothing gained until a class is gained.
+        $passoire = $factory->build($config, GameState::start(self::passoire(), Money::fromEuros(8000.0)));
+        self::assertSame('200 000,00 €', $passoire->propertyPurchaseLabel);
+        self::assertSame(0, $passoire->propertyClassesGained);
+        self::assertSame(8, $passoire->propertyStepPct);
+        self::assertSame('200 000,00 €', $passoire->propertyValueLabel);
+        self::assertSame('+0,00 €', $passoire->propertyGreenValueLabel);
+
+        // Retrofitted + heat pump reaches DPE D (3 classes above G): +3 × 8 % = +48 000 €.
+        $renovated = new Household(3.0, 0.0, InsulationLevel::Retrofitted, HeatingSystem::HeatPump);
+        $view = $factory->build($config, GameState::start($renovated, Money::fromEuros(8000.0)));
+        self::assertSame('D', $view->dpeLetter);
+        self::assertSame(3, $view->propertyClassesGained);
+        self::assertSame('+48 000,00 €', $view->propertyGreenValueLabel);
+        self::assertSame('248 000,00 €', $view->propertyValueLabel);
     }
 
     public function testPercentagesStayWithinBounds(): void
@@ -89,10 +133,22 @@ final class GameViewFactoryTest extends TestCase
         $heatPumpEffects = implode(' | ', $view->actions['heat_pump']->effectLabels);
         self::assertStringContainsString('Facture énergie : ≈ −', $heatPumpEffects, 'Dropping fuel oil saves money every year.');
 
-        self::assertSame(
-            [],
-            $view->actions['home_battery']->effectLabels,
-            'A battery with no panels stores nothing — an honest quote says so.',
+        self::assertArrayNotHasKey(
+            'home_battery',
+            $view->actions,
+            'A battery with no panels stores nothing — it should not even be offered.',
+        );
+
+        $insulationEffects = implode(' | ', $view->actions['insulation']->effectLabels);
+        self::assertMatchesRegularExpression(
+            '/Étiquette DPE : [A-G] → [A-G]/',
+            $insulationEffects,
+            'A tier of insulation is enough to move the DPE letter for this bare passoire.',
+        );
+        self::assertStringContainsString(
+            'Valeur du bien : +',
+            $insulationEffects,
+            'A better DPE letter raises the property value — the quote should say so.',
         );
     }
 
@@ -105,6 +161,8 @@ final class GameViewFactoryTest extends TestCase
         $scene = $factory->build($config, GameState::start($bare, Money::fromEuros(4000.0)))->scene;
 
         self::assertSame('winter', $scene->season);
+        self::assertGreaterThanOrEqual(0.0, $scene->sunElevationRatio);
+        self::assertLessThan(0.2, $scene->sunElevationRatio, 'Mid-January sits close to the winter-solstice minimum (ratio 0).');
         self::assertSame('empty', $scene->roofState);
         self::assertSame(0, $scene->insulationTier);
         self::assertSame('fioul', $scene->heatingState);
@@ -128,6 +186,27 @@ final class GameViewFactoryTest extends TestCase
         self::assertSame('fioul-broken', $scene->heatingState);
         self::assertFalse($scene->chimneySmoking, 'A dead boiler burns nothing.');
         self::assertSame('cold', $scene->comfortState, 'Emergency heat only: the occupant is freezing.');
+    }
+
+    public function testGroundSnowAccumulatesAndMeltsGradually(): void
+    {
+        $factory = new GameViewFactory();
+        $config = self::config();
+        $house = new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler);
+
+        // Seeded weather for this config: days 29-31 freeze (-1.1, -1.7, -0.6 °C),
+        // then thaw from day 32 on — exact tiers, not approximations (§5).
+        $sceneOn = static fn (int $day): HouseSceneView => $factory->build(
+            $config,
+            new GameState($day, $house, 0.0, Money::fromEuros(4000.0), Loan::none(), new PeriodTotals()),
+        )->scene;
+
+        self::assertSame(0, $sceneOn(28)->snowDepthPct, 'Day 28 is still above freezing: no accumulation yet.');
+        self::assertSame(25, $sceneOn(29)->snowDepthPct, 'First freezing day: one tier.');
+        self::assertSame(50, $sceneOn(30)->snowDepthPct, 'Second consecutive freezing day: two tiers.');
+        self::assertSame(75, $sceneOn(31)->snowDepthPct, 'Third consecutive freezing day: three tiers.');
+        self::assertSame(50, $sceneOn(32)->snowDepthPct, 'Thaw begins: melts back one tier, not to zero at once.');
+        self::assertSame(0, $sceneOn(34)->snowDepthPct, 'Fully melted after enough thaw days.');
     }
 
     public function testThermostatExposesBoundsAndLivePreview(): void
@@ -208,8 +287,8 @@ final class GameViewFactoryTest extends TestCase
     public function testEndReportMeasuresEachAxisAgainstDayZero(): void
     {
         $config = new GameConfig(2025, new DateTimeImmutable('2025-01-01'), 3);
-        // A renovated home (Retrofitted + heat pump = DPE C) with 5 000 € left
-        // and an éco-PTZ still running.
+        // A renovated home (Retrofitted + heat pump = computed DPE D) with 5 000 €
+        // left and an éco-PTZ still running.
         $renovated = new Household(3.0, 0.0, InsulationLevel::Retrofitted, HeatingSystem::HeatPump);
         $atHorizon = new GameState(3, $renovated, 0.0, Money::fromEuros(5000.0), Loan::none()->borrow(Money::fromEuros(24000.0)), new PeriodTotals());
 
@@ -221,10 +300,10 @@ final class GameViewFactoryTest extends TestCase
         self::assertSame('−2 750,00 €', $report->savingsDeltaLabel);
         self::assertTrue($report->savingsDeltaNegative);
         self::assertSame('G', $report->dpeStartLetter);
-        self::assertSame('C', $report->dpeEndLetter);
+        self::assertSame('D', $report->dpeEndLetter);
         self::assertSame('200 000,00 €', $report->propertyStartLabel);
-        self::assertSame('264 000,00 €', $report->propertyEndLabel, '4 DPE classes gained × 8 %.');
-        self::assertSame('+64 000,00 €', $report->propertyDeltaLabel);
+        self::assertSame('248 000,00 €', $report->propertyEndLabel, '3 DPE classes gained × 8 %.');
+        self::assertSame('+48 000,00 €', $report->propertyDeltaLabel);
         self::assertTrue($report->loanActive);
         self::assertSame('24 000,00 €', $report->loanRemainingLabel);
     }

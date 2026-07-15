@@ -32,10 +32,12 @@ final readonly class EndReportView
         public string $loanRemainingLabel,
         // Confort
         public int $averageComfortPct,
-        // Énergie
+        // Énergie & climat
         public float $totalFuelOilLitres,
         public int $totalSelfSufficiencyPct,
         public string $totalNetEnergyCostLabel,
+        /** CO₂ actually emitted over the year lived (fuel burnt + grid drawn). */
+        public string $totalCo2EmittedLabel = '0 kg',
     ) {
     }
 }

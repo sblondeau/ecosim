@@ -42,8 +42,11 @@ final class GameDashboard
 {
     use DefaultActionTrait;
 
-    /** Clickable equipment slots, plus 'menu' for the totals/patrimoine drawer. */
-    private const array PANELS = ['roof', 'walls', 'heating', 'garage', 'living', 'menu'];
+    /** Openable panels: equipment slots, the four axis corners, and the options gear. */
+    private const array PANELS = [
+        'roof', 'walls', 'heating', 'garage', 'living',
+        'finances', 'comfort', 'energy', 'patrimoine', 'weather', 'options',
+    ];
 
     /** The floating panel currently open over the scene (null = none, fullwidth). */
     #[LiveProp(writable: true)]
@@ -55,6 +58,22 @@ final class GameDashboard
 
     #[LiveProp(writable: true)]
     public bool $noticeIsError = false;
+
+    /**
+     * The welcome overlay shows on a brand-new game (day 1) until dismissed.
+     * A LiveProp, so it survives polls; it naturally reappears only for a fresh
+     * game (the template also gates on day 1), never mid-run once you've played.
+     */
+    #[LiveProp(writable: true)]
+    public bool $introDismissed = false;
+
+    /**
+     * A scripted pause event (boiler breakdown) shows a one-shot modal, dismissed
+     * into the persistent "en panne" scene state. A LiveProp so it survives polls;
+     * reset on a new game so a fresh breakdown pops the modal again.
+     */
+    #[LiveProp(writable: true)]
+    public bool $breakdownSeen = false;
 
     private ?Game $game = null;
     private ?GameView $view = null;
@@ -86,6 +105,26 @@ final class GameDashboard
     {
         $this->notice = '';
         $this->selectedSlot = null;
+    }
+
+    /**
+     * Dismiss the welcome overlay and start playing. The real-time clock is
+     * restarted from now, so the seconds spent reading the intro don't burn
+     * game days (polling was paused while the overlay was up).
+     */
+    #[LiveAction]
+    public function dismissIntro(): void
+    {
+        $this->introDismissed = true;
+        $game = $this->store->current();
+        $this->commit($game->withProgression($game->progression->withSpeed($game->progression->speed, new DateTimeImmutable())));
+    }
+
+    /** Acknowledge the breakdown modal; the game stays paused, the scene keeps the "en panne" state. */
+    #[LiveAction]
+    public function acknowledgeBreakdown(): void
+    {
+        $this->breakdownSeen = true;
     }
 
     /** Manual step: live the current day now, restarting the real-time clock. */
@@ -158,6 +197,7 @@ final class GameDashboard
     {
         $this->selectedSlot = null;
         $this->notice = '';
+        $this->breakdownSeen = false;
         $this->game = $this->store->reset();
         $this->view = null;
     }

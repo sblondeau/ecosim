@@ -42,12 +42,6 @@ final readonly class Household
         }
     }
 
-    public function dpeClass(): DpeClass
-    {
-        // The DPE assesses the installed system, working or not.
-        return DpeClass::fromBuilding($this->insulation, $this->heatingSystem);
-    }
-
     public function withSolarKwc(float $solarKwc): self
     {
         return new self($solarKwc, $this->batteryKwh, $this->insulation, $this->heatingSystem, $this->boilerBroken, $this->heatingSetpointC);

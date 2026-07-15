@@ -1,0 +1,252 @@
+/* EcoSim — panneaux flottants (ouverts au clic sur un coin, un slot ou la
+   roue) et écran de bienvenue. Ancrés au .game (hors du .stage rogné) pour que
+   les infobulles débordent. Chargé après game.css. */
+
+/* panneau focalisé, ancré au coin dont il vient */
+.panel-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    background: color-mix(in srgb, var(--bg) 30%, transparent);
+    border: 0;
+    cursor: default;
+    padding: 0;
+}
+
+.float-panel {
+    position: absolute;
+    z-index: 4;
+    width: min(400px, 92%);
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    gap: .7rem;
+    padding: .8rem;
+    background: var(--surface-panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, .45);
+}
+
+.float-panel.at-tl {
+    top: .7rem;
+    left: .7rem;
+}
+
+.float-panel.at-tr {
+    top: .7rem;
+    right: .7rem;
+}
+
+.float-panel.at-bl {
+    bottom: .7rem;
+    left: .7rem;
+}
+
+.float-panel.at-br {
+    bottom: .7rem;
+    right: .7rem;
+}
+
+.float-panel.at-top {
+    top: 2.9rem;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.float-panel.at-bottom {
+    bottom: 3.7rem;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.float-close {
+    flex: 0 0 auto;
+    padding: .2rem .5rem;
+    line-height: 1;
+}
+
+.float-panel .card {
+    background: var(--bg);
+}
+
+.float-panel .big {
+    margin-bottom: .2rem;
+}
+
+.panel-note {
+    font-size: .78rem;
+    color: var(--muted);
+    margin: .45rem 0 0;
+}
+
+.panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: .5rem;
+}
+
+.panel-head h2 {
+    margin: 0;
+    font-size: .85rem;
+}
+
+.panel-footer {
+    margin-top: .2rem;
+}
+
+.works-links {
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+    align-items: stretch;
+}
+
+.works-links button {
+    text-align: left;
+}
+
+details.card>summary {
+    cursor: pointer;
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: var(--muted);
+    font-weight: 600;
+}
+
+details.card[open]>summary {
+    margin-bottom: .5rem;
+}
+
+/* écran de bienvenue (premier lancement) — overlay centré sur la scène */
+.intro-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: color-mix(in srgb, var(--bg) 68%, transparent);
+    backdrop-filter: blur(3px);
+}
+
+.intro-card {
+    max-width: 460px;
+    max-height: 100%;
+    overflow-y: auto;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 1.4rem 1.5rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .45);
+}
+
+.intro-card h2 {
+    margin: 0 0 .5rem;
+    font-size: 1.3rem;
+}
+
+.intro-card .lead {
+    margin: 0 0 .8rem;
+}
+
+.intro-card .intro-goal {
+    margin: 0 0 .8rem;
+    color: var(--ink);
+}
+
+.intro-axes {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1rem;
+    display: grid;
+    gap: .5rem;
+    font-size: .92rem;
+}
+
+.intro-axes li {
+    display: flex;
+    gap: .55rem;
+    align-items: flex-start;
+}
+
+.intro-axes .ax {
+    font-size: 1.2rem;
+    line-height: 1.2;
+}
+
+.intro-card .intro-how {
+    margin: 0 0 1.1rem;
+    font-size: .85rem;
+    color: var(--muted);
+}
+
+.intro-card .btn-primary {
+    width: 100%;
+}
+
+/* étiquette DPE : extraite dans components/dpe.css (chargée après game.css) */
+
+/* travaux : traitement commun à tous les devis (<twig:QuoteCard>), pour
+   qu'ils se distinguent d'un coup d'œil des blocs d'info — jamais posé
+   composant par composant, toujours par la classe .quote pour rester
+   garanti cohérent. */
+.quote {
+    border-left: 4px solid var(--accent);
+    background: color-mix(in srgb, var(--accent) 7%, var(--card));
+}
+
+.quote-eyebrow {
+    margin: 0 0 .5rem;
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.quote-head {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    margin-bottom: .6rem;
+}
+
+.quote-icon {
+    flex: 0 0 auto;
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--accent) 12%, var(--bg));
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.quote-icon svg {
+    width: 78%;
+    height: 78%;
+    display: block;
+    overflow: visible;
+}
+
+/* la chaudière-aperçu montre l'état RÉPARÉ (flamme), pas les calques panne
+   de l'asset scène (l'icône n'a pas l'ambiance .scene qui les masque déjà). */
+.quote-icon .alarm,
+.quote-icon .smoke,
+.quote-icon .breakdown-sign {
+    display: none;
+}
+
+.quote-head h2 {
+    margin: 0;
+    font-size: .95rem;
+    text-transform: none;
+    letter-spacing: normal;
+    color: var(--ink);
+    font-weight: 700;
+}

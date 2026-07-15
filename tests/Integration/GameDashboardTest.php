@@ -53,6 +53,46 @@ final class GameDashboardTest extends KernelTestCase
         self::assertNull($component->component()->selectedSlot);
     }
 
+    public function testModalComponentRendersItsSlotAndCloseAction(): void
+    {
+        $twig = self::getContainer()->get('twig');
+        self::assertInstanceOf(\Twig\Environment::class, $twig);
+
+        $html = $twig->createTemplate(
+            '<twig:Modal title="Panne" closeAction="acknowledgeBreakdown" closeLabel="OK"><p>corps de la modale</p></twig:Modal>',
+        )->render();
+
+        self::assertStringContainsString('corps de la modale', $html, 'The slot body renders.');
+        self::assertStringContainsString('acknowledgeBreakdown', $html, 'The close button triggers the action.');
+    }
+
+    public function testWelcomeOverlayShowsOnAFreshGameThenDismisses(): void
+    {
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        // A brand-new game (day 1) greets the player with the welcome overlay.
+        self::assertStringContainsString('Bienvenue chez vous', (string) $component->render());
+
+        $html = (string) $component->call('dismissIntro')->render();
+
+        self::assertTrue($component->component()->introDismissed);
+        self::assertStringNotContainsString('intro-overlay', $html);
+    }
+
+    public function testPatrimoineCornerRendersTheOfficialDualDpeLabel(): void
+    {
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        $html = (string) $component->call('selectSlot', ['slot' => 'patrimoine'])->render();
+
+        // Both official scales are drawn, each with exactly one highlighted class
+        // (the letter itself depends on the house, so it is not pinned here).
+        self::assertStringContainsString('Consommation', $html);
+        self::assertStringContainsString('kgCO₂/m²·an', $html);
+        self::assertMatchesRegularExpression('/dpe-e-[a-g] is-active/', $html);
+        self::assertMatchesRegularExpression('/dpe-g-[a-g] is-active/', $html);
+    }
+
     public function testRefusedRenovationSurfacesAnErrorNoticeInsteadOfAFlash(): void
     {
         $component = $this->createLiveComponent(GameDashboard::class);

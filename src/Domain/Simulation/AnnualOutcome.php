@@ -17,6 +17,10 @@ final readonly class AnnualOutcome
         public int $averageComfortScore,
         public float $productionKwh,
         public float $selfSufficiencyRatio,
+        /** Year's electricity use (final energy), for the DPE energy/climate labels. */
+        public float $electricityKwh = 0.0,
+        /** Year's fuel-oil use, in litres, for the DPE labels. */
+        public float $fuelOilLitres = 0.0,
     ) {
     }
 }

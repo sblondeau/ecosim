@@ -1,6 +1,16 @@
-{# The household occupant, embodying felt comfort. The `tier` prop drives a
-   local variant class (cold/cool/warm/hot) — the visible state is picked in
-   scene.css from that class, no dependence on a distant ancestor. Wraps the
-   hand-editable occupant.svg (§17). #}
-{% props tier = 'warm' %}
-<g class="occupant occupant--{{ tier }}"{{ attributes }}>{{ include('game/scene/assets/occupant.svg') }}</g>
+{# The household occupant, embodying felt comfort. The `tier` prop
+   (cold | cool | warm | hot, from HouseSceneView::comfortState) selects one of
+   four hand-designed full-body SVGs — one whole character per state, so there
+   is no CSS layer toggling: the component just includes the right file. The
+   `occupant--{{ tier }}` class stays as a semantic hook (future per-state
+   ambience), not a visibility switch.
+
+   A bit of life: the inner `.occupant-life` group takes a per-day position keyed
+   by `pose` — a deterministic 0..6 (day number % 7), each a distinct, non-linear
+   horizontal spot + facing (scene.css). No randomness (the sim stays
+   seeded/replayable). The base placement transform stays on the OUTER group, so
+   the CSS transform on `.occupant-life` never fights it. #}
+{% props tier = 'warm', pose = 0 %}
+<g class="occupant occupant--{{ tier }}"{{ attributes }}>
+    <g class="occupant-life occupant-life--p{{ pose }}">{{ include('game/scene/assets/occupant-' ~ tier ~ '.svg') }}</g>
+</g>

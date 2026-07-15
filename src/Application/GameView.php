@@ -44,8 +44,13 @@ final readonly class GameView
         public string $dayNetLabel,
         public bool $dayNetNegative,
         public string $monthlyIncomeLabel,
+        /** Living-cost forfait (INSEE) — the "vie courante" monthly line. */
         public string $monthlyExpensesLabel,
-        public string $monthlyNetIncomeLabel,
+        /** Estimated monthly energy cost (reference year ÷ 12, net of resale). */
+        public string $monthlyEnergyCostLabel,
+        /** True disposable income: income − living − energy − loan. */
+        public string $monthlyLeftoverLabel,
+        public bool $monthlyLeftoverNegative,
         // Fuel poverty (ONPE taux d'effort énergétique)
         /** Share of annual income spent on housing energy, in whole percent. */
         public int $energyEffortPct,
@@ -53,6 +58,14 @@ final readonly class GameView
         public bool $inFuelPoverty,
         // Patrimoine (non-liquid, realisable on resale only — §8)
         public string $propertyValueLabel,
+        /** Purchase price = the value floor, at the worst DPE class (G). */
+        public string $propertyPurchaseLabel,
+        /** DPE classes gained over G so far (0 = still a passoire). */
+        public int $propertyClassesGained,
+        /** Sourced "valeur verte" premium per class gained, in whole percent. */
+        public int $propertyStepPct,
+        /** Green-value gain over the purchase price so far, signed. */
+        public string $propertyGreenValueLabel,
         // Loan (éco-PTZ account)
         public bool $loanActive,
         public string $loanMonthlyPaymentLabel,
@@ -76,7 +89,16 @@ final readonly class GameView
         /** Live preview of +1 °C on the yearly bill (empty at the upper bound). */
         public string $setpointUpEffectLabel,
         public string $insulationLabel,
+        /** Final DPE letter (the worse of the two labels below). */
         public string $dpeLetter,
+        /** DPE energy label: letter, primary-energy intensity (kWhEP/m²/an), cursor position in the band. */
+        public string $dpeEnergyLetter,
+        public int $dpeEnergyIntensity,
+        public int $dpeEnergyBandPct,
+        /** DPE climate label: letter, emissions (kgCO₂/m²/an), cursor position in the band. */
+        public string $dpeClimateLetter,
+        public int $dpeClimateIntensity,
+        public int $dpeClimateBandPct,
         public float $heatingElectricityKwh,
         public float $fuelOilLitres,
         public int $comfortScorePct,
@@ -100,6 +122,13 @@ final readonly class GameView
         public string $totalFuelOilCostLabel,
         public string $totalSurplusRevenueLabel,
         public string $totalNetEnergyCostLabel,
+        /**
+         * The lived carbon footprint since day 1 (fuel burnt + grid drawn),
+         * pre-formatted with an adaptive unit ("1,2 t" / "845 kg"). Distinct
+         * from the DPE climate label, which rates the building, not the year
+         * actually played.
+         */
+        public string $co2EmittedLabel = '0 kg',
         /**
          * Player-facing explanations of the metrics, keyed by topic. Built
          * from the calibration registry so every number quoted in a tooltip

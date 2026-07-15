@@ -48,6 +48,8 @@ final readonly class AnnualOutcomeEstimator
             averageComfortScore: $state->totals->averageComfortScore(),
             productionKwh: $state->totals->productionKwh,
             selfSufficiencyRatio: $state->totals->selfSufficiencyRatio(),
+            electricityKwh: $state->totals->demandKwh,
+            fuelOilLitres: $state->totals->fuelOilLitres,
         );
     }
 }

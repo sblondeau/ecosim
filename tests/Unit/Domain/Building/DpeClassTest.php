@@ -12,23 +12,64 @@ use PHPUnit\Framework\TestCase;
 
 final class DpeClassTest extends TestCase
 {
-    #[DataProvider('buildingProvider')]
-    public function testClassifiesTheBuilding(InsulationLevel $insulation, HeatingSystem $heating, DpeClass $expected): void
+    /**
+     * @param non-empty-string $_label
+     */
+    #[DataProvider('energyProvider')]
+    public function testClassifiesByEnergyIntensity(string $_label, float $kwhEp, DpeClass $expected): void
     {
-        self::assertSame($expected, DpeClass::fromBuilding($insulation, $heating));
+        self::assertSame($expected, DpeClass::fromEnergyIntensity($kwhEp));
     }
 
     /**
-     * @return iterable<string, array{InsulationLevel, HeatingSystem, DpeClass}>
+     * @return iterable<array{string, float, DpeClass}>
      */
-    public static function buildingProvider(): iterable
+    public static function energyProvider(): iterable
     {
-        yield 'starting passoire (none + fioul) is G' => [InsulationLevel::Original, HeatingSystem::FuelOilBoiler, DpeClass::G];
-        yield 'heat pump alone improves to E' => [InsulationLevel::Original, HeatingSystem::HeatPump, DpeClass::E];
-        yield 'insulation alone improves to E' => [InsulationLevel::Retrofitted, HeatingSystem::FuelOilBoiler, DpeClass::E];
-        yield 'retrofitted + heat pump reaches C' => [InsulationLevel::Retrofitted, HeatingSystem::HeatPump, DpeClass::C];
-        yield 'reinforced + fioul stays D (fossil ceiling)' => [InsulationLevel::Reinforced, HeatingSystem::FuelOilBoiler, DpeClass::D];
-        yield 'full renovation reaches B' => [InsulationLevel::Reinforced, HeatingSystem::HeatPump, DpeClass::B];
+        yield ['A at the boundary', 70.0, DpeClass::A];
+        yield ['just into B', 71.0, DpeClass::B];
+        yield ['C', 180.0, DpeClass::C];
+        yield ['E', 330.0, DpeClass::E];
+        yield ['F (a passoire)', 420.0, DpeClass::F];
+        yield ['G past the last threshold', 421.0, DpeClass::G];
+    }
+
+    /**
+     * @param non-empty-string $_label
+     */
+    #[DataProvider('climateProvider')]
+    public function testClassifiesByClimateIntensity(string $_label, float $kgCo2, DpeClass $expected): void
+    {
+        self::assertSame($expected, DpeClass::fromClimateIntensity($kgCo2));
+    }
+
+    /**
+     * @return iterable<array{string, float, DpeClass}>
+     */
+    public static function climateProvider(): iterable
+    {
+        yield ['A (low-carbon)', 6.0, DpeClass::A];
+        yield ['B', 11.0, DpeClass::B];
+        yield ['C', 30.0, DpeClass::C];
+        yield ['F', 100.0, DpeClass::F];
+        yield ['G (fuel oil)', 101.0, DpeClass::G];
+    }
+
+    public function testFinalClassIsTheWorseOfTheTwoLabels(): void
+    {
+        // A heat pump: great climate (B), mediocre energy (E) → final E.
+        self::assertSame(DpeClass::E, DpeClass::worstOf(DpeClass::E, DpeClass::B));
+        self::assertSame(DpeClass::G, DpeClass::worstOf(DpeClass::G, DpeClass::A));
+        self::assertSame(DpeClass::C, DpeClass::worstOf(DpeClass::C, DpeClass::C));
+    }
+
+    public function testFillPctPositionsTheCursorInsideTheBand(): void
+    {
+        // 398 kWhEP sits high in the F band [330, 420] — close to tipping into G.
+        self::assertEqualsWithDelta(75.6, DpeClass::fillPct(398.0, DpeClass::F->energyBand()), 0.5);
+        // Bottom and top of a band clamp to 0 and 100.
+        self::assertSame(0.0, DpeClass::fillPct(330.0, DpeClass::F->energyBand()));
+        self::assertSame(100.0, DpeClass::fillPct(420.0, DpeClass::F->energyBand()));
     }
 
     public function testEveryEnumHasANonEmptyLabel(): void

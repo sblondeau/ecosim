@@ -99,6 +99,22 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
 
 ## Énergie / gameplay
 
+- **Orientation des panneaux (rendement par pan de toit)** (déclencheur :
+  quand un second pan devient jouable, ou un axe réalisme PV plus fin).
+  Réflexion joueur juillet 2026, à l'occasion d'un fix de position des
+  panneaux dans la scène (§17) : la scène différencie déjà visuellement les
+  deux versants (gauche/droit, cf. `_cutaway.html.twig`), ce qui en ferait un
+  point d'accroche naturel pour modéliser l'orientation. Constat réel :
+  l'orientation/inclinaison est, avec l'ombrage, le facteur qui pèse le plus
+  sur le productible PV après la puissance crête — un pan mal orienté (est/
+  ouest, pire nord) produit sensiblement moins qu'un pan sud, au même kWc.
+  En vrai, on installe quasi toujours sur le(s) pan(s) le(s) plus favorable(s)
+  (rarement les deux, le rendement/€ du mauvais pan étant souvent
+  insuffisant) — donc un choix de pan avec rendement différent par pan est
+  fidèle au réel ET cohérent avec le principe du jeu (le levier reste le
+  coût/choix, jamais une magnitude truquée). À calibrer avec source (PVGIS/
+  ADEME) le jour où c'est fait, pas de coefficient à vue.
+
 - ~~Bruit journalier sur la demande~~ : fait (`householdDemandDailyNoiseKwh`,
   bruit blanc semé ±1,5 kWh/j).
 - ~~UX batterie~~ : fait (la jauge montre l'énergie restituée à la maison le
@@ -527,7 +543,91 @@ volontairement différé :
 
 - ~~Versionner le format de session~~ : fait (champ `version` + reset si mismatch).
 - ~~CSRF sur les POST~~ : fait (`csrf_token('game')` + vérification contrôleur).
-- **Phase dupliquée dans la calibration** : `WeatherCalibration::coldestDayOfYear`
-  et `EnergyCalibration::householdDemandPeakDayOfYear` encodent la même réalité
-  (creux thermique de mi-janvier) en deux endroits — risque de dérive, à
-  rapprocher.
+- ~~**Phase dupliquée dans la calibration**~~ : fait (juillet 2026).
+  `EnergyCalibration::householdDemandPeakDayOfYear` **dérive** désormais de
+  `WeatherCalibration::coldestDayOfYear` (source unique de vérité, plus de
+  risque de dérive).
+
+## Persistance & méta-jeu (étape dédiée, décidée en bloc)
+
+**Décision actée (juillet 2026)** : la persistance Doctrine **attend une étape
+dédiée**, pensée en bloc avec toute son UX — pas un simple portage session→DB.
+Raisonnement (joueur) : copier la session en base est de la **plomberie
+invisible** qui ne sert pas le gameplay ; quitte à persister, il faut **tout ce
+qui va autour** pour que ça vaille le coup. À faire ensemble, comme une vraie
+feature de méta-jeu :
+
+- **Comptes / login** (le seul cas où Symfony Security se justifie enfin :
+  portabilité multi-appareils, vraie identité — cf. la mise au point ci-dessous).
+- **Reprendre une partie** : boutons explicites (« Continuer », « Nouvelle
+  partie »), plus la reprise implicite au chargement.
+- **Parties multiples en parallèle** (plusieurs foyers/scénarios sauvegardés).
+- **Historique** : liste des parties terminées avec leur bilan (comparer ses
+  runs — pédagogie).
+- **Stats** : agrégats inter-parties (progression, meilleurs bilans par axe…).
+
+**Point d'honnêteté à ne pas réoublier** : un cookie anonyme n'apporte **pas
+plus d'identité** que la session actuelle (elle est déjà keyée par cookie). La
+vraie plus-value de la persistance = (1) **durabilité** (la session PHP expire /
+meurt à la fermeture du navigateur, or le jeu se joue sur plusieurs jours réels
+via `PausesWhileAway` → une partie longue s'évapore), (2) **historique**
+(la session ne tient qu'une partie), (3) **cycle de vie des données** (sauvegarde,
+migration, stats, socle des phases suivantes). Si un jour on ne veut QUE la
+durabilité sans le reste, un chemin cheap existe (session persistée en base via
+`PdoSessionHandler` + cookie longue durée, ~config seule) — mais c'est un
+demi-pas qui n'apporte ni historique ni modèle de données.
+
+**Terrain déjà prêt** (le gros du travail technique est fait) : `GameStore` est
+une **interface** (présentation découplée), la (dé)sérialisation `Game ⇄ array de
+primitifs` existe dans `SessionGameStore` (`dehydrate`/`hydrate` + `FORMAT_VERSION`,
+extractible vers un `GameSnapshot` partagé), Doctrine est configuré (Postgres
+prod / SQLite `_test`), `src/Entity/` est vierge. Un `DoctrineGameStore` stockera
+le même snapshot en JSON versionné, keyé par l'identité choisie. Déclencheur :
+l'étape méta-jeu dédiée, quand le contenu justifie de sauver/comparer des parties.
+
+**Payoff gameplay qui justifie la persistance — le graphe conso/CO₂ multi-années
+avec marqueurs de travaux** (décidé juillet 2026). La consommation (et le CO₂)
+dépend de l'**historique d'équipement** — contrairement à la météo (recalculable
+car semée), elle **doit être stockée** point par point. Feature cible : une
+timeline de la conso (kWh/m²/an) et des émissions (kgCO₂/an) sur plusieurs
+années, avec un **marqueur à chaque travaux** (« isolation → −30 % », « PAC →
+−encore, et le CO₂ s'effondre »). C'est *le* retour visuel qui rend tangible
+l'effet cumulé des décisions — et c'est exactement le genre de contenu qui rend
+la persistance utile plutôt qu'invisible. Dans une seule année, une version
+réduite est possible en stockant la série en session (~365 points) ; le
+multi-années exige la vraie persistance. À concevoir avec l'axe Environnement
+(la facette climat du DPE + l'intensité conso sont posées côté MVP — voir
+ci-dessous « Environnement / CO₂ »).
+
+## Environnement / CO₂
+
+**Fait (MVP, juillet 2026).** L'axe Environnement est posé au sens *empreinte
+vécue* :
+- **Facette climat du DPE** — double étiquette officielle (énergie kWhEP/m²/an +
+  climat kgCO₂/m²/an, classe finale = la pire des deux), rendu officiel dans le
+  coin Patrimoine (`DpeCertifier`, `DpeAssessment`).
+- **Compteur d'émissions réelles cumulées** — `CarbonAccountant::emittedKg(fioul,
+  import réseau)` : le CO₂ *réellement* mis dans l'air depuis le jour 1, distinct
+  de la note DPE (le solaire autoconsommé n'émet rien → seul l'import réseau
+  compte). Affiché dans le coin Énergie & climat, détaillé dans son panneau
+  (« empreinte réelle » vs « empreinte du logement ») et repris au bilan de fin.
+  Facteurs sourcés (arrêté DPE 2021 : fioul 324 g/kWh, élec 79 g/kWh) partagés
+  avec l'étiquette climat pour une histoire cohérente.
+
+**Reste à faire.**
+- **Graphe conso/CO₂ multi-années** avec marqueurs de travaux — le vrai payoff,
+  mais il exige la persistance (voir « Persistance & méta-jeu » ci-dessus). Le
+  `CarbonAccountant` fournit déjà le point d'émission annuel ; ne manque que le
+  stockage de la série.
+- **Affiner le facteur électricité** — le compteur réutilise le facteur *DPE
+  conventionnel* (79 g/kWh) pour rester cohérent avec l'étiquette. Un facteur
+  *consommation ADEME Base Carbone* (~60 g) serait plus juste pour l'empreinte
+  vécue ; à trancher (deux facteurs = deux sources, plus de complexité) le jour
+  où le contenu carbone horaire du réseau entrera en jeu (cf. entrée
+  « inertie / intermittence » : CO₂ selon le mix horaire).
+- **Canicule = PAS ici.** La gestion des canicules est du **confort d'été**
+  (Phase 5 / §16), pas de l'empreinte : c'est l'impact du climat sur le confort,
+  pas l'inverse. Elle a son propre jalon (« V1.x confort d'été » + générateur de
+  canicules) et son prérequis physique (modèle de confort estival, aujourd'hui
+  hiver-only). La boucle pédagogique « émettre → réchauffer → plus de canicules »
+  est du climat long terme, hors scope MVP/V1 — fil narratif, pas mécanique.

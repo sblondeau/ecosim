@@ -1,84 +1,133 @@
-{% import 'game/_macros.html.twig' as ui %}
 {% set game = this.game %}
 {% set speed = this.speedValue %}
 {% set selected = this.selectedSlot %}
 {% set slots = ['roof', 'walls', 'heating', 'garage', 'living'] %}
-<div{{ attributes }} class="game{{ game.finished ? ' is-finished' }}" {% if not game.finished %}data-poll="delay(4000)|$render"{% endif %}>
-    <header class="top">
-        <div class="brand">
-            <h1>🏠 EcoSim</h1>
-            <div class="sub">Jour {{ game.dayNumber }} / {{ game.horizonDays }} · {{ game.dateLabel }} · {{ game.seasonLabel }}</div>
-        </div>
-        <div class="progress"><span style="width: {{ game.progressPct }}%"></span></div>
-        {% if not game.finished %}
-            <div class="time-controls">
-                <div class="speed">
-                    <button type="button" class="btn-ghost btn-small {{ speed == 0 ? 'active' }}" title="Pause"
-                            data-action="live#action" data-live-action-param="setSpeed" data-live-speed-param="0">⏸</button>
-                    <button type="button" class="btn-ghost btn-small {{ speed == 1 ? 'active' }}" title="Vitesse normale (1 jour / 12 s)"
-                            data-action="live#action" data-live-action-param="setSpeed" data-live-speed-param="1">▶ ×1</button>
-                    <button type="button" class="btn-ghost btn-small {{ speed == 2 ? 'active' }}" title="1 jour / 6 s"
-                            data-action="live#action" data-live-action-param="setSpeed" data-live-speed-param="2">×2</button>
-                    <button type="button" class="btn-ghost btn-small {{ speed == 3 ? 'active' }}" title="1 jour / 4 s"
-                            data-action="live#action" data-live-action-param="setSpeed" data-live-speed-param="3">×3</button>
-                </div>
-                <button type="button" class="btn-primary btn-small"
-                        data-action="live#action" data-live-action-param="step">Jour suivant →</button>
-            </div>
-        {% endif %}
-    </header>
-
-    {% if this.notice is not empty %}
-        <div class="banner {{ this.noticeIsError ? '' : 'banner-ok' }}">{{ this.noticeIsError ? '⚠️' : '✅' }} {{ this.notice }}</div>
-    {% endif %}
-
-    {% if game.boilerBroken and not game.finished %}
-        <div class="banner">🚨 La chaudière fioul est en panne. Vos chauffages d'appoint électriques maintiennent péniblement ~16 °C — et l'électricité flambe (effet Joule : 1 kWh consommé = 1 kWh de chaleur, le pire des chauffages). Cliquez la chaudière pour réparer ou remplacer.{% if speed == 0 %} Le temps est en pause, décidez sereinement — puis relancez (▶).{% endif %}</div>
-    {% endif %}
-
+{# Focused panels anchored to the corner they belong to (slots default to ↘). #}
+{% set panelPos = {finances: 'at-tl', comfort: 'at-tr', energy: 'at-bl', patrimoine: 'at-br', weather: 'at-top', options: 'at-bottom'} %}
+{# Welcome overlay: a brand-new game (day 1), until dismissed. Freezes the clock. #}
+{% set showIntro = not this.introDismissed and game.dayNumber == 1 and not game.finished %}
+<div{{ attributes }} class="game{{ game.finished ? ' is-finished' }}" {% if not game.finished and not showIntro %}data-poll="delay(4000)|$render"{% endif %}>
     <div class="stage">
         {{ include('game/scene/_cutaway.html.twig') }}
 
-        {# ===== HUD permanent superposé (info directe in-game) ===== #}
-        <div class="hud hud-tl card">
-            <div class="hud-title">Épargne</div>
+        {# puce météo (haut-centre) : le contexte du jour, ouvre son évolution #}
+        <button type="button" class="weather-chip{{ selected == 'weather' ? ' active' }}" title="Météo & évolution"
+                data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="weather">{{ game.seasonLabel }} · 🌡️{{ game.temperatureC|number_format(1, ',', ' ') }}° · ☁{{ game.cloudPct }}%</button>
+
+        {# bandeaux transitoires, centrés au-dessus de la scène #}
+        {% if this.notice is not empty %}
+            <div class="stage-banner banner {{ this.noticeIsError ? '' : 'banner-ok' }}">{{ this.noticeIsError ? '⚠️' : '✅' }} {{ this.notice }}</div>
+        {% endif %}
+
+        {# événement scripté (panne) : modale one-shot, puis l'état « en panne »
+           de la scène suffit — plus de bannière permanente (doublon) #}
+        {% if game.boilerBroken and not this.breakdownSeen and not game.finished %}
+            <twig:Modal title="🚨 Panne de chaudière" closeAction="acknowledgeBreakdown" closeLabel="Compris — je décide">
+                <p>Votre chaudière fioul vient de <strong>tomber en panne</strong>. Le temps est en <strong>pause</strong> : décidez sans précipitation.</p>
+                <p>En attendant, des convecteurs électriques d'appoint tiennent péniblement ~16 °C — et l'électricité <strong>flambe</strong> (effet Joule, le pire des chauffages). Fermez cette fenêtre, puis cliquez la <strong>chaudière</strong> pour la <strong>réparer</strong> (rapide, mais toujours au fioul) ou la <strong>remplacer par une PAC</strong>.</p>
+            </twig:Modal>
+        {% endif %}
+
+        {# ===== 4 coins = 4 axes (clic → panneau focalisé) ===== #}
+        <div class="hud hud-tl card" role="button" tabindex="0" title="Finances — détails"
+             data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="finances">
+            <div class="hud-title">💶 Finances</div>
             <div class="big {{ game.savingsNegative ? 'neg' }}">{{ game.savingsLabel }}</div>
-            <div class="hud-line"><span class="k">Aujourd'hui</span><span class="{{ game.dayNetNegative ? 'neg' : 'pos' }}">{{ game.dayNetLabel }}</span></div>
-            {% if game.loanActive %}<div class="hud-line"><span class="k">Dette éco-PTZ · {{ game.loanRemainingYears }} an{{ game.loanRemainingYears > 1 ? 's' }}</span><span>{{ game.loanRemainingLabel }}</span></div>{% endif %}
-            {% if game.inFuelPoverty %}<div class="precarity-badge">⚠️ Précarité énergétique · {{ game.energyEffortPct }} %</div>{% endif %}
+            <div class="hud-line"><span class="key">Aujourd'hui</span><span class="{{ game.dayNetNegative ? 'neg' : 'pos' }}">{{ game.dayNetLabel }}</span></div>
+            {% if game.inFuelPoverty %}<div class="precarity-badge">⚠️ Précarité · {{ game.energyEffortPct }} %</div>{% endif %}
         </div>
 
-        <div class="hud hud-tr card">
-            <div class="hud-line"><span class="k">🌡️</span><span>{{ game.temperatureC|number_format(1, ',', ' ') }} °C</span></div>
-            <div class="hud-line"><span class="k">☁️</span><span>{{ game.cloudPct }} %</span></div>
-            <div class="hud-line"><span class="k">🛋️ Confort</span><span>{{ game.comfortScorePct }} %</span></div>
+        <div class="hud hud-tr card" role="button" tabindex="0" title="Confort — détails"
+             data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="comfort">
+            <div class="hud-title">🛋️ Confort</div>
+            <div class="big">{{ game.comfortScorePct }} %</div>
             <div class="gauge"><span style="width: {{ game.comfortScorePct }}%; background: var(--accent);"></span></div>
         </div>
 
-        <div class="hud hud-bl card">
-            <div class="hud-line"><span class="k">⚡ Prod. / conso</span><span>{{ game.productionKwh|number_format(1, ',', ' ') }} / {{ game.demandKwh|number_format(1, ',', ' ') }} kWh</span></div>
-            <div class="hud-line"><span class="k">🔄 Autosuffisance</span><span>{{ game.selfSufficiencyPct }} %</span></div>
-            {% if game.fuelOilLitres > 0 %}<div class="hud-line"><span class="k">🛢️ Fioul</span><span>{{ game.fuelOilLitres|number_format(1, ',', ' ') }} L</span></div>{% endif %}
+        <div class="hud hud-bl card" role="button" tabindex="0" title="Énergie & climat — détails"
+             data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="energy">
+            <div class="hud-title">⚡ Énergie & climat</div>
+            <div class="big">{{ game.co2EmittedLabel }}</div>
+            <div class="hud-cap">CO₂ émis</div>
+            {% if game.solarKwc > 0 %}
+                <div class="hud-line"><span class="key">Prod / conso</span><span>{{ game.productionKwh|number_format(1, ',', ' ') }} / {{ game.demandKwh|number_format(1, ',', ' ') }} kWh</span></div>
+            {% else %}
+                <div class="hud-line"><span class="key">Conso du jour</span><span>{{ game.demandKwh|number_format(1, ',', ' ') }} kWh</span></div>
+            {% endif %}
         </div>
 
-        <button type="button" class="hud hud-br btn-ghost btn-small {{ selected == 'menu' ? 'active' }}"
-                data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="menu">≡ Bilan & options</button>
+        <div class="hud hud-br card" role="button" tabindex="0" title="Patrimoine — étiquette DPE"
+             data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="patrimoine">
+            <div class="hud-title">🏠 Patrimoine</div>
+            <div class="dpe-chips">
+                <span class="dpe-chip dpe-e-{{ game.dpeLetter|lower }}">DPE {{ game.dpeLetter }}</span>
+                <span class="dpe-chip dpe-g-{{ game.dpeClimateLetter|lower }}">GES {{ game.dpeClimateLetter }}</span>
+            </div>
+        </div>
 
-        {# ===== panneau flottant contextuel (au clic sur un élément) ===== #}
-        {% if selected %}
-            <button type="button" class="panel-backdrop" aria-label="Fermer"
-                    data-action="click->live#action" data-live-action-param="closePanel"></button>
-            <aside class="float-panel">
-                <button type="button" class="float-close btn-ghost btn-small"
-                        data-action="click->live#action" data-live-action-param="closePanel" aria-label="Fermer">✕</button>
-                {% if selected == 'menu' %}
-                    {{ include('game/panel/_summary.html.twig') }}
-                {% elseif selected in slots %}
-                    {{ include('game/panel/_slot.html.twig') }}
-                {% endif %}
-            </aside>
+        {# ===== écran de bienvenue (premier lancement) ===== #}
+        {% if showIntro %}
+            <div class="intro-overlay">
+                <div class="intro-card">
+                    <h2>🏠 Bienvenue chez vous</h2>
+                    <p class="lead">Vous êtes primo-accédant. Vous venez d'emménager dans une <strong>maison ancienne chauffée au fioul, classée DPE&nbsp;F</strong>, avec une épargne modeste.</p>
+                    <p class="intro-goal">Vivez-y un an. <strong>Il n'y a pas de partie perdue</strong> : à vous d'équilibrer vos trois axes.</p>
+                    <ul class="intro-axes">
+                        <li><span class="ax">💶</span> <span><strong>Finances</strong> — épargne, factures d'énergie, aides et prêt.</span></li>
+                        <li><span class="ax">🏠</span> <span><strong>Patrimoine</strong> — la classe DPE et la valeur du bien.</span></li>
+                        <li><span class="ax">🛋️</span> <span><strong>Confort</strong> — la température <em>ressentie</em> chez vous.</span></li>
+                    </ul>
+                    <p class="intro-how">Cliquez le <strong>toit</strong>, la <strong>chaudière</strong>, le <strong>garage</strong> ou le <strong>séjour</strong> pour agir, et les <strong>quatre coins</strong> pour vos indicateurs. Le temps avance seul — <strong>⏸</strong> pour réfléchir. Des imprévus peuvent survenir.</p>
+                    <twig:Button label="Commencer →" action="dismissIntro" class="btn-primary" />
+                </div>
+            </div>
         {% endif %}
+
+        {# bandeau de contrôle bas-centre : date · saison · météo · vitesse · jour+ #}
+        {% if not game.finished %}
+            <div class="controlbar">
+                <div class="cb-date">
+                    <div class="cb-when">{{ game.dateLabel }}</div>
+                    {# la position dans l'horizon est déjà dite par la date ; la barre
+                       en donne la version visuelle, pas la peine de dupliquer "jour X/Y". #}
+                    <div class="cb-progress" title="Jour {{ game.dayNumber }}/{{ game.horizonDays }}"><span style="width: {{ game.progressPct }}%"></span></div>
+                </div>
+                <div class="speed">
+                    <twig:Button label="⏸" action="setSpeed" :params="{speed: 0}" title="Pause" :active="speed == 0" />
+                    <twig:Button label="▶" action="setSpeed" :params="{speed: 1}" title="1 jour / 12 s" :active="speed == 1" />
+                    <twig:Button label="×2" action="setSpeed" :params="{speed: 2}" title="1 jour / 6 s" :active="speed == 2" />
+                    <twig:Button label="×3" action="setSpeed" :params="{speed: 3}" title="1 jour / 4 s" :active="speed == 3" />
+                </div>
+                <twig:Button label="Jour suivant →" action="step" class="btn-primary btn-small" />
+                <twig:Button label="⚙" action="selectSlot" :params="{slot: 'options'}" class="gear" :active="selected == 'options'" title="Options & bilan de session" />
+            </div>
+        {% endif %}
+
     </div>
+
+    {# panneau focalisé — HORS du .stage (qui a overflow:hidden) pour que les
+       infobulles débordent librement ; positionné dans le .game #}
+    {% if selected %}
+        <button type="button" class="panel-backdrop" aria-label="Fermer"
+                data-action="click->live#action" data-live-action-param="closePanel"></button>
+        <aside class="float-panel {{ panelPos[selected] ?? 'at-br' }}">
+            {% if selected in slots %}
+                {{ include('game/panel/_slot.html.twig') }}
+            {% elseif selected == 'finances' %}
+                {{ include('game/panel/_finances.html.twig') }}
+            {% elseif selected == 'comfort' %}
+                {{ include('game/panel/_comfort.html.twig') }}
+            {% elseif selected == 'energy' %}
+                {{ include('game/panel/_energy.html.twig') }}
+            {% elseif selected == 'patrimoine' %}
+                {{ include('game/panel/_patrimoine.html.twig') }}
+            {% elseif selected == 'weather' %}
+                {{ include('game/panel/_weather.html.twig') }}
+            {% elseif selected == 'options' %}
+                {{ include('game/panel/_options.html.twig') }}
+            {% endif %}
+        </aside>
+    {% endif %}
 
     {% if game.endReport %}
         {% set report = game.endReport %}
@@ -87,33 +136,33 @@
             <div class="grid">
                 <div class="card">
                     <h2>Finances</h2>
-                    <div class="row"><span class="k">Épargne au départ</span><span>{{ report.savingsStartLabel }}</span></div>
-                    <div class="row"><span class="k">Épargne à la fin</span><span>{{ report.savingsEndLabel }}</span></div>
-                    <div class="row"><span class="k">Évolution</span><span class="{{ report.savingsDeltaNegative ? 'neg' : 'pos' }}"><strong>{{ report.savingsDeltaLabel }}</strong></span></div>
+                    <div class="row"><span class="key">Épargne au départ</span><span>{{ report.savingsStartLabel }}</span></div>
+                    <div class="row"><span class="key">Épargne à la fin</span><span>{{ report.savingsEndLabel }}</span></div>
+                    <div class="row"><span class="key">Évolution</span><span class="{{ report.savingsDeltaNegative ? 'neg' : 'pos' }}"><strong>{{ report.savingsDeltaLabel }}</strong></span></div>
                 </div>
                 <div class="card">
                     <h2>Patrimoine</h2>
-                    <div class="row"><span class="k">DPE</span><span>{{ report.dpeStartLetter }} → <strong>{{ report.dpeEndLetter }}</strong></span></div>
-                    <div class="row"><span class="k">Valeur du bien</span><span>{{ report.propertyStartLabel }} → {{ report.propertyEndLabel }}</span></div>
-                    <div class="row"><span class="k">Évolution</span><span><strong>{{ report.propertyDeltaLabel }}</strong> <span class="k">(réalisable à la revente uniquement)</span></span></div>
+                    <div class="row"><span class="key">DPE</span><span>{{ report.dpeStartLetter }} → <strong>{{ report.dpeEndLetter }}</strong></span></div>
+                    <div class="row"><span class="key">Valeur du bien</span><span>{{ report.propertyStartLabel }} → {{ report.propertyEndLabel }}</span></div>
+                    <div class="row"><span class="key">Évolution</span><span><strong>{{ report.propertyDeltaLabel }}</strong> <span class="key">(réalisable à la revente uniquement)</span></span></div>
                     {% if report.loanActive %}
-                        <div class="row"><span class="k">Éco-PTZ restant à rembourser</span><span class="neg">{{ report.loanRemainingLabel }}</span></div>
+                        <div class="row"><span class="key">Éco-PTZ restant à rembourser</span><span class="neg">{{ report.loanRemainingLabel }}</span></div>
                     {% endif %}
                 </div>
                 <div class="card">
                     <h2>Confort</h2>
                     <div class="big">{{ report.averageComfortPct }} %</div>
-                    <div class="row"><span class="k">Confort thermique moyen sur l'année</span><span></span></div>
+                    <div class="row"><span class="key">Confort thermique moyen sur l'année</span><span></span></div>
                 </div>
                 <div class="card">
-                    <h2>Énergie</h2>
-                    <div class="row"><span class="k">Fioul consommé</span><span>{{ report.totalFuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
-                    <div class="row"><span class="k">Autosuffisance électrique</span><span>{{ report.totalSelfSufficiencyPct }} %</span></div>
-                    <div class="row"><span class="k">Coût énergie net sur l'année</span><span>{{ report.totalNetEnergyCostLabel }}</span></div>
+                    <h2>Énergie & climat</h2>
+                    <div class="row"><span class="key">Fioul consommé</span><span>{{ report.totalFuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
+                    <div class="row"><span class="key">Autosuffisance électrique</span><span>{{ report.totalSelfSufficiencyPct }} %</span></div>
+                    <div class="row"><span class="key">CO₂ émis sur l'année</span><span><strong>{{ report.totalCo2EmittedLabel }}</strong></span></div>
+                    <div class="row"><span class="key">Coût énergie net sur l'année</span><span>{{ report.totalNetEnergyCostLabel }}</span></div>
                 </div>
             </div>
-            <button type="button" class="btn-primary" style="margin-top:1rem"
-                    data-action="live#action" data-live-action-param="reset">Nouvelle partie</button>
+            <div style="margin-top: 1rem"><twig:Button label="Nouvelle partie" action="reset" class="btn-primary" /></div>
         </section>
     {% endif %}
 </div>

@@ -105,8 +105,14 @@ Persistance   src/Entity/ + src/Repository/  (Doctrine, entités anémiques = é
   graphisme de la scène vit dans **`assets/styles/scene.css`** (chargé après
   `game.css` pour hériter du `:root`) ; `game.css` = chrome du dashboard
   uniquement. Tests d'intégration LiveComponent (`tests/Integration/`,
-  `InteractsWithLiveComponents`). **La boucle §15 est complète.** Reste :
-  persistance Doctrine.
+  `InteractsWithLiveComponents`). **La boucle §15 est complète.** Météo
+  recalibrée (variabilité réaliste, DJU ~2275, vraies vagues de froid — fix du
+  mapping de bruit `SeededNoise::smoothUnit`). Reste côté MVP : **onboarding /
+  cadrage de l'objectif** (trou pédagogique : le joueur atterrit sans contexte
+  ni but). **Persistance Doctrine : reportée à une étape méta-jeu dédiée**
+  (comptes, reprise, parties multiples, historique, stats — cf. backlog
+  « Persistance & méta-jeu » ; à faire en bloc, pas en portage session→DB
+  invisible).
 
 Migration future possible vers du DDD plus strict (agrégats + mapping) sans tout
 casser, si l'échelle ville/pays l'exige — mais **pas maintenant**.
@@ -167,6 +173,14 @@ inline sans le rattacher au registre + un commentaire de source.
   `final readonly`.
 - Identifiants/commentaires de code en **anglais** ; libellés destinés au joueur
   en **français** (`Season::label()` → « Été »…).
+- **Composants d'interface = Twig Components ANONYMES par défaut**
+  (`templates/components/*`, `<twig:Name>` + `{% props %}` + classe de variante
+  locale/CVA), JAMAIS des macros pour un composant d'UI. Ex : `<twig:Button>`,
+  `<twig:QuoteCard>`, `<twig:scene:Occupant>`. Un **LiveComponent** (classe PHP
+  `#[AsLiveComponent]`) UNIQUEMENT quand l'interactivité/état l'exige (`#[LiveAction]`,
+  `data-poll`, props écrivables) — sinon anonyme. Les **macros Twig** restent
+  réservées aux petits helpers de *texte/inline* sans logique de présentation
+  (ex. `tip()` qui enrobe un libellé d'une infobulle).
 - **CSS : variables plutôt que valeurs en dur.** Couleurs, espacements ou
   dimensions réutilisés passent par des custom properties (`:root` de
   `game.css` : `--accent`, `--warn`…), jamais dupliqués en littéral — c'est

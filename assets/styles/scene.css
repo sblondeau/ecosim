@@ -11,7 +11,16 @@
      (.season-*, .frost, .smoking, .producing) + variable continue --cloud. */
 
 /* --- l'élément scène (le SVG lui-même) --- */
-.scene { display: block; width: 100%; height: auto; }
+/* .game (hud.css) porte déjà le ratio intrinsèque du SVG (1100×560) et se
+   contraint au viewport : le SVG remplit donc .stage à 100 %/100 % sans
+   distorsion. Sous le seuil petit écran (hud.css), .game/.stage repassent en
+   hauteur libre — le SVG doit alors reprendre le calcul par la largeur. */
+.scene { display: block; width: 100%; height: 100%; }
+
+@media (max-width: 780px), (max-height: 480px) {
+    .scene { height: auto; }
+}
+
 .scene .thermostat { cursor: pointer; }
 
 /* --- slots cliquables --- */
@@ -19,7 +28,6 @@
 .slot .hit { fill: transparent; stroke: transparent; stroke-width: 2.5; }
 .slot:hover .hit, .slot:focus-visible .hit { stroke: var(--accent); stroke-dasharray: 7 5; }
 .slot.is-selected .hit { stroke: var(--accent); stroke-dasharray: none; }
-.room-temp { font-family: system-ui, sans-serif; font-size: 15px; fill: #dce8f2; opacity: .85; }
 
 /* --- ciel par saison (les stops du dégradé sont stylés en CSS) --- */
 .scene .sky-top { stop-color: #3d5a7a; }
@@ -35,18 +43,59 @@
 .scene.season-summer .hill-far, .scene.season-spring .hill-far { fill: #7fa98c; }
 .scene.season-summer .hill-near, .scene.season-spring .hill-near { fill: #93bb9e; }
 
-/* --- nébulosité et soleil pilotés en continu par --cloud --- */
-.scene .sun { opacity: calc(1.05 - var(--cloud)); }
-.scene .cloud-1 { opacity: clamp(0, calc(var(--cloud) * 1.6 - 0.1), 1); }
-.scene .cloud-2 { opacity: clamp(0, calc(var(--cloud) * 1.8 - 0.5), 1); }
-.scene .cloud-3 { opacity: clamp(0, calc(var(--cloud) * 2 - 1), 0.9); }
+/* --- arbre : feuillage par saison. Été = vert profond (défaut). Printemps =
+       vert tendre plus clair + floraison. Automne = roux. Hiver = nu. --- */
+.scene .tree .canopy-main { fill: #2e4a38; }
+.scene .tree .canopy-highlight { fill: #3d5c46; }
+.scene.season-spring .tree .canopy-main { fill: #4f7d47; }
+.scene.season-spring .tree .canopy-highlight { fill: #6aa05a; }
+.scene.season-autumn .tree .canopy-main { fill: #b56a2e; }
+.scene.season-autumn .tree .canopy-highlight { fill: #d99248; }
 
-/* --- sol : herbe, ou neige quand il gèle --- */
+/* floraison : révélée seulement au printemps, posée sur la canopée claire */
+.scene .tree .blossoms { display: none; }
+.scene.season-spring .tree .blossoms { display: initial; }
+.scene .tree .blossoms circle { fill: #f2c1d2; }
+.scene .tree .blossoms .bloom-pale { fill: #fbe7ef; }
+
+/* hiver : la canopée (et sa neige) s'effacent, la silhouette nue apparaît */
+.scene .tree .branches { display: none; }
+.scene.season-winter .tree .branches { display: initial; }
+.scene.season-winter .tree .canopy-main,
+.scene.season-winter .tree .canopy-highlight,
+.scene.season-winter .tree .canopy-snow {
+    display: none;
+}
+
+/* --- nébulosité : 6 nuages épars (0-56 %) révélés progressivement, PUIS
+   REPRIS (pas doublés) par une nappe grise plein ciel — un ciel couvert n'a
+   plus de nuages distincts, juste un plafond continu. Chaque nuage est donc
+   multiplié par --cloud-fade (calculé dans _cutaway.html.twig : 1 jusqu'à
+   60 %, 0 dès 75 %) pour s'effacer pendant que la nappe monte, au lieu de
+   rester visible en transparence dessous (l'ancienne version faisait plus
+   brouillard que ciel couvert).
+   La nappe doit lire comme du CIEL BLANC, pas comme un voile : elle démarre
+   tôt (35 %, dans la tranche la plus fréquente 40-60 % — WeatherGenerator,
+   annualMeanCloudCover 0.50 ± bruit journalier 0.70) pour être déjà nettement
+   majoritaire à 65 % (l'attente du joueur), et plafonne à 90 % d'opacité dès
+   75 % de nébulosité — sur une année simulée, cloudCover dépasse rarement
+   0.90 (max observé ~0.92), donc un plafond qui n'arrive qu'à --cloud=1.0 ne
+   se verrait quasiment jamais. Le soleil garde un plancher d'opacité (jamais
+   totalement effacé, même sous ciel bien chargé). --- */
+.scene .sun { opacity: clamp(0.2, calc(1.15 - var(--cloud) * 0.95), 1); }
+.scene .cloud-1 { opacity: calc(clamp(0, var(--cloud) * 6.25, 1) * var(--cloud-fade)); }
+.scene .cloud-2 { opacity: calc(clamp(0, var(--cloud) * 6.25 - 0.5, 1) * var(--cloud-fade)); }
+.scene .cloud-3 { opacity: calc(clamp(0, var(--cloud) * 6.25 - 1, 1) * var(--cloud-fade)); }
+.scene .cloud-4 { opacity: calc(clamp(0, var(--cloud) * 6.25 - 1.5, 1) * var(--cloud-fade)); }
+.scene .cloud-5 { opacity: calc(clamp(0, var(--cloud) * 6.25 - 2, 1) * var(--cloud-fade)); }
+.scene .cloud-6 { opacity: calc(clamp(0, var(--cloud) * 6.25 - 2.5, 1) * var(--cloud-fade)); }
+.scene .overcast { fill: #c3ccd3; opacity: clamp(0, calc(var(--cloud) * 2.25 - 0.79), 0.9); }
+
+/* --- sol : herbe ; la neige au sol (accumulation/fonte) est gérée en Twig
+   (_cutaway.html.twig : opacité + glissement selon scene.snowDepthPct) --- */
 .scene .ground-grass { fill: #3d4a3a; }
 .scene.season-summer .ground-grass { fill: #4a6a42; }
 .scene.season-spring .ground-grass { fill: #46603f; }
-.scene .ground-snow { display: none; }
-.scene.frost .ground-snow { display: initial; }
 .scene .canopy-snow, .scene .roof-snow-cap { display: none; }
 .scene.frost .canopy-snow, .scene.frost .roof-snow-cap { display: initial; }
 
@@ -56,22 +105,37 @@
 .scene.frost .house--ins-1 .roof-snow-1 { display: initial; }
 .scene.frost .house--ins-2 .roof-snow-2 { display: initial; }
 
-/* --- isolation : la couche visible dans la coupe (variante locale à HouseShell) --- */
-.scene .ins-attic, .scene .ins-wall { display: none; }
-.house--ins-0 .ins-attic-0 { display: initial; }
-.house--ins-1 .ins-attic-1, .house--ins-1 .ins-wall-1 { display: initial; }
-.house--ins-2 .ins-attic-2, .house--ins-2 .ins-wall-2 { display: initial; }
+/* --- isolation : la couche visible dans la coupe des murs (variante locale à HouseShell) --- */
+.scene .ins-wall { display: none; }
+.house--ins-1 .ins-wall-1 { display: initial; }
+.house--ins-2 .ins-wall-2 { display: initial; }
 
-/* --- confort : la teinte du séjour (scène) + l'occupant (variante locale) --- */
+/* --- confort : la teinte du séjour (scène) ; l'occupant est un fichier SVG
+       complet par état (scene:Occupant inclut occupant-<tier>.svg), donc plus
+       aucune bascule de couches ici. --- */
 .scene .room-tint { fill: #31465c; }
 .scene.comfort-cool .room-tint { fill: #3d4a47; }
 .scene.comfort-warm .room-tint { fill: #4a3f2f; }
 .scene.comfort-hot .room-tint { fill: #5a3b30; }
-.scene .occ { display: none; }
-.occupant--cold .occ-cold,
-.occupant--cool .occ-cool,
-.occupant--warm .occ-warm,
-.occupant--hot .occ-hot { display: block; }
+
+/* Position du jour : chaque jour (dayNumber % 7) pose l'occupant à un endroit
+   DIFFÉRENT et non aligné gauche→droite — décalage horizontal large (unités
+   locales, avant le scale .29 → ~×0.29 au rendu) + orientation (miroir). On ne
+   touche qu'à .occupant-life pour ne pas écraser le transform de base. */
+.occupant-life {
+    transform-box: fill-box;
+    transform-origin: 50% 100%; /* pieds : le miroir bascule sur place, jamais décollé du sol */
+    transform: translateX(var(--occ-shift, 0)) scaleX(var(--occ-face, 1));
+}
+/* Ordre de visite jour%7 = 1,2,3,4,5,6,0 : valeurs volontairement NON monotones
+   pour que la position saute d'un jour à l'autre (pas un balayage régulier). */
+.occupant-life--p0 { --occ-shift: 276px; --occ-face: -1; }
+.occupant-life--p1 { --occ-shift: -269px; --occ-face: 1; }
+.occupant-life--p2 { --occ-shift: 207px; --occ-face: -1; }
+.occupant-life--p3 { --occ-shift: -34px; --occ-face: 1; }
+.occupant-life--p4 { --occ-shift: -110px; --occ-face: 1; }
+.occupant-life--p5 { --occ-shift: 97px; --occ-face: -1; }
+.occupant-life--p6 { --occ-shift: -152px; --occ-face: 1; }
 
 /* --- chauffage : couches de la chaudière (variante locale) / PAC --- */
 .scene .flame, .scene .smoke, .scene .alarm, .scene .breakdown-sign { display: none; }
