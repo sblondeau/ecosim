@@ -416,6 +416,57 @@ volontairement **différé à la Phase 5** dans la spec, car son intérêt (dép
 / confort d'été) n'a de sens qu'une fois les canicules modélisées — pas de
 magnitude truquée (§1).
 
+## Dynamisme du gameplay — rythme de décision (phase dédiée, réflexion juillet 2026)
+
+Thème **frère** de l'arbre de travaux ci-dessus : deux réponses au **même**
+problème (le gameplay MVP est **structurellement mou**). L'arbre attaque la
+**largeur** des choix ; cette phase-ci attaquerait le **rythme** — le milieu
+d'année vide. À traiter en **phase dédiée**, pas au premier arbre. Non planifié.
+
+**Diagnostic (à garder en tête).** La mollesse est *structurelle*, pas un manque
+de contenu : les décisions sont *one-shot* et front-loadées, aucune boucle
+récurrente ne porte le milieu de partie. Et le **tick temps réel** (même en ×1,
+a fortiori ×3 à 4 s/jour) rend le **micro-management impossible** — mais « régler
+le thermostat une fois pour toutes » est tout aussi plat. La prévision météo
+comme unique levier de micro-gestion a été jugée **trop tendue** dans ce cadre.
+
+**Modèle de design retenu de la réflexion — politiques + points d'arrêt** (pas de
+clic-par-tick) :
+- le joueur pose des **règles automatiques** (politiques) qui tournent seules ;
+- le jeu **s'auto-met en pause** aux moments qui comptent : événement, alerte,
+  franchissement de seuil, **bilan mensuel** ;
+- un bouton **« avancer jusqu'au prochain point de décision »** ;
+- garde-fou : des **politiques avec surcharge ponctuelle**, jamais des clics
+  quotidiens obligatoires. (Cohérent avec `TimeProgressionPolicy` /
+  `PausesWhileAway` déjà posé, et avec la pause auto au matin de la panne.)
+
+**Pistes de profondeur inventoriées** (sans trahir l'ADN : réalisme sourcé,
+multi-critères, pas de game over, pédagogie par les systèmes) :
+- **Prix variables de l'énergie** — HP/HC, Tempo, volatilité du fioul → donne du
+  sens au pilotage/stockage et à l'autoconsommation dans le temps.
+- **Calendrier d'événements** — pannes, aléas, échéances (au-delà de l'unique
+  panne scriptée actuelle) : la trame qui remplit l'année.
+- **Objectifs souples** — jamais un score unique (§1) ; des caps/paliers par axe
+  qui donnent une direction sans « gagner/perdre ».
+- **Programmation du thermostat** — cf. entrée « Face gameplay du levier 2 —
+  programmation du thermostat » plus haut dans ce backlog ; c'est la première
+  brique concrète de « politique » (consignes horaires/saisonnières).
+- **Modèle d'inertie / intermittence** — l'inertie thermique et l'intermittence
+  PV/vent rendent le *timing* des décisions signifiant (prérequis d'une partie
+  des points ci-dessus).
+- **Réalisme financier dans le temps** — délais de versement de l'éco-PTZ,
+  entretien récurrent, cycle de vie des équipements (croise la section « Cycle
+  de vie des équipements » de ce backlog).
+- **Persistance + graphe multi-années** — voir courber ses axes sur plusieurs
+  années (prérequis : étape « Persistance & méta-jeu »).
+- **Confort d'été / canicules** → **Phase 5** (hors scope ici, cf. « Confort
+  d'été & rénovation granulaire »).
+
+**Déclencheur** : jalon dédié « dynamisme du gameplay », après (ou en parallèle
+de) l'arbre de travaux — les deux se renforcent : les **gestes bon marché** de
+l'arbre créent déjà un séquençage par le budget qui préfigure la boucle
+récurrente visée ici.
+
 ## Confort thermique : représentation + consigne réglable (réflexion joueur, juillet 2026)
 
 Constat : le confort n'est qu'un %, peu lisible, et surtout **sans conséquence
