@@ -386,6 +386,36 @@ minimal si on veut l'avancer.
   l'encode grossièrement, à raffiner quand l'été devient un vrai sujet
   (bornes saisonnières).
 
+## Arbre de travaux — rénovation détaillée (spec design, juillet 2026)
+
+**Design validé, spec écrite : `docs/specs/2026-07-15-arbre-travaux-design.md`**
+(branche `docs/arbre-travaux-spec`). Première extension **post-MVP (V1.x)** ;
+le MVP Phase 0-1 reste verrouillé tant que la phase n'est pas ouverte.
+
+Répond à la mollesse structurelle du gameplay (décisions one-shot, milieu
+d'année vide) en **multipliant les choix de travaux**, avec pour **rôle premier
+la pédagogie de la rénovation** (le vrai parcours ADEME, pas un gating de jeu).
+
+- Mécanisme **« conseil non bloquant »** : aucun verrou ni malus artificiel ;
+  leçons montrées par le système (factures/SCOP/confort qui bougent) ou conseil
+  textuel (encarts 💡/⚠).
+- Contenu resserré (~une douzaine de nœuds / 5 branches) : enveloppe **par
+  surfaces** (combles, murs **ITI/ITE**, vitrage), ventilation (VMC), chauffage
+  (PAC, granulés, **émetteurs BT → SCOP** — levier spécifique PAC, combustion
+  insensible), production & ECS (PV **kit plug-and-play**/complet, batterie,
+  chauffe-eau thermo), **gestes** (rideaux, calfeutrage).
+- IHM : **zones de scène = branches**, séparation *lire* (4 coins) / *agir*
+  (zones), **tiroir latéral** pour les travaux, entêtes de contexte-décision.
+- Impact domaine : `Household` par surfaces, DPE recalculé, `RenovationAdvisor`
+  (moteur du conseil). Aides à périmètre inchangé. Tous coefficients à sourcer.
+
+**Déclencheur** : ouverture consciente de la phase V1.x → plan d'implémentation
+(`writing-plans`). **Croise** la section « Confort d'été & rénovation
+granulaire » ci-dessus : le **type d'isolant** (laine vs biosourcé) est
+volontairement **différé à la Phase 5** dans la spec, car son intérêt (déphasage
+/ confort d'été) n'a de sens qu'une fois les canicules modélisées — pas de
+magnitude truquée (§1).
+
 ## Confort thermique : représentation + consigne réglable (réflexion joueur, juillet 2026)
 
 Constat : le confort n'est qu'un %, peu lisible, et surtout **sans conséquence
