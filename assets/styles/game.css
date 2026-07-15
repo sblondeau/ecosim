@@ -39,9 +39,27 @@ body {
     padding: 1.2rem 1rem 2.5rem;
 }
 
+/* Plein écran : .game (hud.css) calcule sa propre taille via son ratio
+   intrinsèque + max-height, ce conteneur n'a qu'à lui offrir toute la fenêtre
+   et le centrer — pas de padding qui grignoterait des pixels dessus. Sous le
+   seuil petit écran (même breakpoint que hud.css/scene.css), .stage repasse
+   en empilement naturel : on redonne alors de l'air (padding) et on laisse
+   la page défiler normalement plutôt que de forcer 100 % de hauteur. */
 .wrap-game {
     max-width: none;
-    padding: .8rem 1rem 1.5rem;
+    padding: 0;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 780px), (max-height: 480px) {
+    .wrap-game {
+        display: block;
+        min-height: 0;
+        padding: .8rem 1rem 1.5rem;
+    }
 }
 
 header.top {
