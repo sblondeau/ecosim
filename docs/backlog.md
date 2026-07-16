@@ -392,6 +392,20 @@ minimal si on veut l'avancer.
 (branche `docs/arbre-travaux-spec`). Première extension **post-MVP (V1.x)** ;
 le MVP Phase 0-1 reste verrouillé tant que la phase n'est pas ouverte.
 
+> **État d'avancement (juillet 2026)** — **Tranche 1 (enveloppe par surfaces)
+> IMPLÉMENTÉE.** Plan : `docs/specs/2026-07-16-tranche1-enveloppe-plan.md`.
+> `InsulationLevel` (3 paliers) → `EnvelopeState` (combles / murs ITI-ITE /
+> vitrage) ; déperdition agrégée des surfaces (facteur `1 − Σ retraits`
+> sourcés, planché 0,15) ; 4 travaux d'isolation chiffrés et câblés dans le
+> panneau mur ; DPE inchangé (dérive de l'énergie réelle) ; départ F/G
+> préservé. Plafond enveloppe seule ≈ 0,50 (assumé : l'enveloppe seule ne fait
+> pas un BBC). 233 tests verts, revue de branche « ready to merge ».
+> **Reste de l'arbre (tranches à planifier)** : T2 `RenovationAdvisor` +
+> conseils 💡/⚠ (« conseil non bloquant ») · T3 tiroir latéral + séparation
+> lire/agir · T4 chauffage (granulés, émetteurs BT → SCOP) · T5 production &
+> ECS (kit plug-and-play, chauffe-eau thermo) · T6 gestes (rideaux,
+> calfeutrage). Type d'isolant toujours différé Phase 5.
+
 Répond à la mollesse structurelle du gameplay (décisions one-shot, milieu
 d'année vide) en **multipliant les choix de travaux**, avec pour **rôle premier
 la pédagogie de la rénovation** (le vrai parcours ADEME, pas un gating de jeu).
