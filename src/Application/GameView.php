@@ -129,6 +129,15 @@ final readonly class GameView
          * actually played.
          */
         public string $co2EmittedLabel = '0 kg',
+        // Envelope "done" flags (renovation tree)
+        /** Attic/roof already insulated? */
+        public bool $roofInsulated = false,
+        /** Wall insulation done so far (ITI/ITE label), empty when walls are untreated. */
+        public string $wallInsulationLabel = '',
+        /** Current glazing tier label ('Simple vitrage'...). */
+        public string $glazingLabel = '',
+        /** Glazing already at its best tier (triple)? */
+        public bool $glazingMaxed = false,
         /**
          * Player-facing explanations of the metrics, keyed by topic. Built
          * from the calibration registry so every number quoted in a tooltip

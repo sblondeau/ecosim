@@ -31,6 +31,10 @@ final readonly class ActionView
          * @var list<string>
          */
         public array $effectLabels = [],
+        /** Advice level for this work given the current house: 'info' | 'caution' | '' (none). */
+        public string $adviceLevel = '',
+        /** Player-facing advice message (French), empty when no advice applies. */
+        public string $adviceMessage = '',
     ) {
     }
 }

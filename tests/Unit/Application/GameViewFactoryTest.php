@@ -163,6 +163,35 @@ final class GameViewFactoryTest extends TestCase
         self::assertArrayHasKey('roof_insulation', $view->actions, 'A bare passoire is quoted for roof insulation.');
     }
 
+    public function testEnvelopeActionsCarryAdvice(): void
+    {
+        $bare = new Household(0.0, 0.0, self::original(), HeatingSystem::FuelOilBoiler);
+        $view = new GameViewFactory()->build(self::config(), GameState::start($bare, Money::fromEuros(4000.0)));
+
+        self::assertSame('info', $view->actions['roof_insulation']->adviceLevel);
+        self::assertNotSame('', $view->actions['roof_insulation']->adviceMessage);
+        self::assertSame('caution', $view->actions['heat_pump']->adviceLevel);
+    }
+
+    public function testEnvelopeDoneFlagsReflectTheHousehold(): void
+    {
+        $bare = new Household(0.0, 0.0, self::original(), HeatingSystem::FuelOilBoiler);
+        $view = new GameViewFactory()->build(self::config(), GameState::start($bare, Money::fromEuros(4000.0)));
+
+        self::assertFalse($view->roofInsulated);
+        self::assertSame('', $view->wallInsulationLabel);
+        self::assertSame('Simple vitrage', $view->glazingLabel);
+        self::assertFalse($view->glazingMaxed);
+
+        $best = new Household(0.0, 0.0, self::bestEnvelope(), HeatingSystem::HeatPump);
+        $bestView = new GameViewFactory()->build(self::config(), GameState::start($best, Money::fromEuros(4000.0)));
+
+        self::assertTrue($bestView->roofInsulated);
+        self::assertSame('Extérieure (ITE)', $bestView->wallInsulationLabel);
+        self::assertSame('Triple vitrage', $bestView->glazingLabel);
+        self::assertTrue($bestView->glazingMaxed);
+    }
+
     public function testTheSceneModelSpeaksInSemanticStates(): void
     {
         $factory = new GameViewFactory();

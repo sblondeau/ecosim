@@ -21,6 +21,7 @@ use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
 use App\Domain\Finance\PropertyValuator;
 use App\Domain\Finance\Renovation;
+use App\Domain\Finance\RenovationAdvisor;
 use App\Domain\Finance\RenovationQuoter;
 use App\Domain\Math\SeasonalCycle;
 use App\Domain\Scenario\PrimoAccedantScenario;
@@ -74,6 +75,7 @@ final readonly class GameViewFactory
         private EnergyCalibration $energy = new EnergyCalibration(),
         private DpeCertifier $dpeCertifier = new DpeCertifier(),
         private CarbonAccountant $carbon = new CarbonAccountant(),
+        private RenovationAdvisor $advisor = new RenovationAdvisor(),
     ) {
     }
 
@@ -151,6 +153,10 @@ final readonly class GameViewFactory
             setpointDownEffectLabel: $this->setpointEffect($household, $currentAnnual, -1.0),
             setpointUpEffectLabel: $this->setpointEffect($household, $currentAnnual, 1.0),
             insulationLabel: $this->envelopeLabel($household->envelope),
+            roofInsulated: $household->envelope->roofInsulated,
+            wallInsulationLabel: WallInsulation::None === $household->envelope->walls ? '' : $household->envelope->walls->label(),
+            glazingLabel: $household->envelope->glazing->label(),
+            glazingMaxed: Glazing::Triple === $household->envelope->glazing,
             dpeLetter: $dpe->finalClass->label(),
             dpeEnergyLetter: $dpe->energyClass->label(),
             dpeEnergyIntensity: (int) round($dpe->energyIntensity),
@@ -518,6 +524,7 @@ final readonly class GameViewFactory
             $after = $this->estimator->estimate($quote->resultingHousehold);
 
             $net = $quote->netCost();
+            $advice = $this->advisor->adviceFor($work, $state->household);
 
             $actions[$work->value] = new ActionView(
                 work: $work->value,
@@ -530,6 +537,8 @@ final readonly class GameViewFactory
                     && $state->loan->borrowedTotal->plus($net)->cents <= $loanCap->cents),
                 loanMonthlyLabel: $loanEligible ? Loan::none()->borrow($net)->monthlyPayment->format() : '',
                 effectLabels: $this->effectLabels($before, $after),
+                adviceLevel: $advice?->level->value ?? '',
+                adviceMessage: $advice?->message ?? '',
             );
         }
 
