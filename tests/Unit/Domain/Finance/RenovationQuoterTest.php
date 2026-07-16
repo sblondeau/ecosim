@@ -20,10 +20,48 @@ final class RenovationQuoterTest extends TestCase
         return new Household(0.0, 0.0, new EnvelopeState(false, WallInsulation::None, Glazing::Single), HeatingSystem::FuelOilBoiler);
     }
 
-    public function testInsulationQuoteIsNeutralizedUntilTheSurfaceWorksLand(): void
+    public function testRoofInsulationQuotedWhenAtticBare(): void
     {
-        // réactivé en Task 4 (devis par surface : combles/murs/vitrage).
-        self::assertNull(new RenovationQuoter()->quote(Renovation::Insulation, self::barePassoire()));
+        $household = self::barePassoire();
+        $quote = new RenovationQuoter()->quote(Renovation::RoofInsulation, $household);
+
+        self::assertNotNull($quote);
+        self::assertTrue($quote->resultingHousehold->envelope->roofInsulated);
+    }
+
+    public function testRoofInsulationHiddenOnceDone(): void
+    {
+        $household = self::barePassoire()
+            ->withEnvelope(new EnvelopeState(true, WallInsulation::None, Glazing::Single));
+
+        self::assertNull(new RenovationQuoter()->quote(Renovation::RoofInsulation, $household));
+    }
+
+    public function testWallItiAndIteAreMutuallyExclusive(): void
+    {
+        $withWalls = self::barePassoire()
+            ->withEnvelope(new EnvelopeState(false, WallInsulation::Interior, Glazing::Single));
+
+        $quoter = new RenovationQuoter();
+        self::assertNull($quoter->quote(Renovation::WallInsulationInterior, $withWalls));
+        self::assertNull($quoter->quote(Renovation::WallInsulationExterior, $withWalls));
+    }
+
+    public function testGlazingClimbsSingleToDoubleToTriple(): void
+    {
+        $quoter = new RenovationQuoter();
+        $single = self::barePassoire();
+        $doubleQuote = $quoter->quote(Renovation::Glazing, $single);
+        self::assertNotNull($doubleQuote);
+        self::assertSame(Glazing::Double, $doubleQuote->resultingHousehold->envelope->glazing);
+
+        $atDouble = $single->withEnvelope(new EnvelopeState(false, WallInsulation::None, Glazing::Double));
+        $tripleQuote = $quoter->quote(Renovation::Glazing, $atDouble);
+        self::assertNotNull($tripleQuote);
+        self::assertSame(Glazing::Triple, $tripleQuote->resultingHousehold->envelope->glazing);
+
+        $atTriple = $single->withEnvelope(new EnvelopeState(false, WallInsulation::None, Glazing::Triple));
+        self::assertNull($quoter->quote(Renovation::Glazing, $atTriple));
     }
 
     public function testSubsidisedWorksGetTheIncomeBracketPrime(): void

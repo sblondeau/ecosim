@@ -103,19 +103,24 @@ final class RenovationHandlerTest extends TestCase
 
     public function testFullRenovationFitsUnderTheLoanCap(): void
     {
-        // Insulation quotes are neutralized (Renovation::Insulation → null) until
-        // Task 4 restores them as per-surface works — the loan-cap mechanism
-        // itself is exercised with the only remaining loan-eligible work.
+        // Chains every loan-eligible work (the 4 surface works + heat pump)
+        // through the loan to exercise the cap mechanism end to end.
         $handler = new RenovationHandler();
         $state = self::bareState();
 
-        foreach ([Renovation::HeatPump] as $work) {
+        foreach ([Renovation::RoofInsulation, Renovation::WallInsulationInterior, Renovation::Glazing, Renovation::HeatPump] as $work) {
             $result = $handler->order($state, $work, RenovationHandler::FINANCING_LOAN);
             self::assertInstanceOf(GameState::class, $result);
             $state = $result;
         }
 
-        self::assertSame(7800_00, $state->loan->borrowedTotal->cents);
+        self::assertTrue($state->household->envelope->roofInsulated);
+        self::assertSame(WallInsulation::Interior, $state->household->envelope->walls);
+        self::assertSame(Glazing::Double, $state->household->envelope->glazing);
         self::assertSame(HeatingSystem::HeatPump, $state->household->heatingSystem);
+        // Net costs at the "intermédiaire" 40 % rate: 2400 (roof) + 5400 (ITI)
+        // + 4800 (glazing) + 7800 (heat pump) = 20 400 €, comfortably under the
+        // 50 000 € éco-PTZ cap.
+        self::assertSame(20400_00, $state->loan->borrowedTotal->cents);
     }
 }

@@ -14,8 +14,14 @@ namespace App\Domain\Finance;
  */
 enum Renovation: string
 {
-    /** Upgrade the insulation to the next tier. */
-    case Insulation = 'insulation';
+    /** Insulate the attic/roof (priority #1, ~24 % of losses). */
+    case RoofInsulation = 'roof_insulation';
+    /** Walls, interior (ITI) — cheaper, eats living space. Exclusive with ITE. */
+    case WallInsulationInterior = 'wall_insulation_interior';
+    /** Walls, exterior (ITE) — dearer, better. Exclusive with ITI. */
+    case WallInsulationExterior = 'wall_insulation_exterior';
+    /** Windows: single → double → triple glazing. */
+    case Glazing = 'glazing';
     case HeatPump = 'heat_pump';
     case SolarPanels = 'solar_panels';
     case HomeBattery = 'home_battery';
@@ -28,7 +34,7 @@ enum Renovation: string
     public function isSubsidised(): bool
     {
         return match ($this) {
-            self::Insulation, self::HeatPump => true,
+            self::RoofInsulation, self::WallInsulationInterior, self::WallInsulationExterior, self::Glazing, self::HeatPump => true,
             // Repairing fossil equipment is not energy-performance work.
             self::SolarPanels, self::HomeBattery, self::BoilerRepair => false,
         };
