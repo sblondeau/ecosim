@@ -212,6 +212,17 @@ final class BuildingCalibration
         return max($this->envelopeLossFloor()->value, round(1.0 - $removed, 6));
     }
 
+    /**
+     * Above this residual loss factor, the house is "peu isolée" for advice
+     * purposes: an air/water heat pump would be oversized, and glazing is a
+     * low-priority spend. Game calibration (not a physical constant): 0.70
+     * means combles + murs not yet done (combles seul = 0,76 → encore peu isolé).
+     */
+    public function poorlyInsulatedEnvelopeCeiling(): Coefficient
+    {
+        return new Coefficient(value: 0.70, unit: 'fraction', min: 0.60, max: 0.80, source: 'Calibration de jeu : seuil de conseil « maison peu isolée » (repères ADEME : isoler avant de dimensionner une PAC)', reviewedOn: '2026-07-16');
+    }
+
     // --- Confort : effet paroi froide, dominé par murs + vitrages (pas les combles). ---
 
     /** Réduction de la pénalité paroi froide quand les murs sont isolés. */
