@@ -60,6 +60,20 @@
     transform: translateX(-50%);
 }
 
+/* Tiroir latéral : les zones-équipement (toit, murs, chauffage, garage, séjour)
+   ouvrent un panneau pleine hauteur à défilement interne — assez de place pour
+   plusieurs devis + conseils sans déborder de l'écran (les axes des 4 coins
+   restent des popovers de coin). */
+.float-panel.at-drawer {
+    top: .7rem;
+    right: .7rem;
+    bottom: .7rem;
+    width: min(420px, 94%);
+    max-height: none;
+    overflow-y: auto;
+    overflow-x: visible;
+}
+
 .float-close {
     flex: 0 0 auto;
     padding: .2rem .5rem;
@@ -270,4 +284,19 @@ details.card[open]>summary {
 
 .quote-advice-icon {
     flex: 0 0 auto;
+}
+
+.done-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .3rem;
+    margin: .1rem 0 .2rem;
+}
+
+.done-chip {
+    font-size: .72rem;
+    padding: .12rem .5rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent) 14%, var(--card));
+    color: var(--muted);
 }
