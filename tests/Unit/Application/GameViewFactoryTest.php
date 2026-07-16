@@ -180,7 +180,7 @@ final class GameViewFactoryTest extends TestCase
 
         self::assertFalse($view->roofInsulated);
         self::assertSame('', $view->wallInsulationLabel);
-        self::assertSame('Simple vitrage', $view->glazingLabel);
+        self::assertSame('', $view->glazingLabel);
         self::assertFalse($view->glazingMaxed);
 
         $best = new Household(0.0, 0.0, self::bestEnvelope(), HeatingSystem::HeatPump);

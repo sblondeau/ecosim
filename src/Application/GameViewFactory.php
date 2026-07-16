@@ -155,7 +155,7 @@ final readonly class GameViewFactory
             insulationLabel: $this->envelopeLabel($household->envelope),
             roofInsulated: $household->envelope->roofInsulated,
             wallInsulationLabel: WallInsulation::None === $household->envelope->walls ? '' : $household->envelope->walls->label(),
-            glazingLabel: $household->envelope->glazing->label(),
+            glazingLabel: Glazing::Single === $household->envelope->glazing ? '' : $household->envelope->glazing->label(),
             glazingMaxed: Glazing::Triple === $household->envelope->glazing,
             dpeLetter: $dpe->finalClass->label(),
             dpeEnergyLetter: $dpe->energyClass->label(),

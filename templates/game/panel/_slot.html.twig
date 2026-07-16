@@ -31,7 +31,7 @@
         {% set envelopeDone = [] %}
         {% if game.roofInsulated %}{% set envelopeDone = envelopeDone|merge(['Combles isolés']) %}{% endif %}
         {% if game.wallInsulationLabel is not empty %}{% set envelopeDone = envelopeDone|merge(['Murs — ' ~ game.wallInsulationLabel]) %}{% endif %}
-        {% if game.glazingLabel != 'Simple vitrage' %}{% set envelopeDone = envelopeDone|merge([game.glazingLabel]) %}{% endif %}
+        {% if game.glazingLabel is not empty %}{% set envelopeDone = envelopeDone|merge([game.glazingLabel]) %}{% endif %}
         {% if envelopeDone is not empty %}
             <div class="done-strip">{% for d in envelopeDone %}<span class="done-chip">✔ {{ d }}</span>{% endfor %}</div>
         {% endif %}
