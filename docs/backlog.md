@@ -392,19 +392,28 @@ minimal si on veut l'avancer.
 (branche `docs/arbre-travaux-spec`). Première extension **post-MVP (V1.x)** ;
 le MVP Phase 0-1 reste verrouillé tant que la phase n'est pas ouverte.
 
-> **État d'avancement (juillet 2026)** — **Tranche 1 (enveloppe par surfaces)
-> IMPLÉMENTÉE.** Plan : `docs/specs/2026-07-16-tranche1-enveloppe-plan.md`.
-> `InsulationLevel` (3 paliers) → `EnvelopeState` (combles / murs ITI-ITE /
-> vitrage) ; déperdition agrégée des surfaces (facteur `1 − Σ retraits`
-> sourcés, planché 0,15) ; 4 travaux d'isolation chiffrés et câblés dans le
-> panneau mur ; DPE inchangé (dérive de l'énergie réelle) ; départ F/G
-> préservé. Plafond enveloppe seule ≈ 0,50 (assumé : l'enveloppe seule ne fait
-> pas un BBC). 233 tests verts, revue de branche « ready to merge ».
-> **Reste de l'arbre (tranches à planifier)** : T2 `RenovationAdvisor` +
-> conseils 💡/⚠ (« conseil non bloquant ») · T3 tiroir latéral + séparation
-> lire/agir · T4 chauffage (granulés, émetteurs BT → SCOP) · T5 production &
-> ECS (kit plug-and-play, chauffe-eau thermo) · T6 gestes (rideaux,
-> calfeutrage). Type d'isolant toujours différé Phase 5.
+> **État d'avancement (juillet 2026)** — **Tranches 1 à 3 IMPLÉMENTÉES.**
+>
+> - **T1 — enveloppe par surfaces** (`docs/specs/2026-07-16-tranche1-enveloppe-plan.md`) :
+>   `InsulationLevel` (3 paliers) → `EnvelopeState` (combles / murs ITI-ITE /
+>   vitrage) ; déperdition agrégée (facteur `1 − Σ retraits` sourcés, planché
+>   0,15) ; 4 travaux chiffrés+câblés ; DPE inchangé ; départ F/G préservé ;
+>   plafond enveloppe seule ≈ 0,50 (assumé). 233 tests, « ready to merge ».
+> - **T2+T3 — conseils + tiroir** (`docs/specs/2026-07-16-tranche2-3-conseils-tiroir-plan.md`) :
+>   `RenovationAdvisor` (domaine pur, **non prescriptif** — 2 niveaux 💡 repère /
+>   ⚠ déconseillé-maintenant, pas de ★ ni halo, choix préservés ; seuil 0,70 de
+>   « peu isolée » en calibration de jeu) ; badge de conseil sur `QuoteCard` +
+>   icônes des 4 travaux ; **tiroir latéral scrollable** (`.at-drawer`, règle le
+>   débordement) + séparation lire/agir + bande « ✔ fait » ; note éducative
+>   statique. 246 tests, « ready to merge ». Née d'un retour joueur : panneau de
+>   coin qui débordait, fouillis, pas de pédagogie.
+>
+> **Reste de l'arbre (tranches à planifier)** : T4 chauffage (granulés,
+> émetteurs BT → SCOP) · T5 production & ECS (kit plug-and-play, chauffe-eau
+> thermo) · T6 gestes (rideaux, calfeutrage). Type d'isolant toujours différé
+> Phase 5. **Différés notés** : contexte-décision lire/agir des slots
+> heating/garage/living (fait pour walls, à propager avec T4/T5) ; `glazingMaxed`
+> exposé mais pas encore distingué visuellement.
 
 Répond à la mollesse structurelle du gameplay (décisions one-shot, milieu
 d'année vide) en **multipliant les choix de travaux**, avec pour **rôle premier
