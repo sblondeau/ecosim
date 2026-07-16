@@ -692,7 +692,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 
 ## Task 3: Travaux par surface — enum `Renovation` + coûts + devis
 
-> **Note :** modifier l'enum `Renovation` casse `RenovationQuoter::quote()` (match exhaustif), `_slot.html.twig` (`worksOfSlot`) et les tests → corrigés dans le même commit.
+> **Note :** modifier l'enum `Renovation` casse `RenovationQuoter::quote()` (match exhaustif PHP) et les tests référençant `Renovation::Insulation` → corrigés dans le même commit. **`_slot.html.twig` n'est PAS touché ici** : sa map `worksOfSlot` référence l'ancienne clé sous forme de chaîne (`'insulation'`) — le rendu Twig ne casse pas (le garde `is defined` masque simplement la carte), donc le câblage IHM des 4 nouveaux travaux est fait en **Task 4**. Conséquence assumée : entre Task 3 et Task 4, les 4 travaux existent et sont chiffrés mais ne sont pas encore cliquables (intermédiaire transitoire, comme les travaux neutralisés en Task 2).
 
 **Files:**
 - Modify: `src/Domain/Finance/Renovation.php` (remplace `Insulation` par 4 cas)
