@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Domain\Building\EnvelopeState;
+use App\Domain\Building\Glazing;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
-use App\Domain\Building\InsulationLevel;
+use App\Domain\Building\WallInsulation;
 use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
 use App\Domain\Scenario\PrimoAccedantScenario;
@@ -40,7 +42,7 @@ final readonly class SessionGameStore implements GameStore
      * format is thrown away and the game restarts, instead of being silently
      * rebuilt into a valid-looking but absurd state by the hydrate fallbacks.
      */
-    private const int FORMAT_VERSION = 10;
+    private const int FORMAT_VERSION = 11;
 
     public function __construct(
         private RequestStack $requestStack,
@@ -106,7 +108,11 @@ final readonly class SessionGameStore implements GameStore
         $household = new Household(
             solarKwc: (float) ($data['solarKwc'] ?? 0.0),
             batteryKwh: (float) ($data['batteryKwh'] ?? 0.0),
-            insulation: InsulationLevel::from((string) ($data['insulation'] ?? InsulationLevel::Original->value)),
+            envelope: new EnvelopeState(
+                roofInsulated: (bool) ($data['roofInsulated'] ?? false),
+                walls: WallInsulation::from((string) ($data['walls'] ?? WallInsulation::None->value)),
+                glazing: Glazing::from((string) ($data['glazing'] ?? Glazing::Single->value)),
+            ),
             heatingSystem: HeatingSystem::from((string) ($data['heating'] ?? HeatingSystem::FuelOilBoiler->value)),
             boilerBroken: (bool) ($data['boilerBroken'] ?? false),
             heatingSetpointC: (float) ($data['setpointC'] ?? 19.0),
@@ -160,7 +166,9 @@ final readonly class SessionGameStore implements GameStore
             'currentDay' => $game->state->currentDay,
             'solarKwc' => $game->state->household->solarKwc,
             'batteryKwh' => $game->state->household->batteryKwh,
-            'insulation' => $game->state->household->insulation->value,
+            'roofInsulated' => $game->state->household->envelope->roofInsulated,
+            'walls' => $game->state->household->envelope->walls->value,
+            'glazing' => $game->state->household->envelope->glazing->value,
             'heating' => $game->state->household->heatingSystem->value,
             'boilerBroken' => $game->state->household->boilerBroken,
             'setpointC' => $game->state->household->heatingSetpointC,

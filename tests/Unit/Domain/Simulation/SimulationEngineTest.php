@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\Simulation;
 
+use App\Domain\Building\EnvelopeState;
+use App\Domain\Building\Glazing;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
-use App\Domain\Building\InsulationLevel;
+use App\Domain\Building\WallInsulation;
 use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
 use App\Domain\Simulation\GameConfig;
@@ -29,7 +31,7 @@ final class SimulationEngineTest extends TestCase
 
     private static function passoire(): Household
     {
-        return new Household(3.0, 5.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler);
+        return new Household(3.0, 5.0, new EnvelopeState(false, WallInsulation::None, Glazing::Single), HeatingSystem::FuelOilBoiler);
     }
 
     public function testSnapshotIsDeterministic(): void
@@ -133,8 +135,8 @@ final class SimulationEngineTest extends TestCase
         $engine = new SimulationEngine();
         $config = self::config();
 
-        $fioulHome = new Household(3.0, 5.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler);
-        $heatPumpHome = new Household(3.0, 5.0, InsulationLevel::Original, HeatingSystem::HeatPump);
+        $fioulHome = new Household(3.0, 5.0, new EnvelopeState(false, WallInsulation::None, Glazing::Single), HeatingSystem::FuelOilBoiler);
+        $heatPumpHome = new Household(3.0, 5.0, new EnvelopeState(false, WallInsulation::None, Glazing::Single), HeatingSystem::HeatPump);
 
         $fioul = $engine->snapshot($config, GameState::start($fioulHome, Money::fromEuros(8000.0)));
         $heatPump = $engine->snapshot($config, GameState::start($heatPumpHome, Money::fromEuros(8000.0)));
@@ -212,7 +214,7 @@ final class SimulationEngineTest extends TestCase
     {
         $engine = new SimulationEngine();
         $config = self::config(30);
-        $heatPumpHome = new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::HeatPump);
+        $heatPumpHome = new Household(0.0, 0.0, new EnvelopeState(false, WallInsulation::None, Glazing::Single), HeatingSystem::HeatPump);
         $state = GameState::start($heatPumpHome, Money::fromEuros(4000.0));
 
         while (!$engine->isFinished($config, $state)) {

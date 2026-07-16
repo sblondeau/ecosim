@@ -6,9 +6,11 @@ namespace App\Tests\Unit\Application;
 
 use App\Application\Game;
 use App\Application\TimeKeeper;
+use App\Domain\Building\EnvelopeState;
+use App\Domain\Building\Glazing;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
-use App\Domain\Building\InsulationLevel;
+use App\Domain\Building\WallInsulation;
 use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
 use App\Domain\Simulation\GameConfig;
@@ -26,7 +28,7 @@ final class TimeKeeperTest extends TestCase
         return new Game(
             new GameConfig(seed: 7, epoch: new DateTimeImmutable('2025-01-01'), horizonDays: $horizonDays),
             GameState::start(
-                new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler),
+                new Household(0.0, 0.0, new EnvelopeState(false, WallInsulation::None, Glazing::Single), HeatingSystem::FuelOilBoiler),
                 Money::fromEuros(7750.0),
             ),
             new TimeProgression(new DateTimeImmutable('2026-01-01 12:00:00'), $speed),
@@ -107,7 +109,7 @@ final class TimeKeeperTest extends TestCase
             new GameConfig(seed: 7, epoch: new DateTimeImmutable('2025-01-01'), horizonDays: 365),
             new GameState(
                 $day,
-                new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler),
+                new Household(0.0, 0.0, new EnvelopeState(false, WallInsulation::None, Glazing::Single), HeatingSystem::FuelOilBoiler),
                 0.0,
                 Money::fromEuros(7750.0),
                 Loan::none(),

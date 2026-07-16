@@ -4,17 +4,29 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\Simulation;
 
+use App\Domain\Building\EnvelopeState;
+use App\Domain\Building\Glazing;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
-use App\Domain\Building\InsulationLevel;
+use App\Domain\Building\WallInsulation;
 use App\Domain\Simulation\AnnualOutcomeEstimator;
 use PHPUnit\Framework\TestCase;
 
 final class AnnualOutcomeEstimatorTest extends TestCase
 {
+    private static function original(): EnvelopeState
+    {
+        return new EnvelopeState(false, WallInsulation::None, Glazing::Single);
+    }
+
+    private static function bestEnvelope(): EnvelopeState
+    {
+        return new EnvelopeState(true, WallInsulation::Exterior, Glazing::Triple);
+    }
+
     private static function barePassoire(): Household
     {
-        return new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler);
+        return new Household(0.0, 0.0, self::original(), HeatingSystem::FuelOilBoiler);
     }
 
     public function testTheEstimateIsDeterministic(): void
@@ -43,7 +55,7 @@ final class AnnualOutcomeEstimatorTest extends TestCase
 
         $passoire = $estimator->estimate(self::barePassoire());
         $renovated = $estimator->estimate(
-            new Household(3.0, 5.0, InsulationLevel::Reinforced, HeatingSystem::HeatPump),
+            new Household(3.0, 5.0, self::bestEnvelope(), HeatingSystem::HeatPump),
         );
 
         self::assertLessThan(
@@ -58,8 +70,8 @@ final class AnnualOutcomeEstimatorTest extends TestCase
     {
         $estimator = new AnnualOutcomeEstimator();
 
-        $panelsOnly = $estimator->estimate(new Household(3.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler));
-        $withBattery = $estimator->estimate(new Household(3.0, 5.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler));
+        $panelsOnly = $estimator->estimate(new Household(3.0, 0.0, self::original(), HeatingSystem::FuelOilBoiler));
+        $withBattery = $estimator->estimate(new Household(3.0, 5.0, self::original(), HeatingSystem::FuelOilBoiler));
 
         self::assertGreaterThan(
             $panelsOnly->selfSufficiencyRatio,

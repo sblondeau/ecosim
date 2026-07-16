@@ -22,7 +22,7 @@ final readonly class Household
         public float $solarKwc,
         /** Battery usable capacity, in kWh (0 = none). */
         public float $batteryKwh,
-        public InsulationLevel $insulation,
+        public EnvelopeState $envelope,
         public HeatingSystem $heatingSystem,
         /** The fuel-oil boiler died (scripted event) and delivers no heat until repaired or replaced. */
         public bool $boilerBroken = false,
@@ -44,17 +44,17 @@ final readonly class Household
 
     public function withSolarKwc(float $solarKwc): self
     {
-        return new self($solarKwc, $this->batteryKwh, $this->insulation, $this->heatingSystem, $this->boilerBroken, $this->heatingSetpointC);
+        return new self($solarKwc, $this->batteryKwh, $this->envelope, $this->heatingSystem, $this->boilerBroken, $this->heatingSetpointC);
     }
 
     public function withBatteryKwh(float $batteryKwh): self
     {
-        return new self($this->solarKwc, $batteryKwh, $this->insulation, $this->heatingSystem, $this->boilerBroken, $this->heatingSetpointC);
+        return new self($this->solarKwc, $batteryKwh, $this->envelope, $this->heatingSystem, $this->boilerBroken, $this->heatingSetpointC);
     }
 
-    public function withInsulation(InsulationLevel $insulation): self
+    public function withEnvelope(EnvelopeState $envelope): self
     {
-        return new self($this->solarKwc, $this->batteryKwh, $insulation, $this->heatingSystem, $this->boilerBroken, $this->heatingSetpointC);
+        return new self($this->solarKwc, $this->batteryKwh, $envelope, $this->heatingSystem, $this->boilerBroken, $this->heatingSetpointC);
     }
 
     /**
@@ -62,16 +62,16 @@ final readonly class Household
      */
     public function withHeatingSystem(HeatingSystem $heatingSystem): self
     {
-        return new self($this->solarKwc, $this->batteryKwh, $this->insulation, $heatingSystem, boilerBroken: false, heatingSetpointC: $this->heatingSetpointC);
+        return new self($this->solarKwc, $this->batteryKwh, $this->envelope, $heatingSystem, boilerBroken: false, heatingSetpointC: $this->heatingSetpointC);
     }
 
     public function withBoilerBroken(bool $boilerBroken): self
     {
-        return new self($this->solarKwc, $this->batteryKwh, $this->insulation, $this->heatingSystem, $boilerBroken, $this->heatingSetpointC);
+        return new self($this->solarKwc, $this->batteryKwh, $this->envelope, $this->heatingSystem, $boilerBroken, $this->heatingSetpointC);
     }
 
     public function withHeatingSetpointC(float $heatingSetpointC): self
     {
-        return new self($this->solarKwc, $this->batteryKwh, $this->insulation, $this->heatingSystem, $this->boilerBroken, $heatingSetpointC);
+        return new self($this->solarKwc, $this->batteryKwh, $this->envelope, $this->heatingSystem, $this->boilerBroken, $heatingSetpointC);
     }
 }

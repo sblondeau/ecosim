@@ -37,7 +37,7 @@ final readonly class ThermalComfortCalculator
     ) {
     }
 
-    public function comfortFor(InsulationLevel $insulation, float $outdoorC, ?float $setpointC = null): ThermalComfort
+    public function comfortFor(EnvelopeState $envelope, float $outdoorC, ?float $setpointC = null): ThermalComfort
     {
         $setpoint = $setpointC ?? $this->calibration->heatingSetpointC()->value;
         $balancePoint = $setpoint - $this->calibration->internalHeatGainOffsetC()->value;
@@ -46,7 +46,7 @@ final readonly class ThermalComfortCalculator
         // need it; otherwise the house free-runs at the outdoor mean.
         $indoor = $outdoorC < $balancePoint ? $setpoint : $outdoorC;
 
-        return $this->comfortAt($insulation, $indoor, $outdoorC);
+        return $this->comfortAt($envelope, $indoor, $outdoorC);
     }
 
     /**
@@ -55,15 +55,15 @@ final readonly class ThermalComfortCalculator
      * @param float $internalGainsKwh heat dissipated indoors over the day (base
      *                                electricity use of the household), in kWh
      */
-    public function unheatedComfortFor(InsulationLevel $insulation, float $outdoorC, float $internalGainsKwh): ThermalComfort
+    public function unheatedComfortFor(EnvelopeState $envelope, float $outdoorC, float $internalGainsKwh): ThermalComfort
     {
         if ($outdoorC >= $this->calibration->heatingBaseTemperatureC()->value) {
             // Free-running season: no heating was needed anyway.
-            return $this->comfortFor($insulation, $outdoorC);
+            return $this->comfortFor($envelope, $outdoorC);
         }
 
         $lossPerDegreeDay = $this->calibration->heatLossKwhPerDegreeDay()->value
-            * $this->calibration->insulationFactor($insulation)->value;
+            * $this->calibration->envelopeLossFactor($envelope);
         $gainC = max(0.0, $internalGainsKwh) / $lossPerDegreeDay;
 
         $indoor = min(
@@ -71,12 +71,12 @@ final readonly class ThermalComfortCalculator
             $outdoorC + $gainC,
         );
 
-        return $this->comfortAt($insulation, $indoor, $outdoorC);
+        return $this->comfortAt($envelope, $indoor, $outdoorC);
     }
 
-    private function comfortAt(InsulationLevel $insulation, float $indoorC, float $outdoorC): ThermalComfort
+    private function comfortAt(EnvelopeState $envelope, float $indoorC, float $outdoorC): ThermalComfort
     {
-        $coldWallPenalty = $this->calibration->coldWallPenaltyFactor($insulation)->value
+        $coldWallPenalty = $this->calibration->coldWallPenaltyFactor($envelope)
             * max(0.0, $indoorC - $outdoorC);
         $felt = round($indoorC - $coldWallPenalty, 1);
 

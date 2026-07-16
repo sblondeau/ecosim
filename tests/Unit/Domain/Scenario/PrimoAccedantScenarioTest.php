@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\Scenario;
 
+use App\Domain\Building\Glazing;
 use App\Domain\Building\HeatingSystem;
-use App\Domain\Building\InsulationLevel;
+use App\Domain\Building\WallInsulation;
 use App\Domain\Finance\Renovation;
 use App\Domain\Finance\RenovationQuoter;
 use App\Domain\Scenario\BoilerBreakdownEvent;
@@ -20,9 +21,17 @@ final class PrimoAccedantScenarioTest extends TestCase
 
         self::assertSame(0.0, $household->solarKwc);
         self::assertSame(0.0, $household->batteryKwh);
-        self::assertSame(InsulationLevel::Original, $household->insulation);
         self::assertSame(HeatingSystem::FuelOilBoiler, $household->heatingSystem);
         self::assertFalse($household->boilerBroken, 'The boiler still runs on day 0 — the breakdown is scripted later.');
+    }
+
+    public function testHouseStartsUninsulated(): void
+    {
+        $household = new PrimoAccedantScenario()->initialHousehold();
+
+        self::assertFalse($household->envelope->roofInsulated);
+        self::assertSame(WallInsulation::None, $household->envelope->walls);
+        self::assertSame(Glazing::Single, $household->envelope->glazing);
     }
 
     public function testTheInitialStateCarriesTheCalibratedSavings(): void

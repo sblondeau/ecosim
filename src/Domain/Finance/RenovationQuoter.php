@@ -6,7 +6,6 @@ namespace App\Domain\Finance;
 
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
-use App\Domain\Building\InsulationLevel;
 use App\Domain\Energy\EnergyCalibration;
 
 use function sprintf;
@@ -56,31 +55,8 @@ final readonly class RenovationQuoter
 
     private function insulationQuote(Household $household): ?RenovationQuote
     {
-        [$cost, $target] = match ($household->insulation) {
-            InsulationLevel::Original => [
-                $this->calibration->insulationRetrofitCost(),
-                InsulationLevel::Retrofitted,
-            ],
-            InsulationLevel::Retrofitted => [
-                $this->calibration->insulationReinforceCost(),
-                InsulationLevel::Reinforced,
-            ],
-            InsulationLevel::Reinforced => [null, null],
-        };
-
-        if (null === $cost || null === $target) {
-            return null;
-        }
-
-        $price = Money::fromEuros($cost->value);
-
-        return new RenovationQuote(
-            work: Renovation::Insulation,
-            title: sprintf('Isolation « %s »', $target->label()),
-            cost: $price,
-            subsidy: $this->subsidy->subsidyFor($price),
-            resultingHousehold: $household->withInsulation($target),
-        );
+        // Remplacé par les devis par surface en Task 4 (combles/murs/vitrage).
+        return null;
     }
 
     private function heatPumpQuote(Household $household): ?RenovationQuote

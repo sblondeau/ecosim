@@ -10,7 +10,7 @@ use function round;
 /**
  * Daily heating need of the house, by the standard degree-day method:
  *
- *   need = heatLoss × insulationFactor × max(0, baseTemperature − outdoor)
+ *   need = heatLoss × envelopeLossFactor × max(0, baseTemperature − outdoor)
  *
  * The need is the useful heat the house must receive to hold the setpoint —
  * what it costs to deliver it depends on the heating system
@@ -32,14 +32,14 @@ final readonly class HeatingNeedCalculator
      *
      * @return float useful heat needed for the day, in kWh (0 outside the heating season)
      */
-    public function dailyNeedKwh(InsulationLevel $insulation, float $outdoorC, ?float $setpointC = null): float
+    public function dailyNeedKwh(EnvelopeState $envelope, float $outdoorC, ?float $setpointC = null): float
     {
         $setpoint = $setpointC ?? $this->calibration->heatingSetpointC()->value;
         $base = $setpoint - $this->calibration->internalHeatGainOffsetC()->value;
         $degreeDays = max(0.0, $base - $outdoorC);
 
         $need = $this->calibration->heatLossKwhPerDegreeDay()->value
-            * $this->calibration->insulationFactor($insulation)->value
+            * $this->calibration->envelopeLossFactor($envelope)
             * $degreeDays;
 
         return round($need, 2);

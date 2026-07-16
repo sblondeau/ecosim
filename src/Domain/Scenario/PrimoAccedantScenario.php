@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Scenario;
 
+use App\Domain\Building\EnvelopeState;
+use App\Domain\Building\Glazing;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
-use App\Domain\Building\InsulationLevel;
+use App\Domain\Building\WallInsulation;
 use App\Domain\Finance\FinanceCalibration;
 use App\Domain\Finance\Money;
 use App\Domain\Simulation\GameState;
@@ -58,7 +60,7 @@ final readonly class PrimoAccedantScenario implements Scenario
         return new Household(
             solarKwc: 0.0,
             batteryKwh: 0.0,
-            insulation: InsulationLevel::Original,
+            envelope: new EnvelopeState(false, WallInsulation::None, Glazing::Single),
             heatingSystem: HeatingSystem::FuelOilBoiler,
         );
     }

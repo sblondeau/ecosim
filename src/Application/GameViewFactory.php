@@ -9,9 +9,11 @@ use function abs;
 use App\Domain\Building\BuildingCalibration;
 use App\Domain\Building\DpeCertifier;
 use App\Domain\Building\DpeClass;
+use App\Domain\Building\EnvelopeState;
+use App\Domain\Building\Glazing;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
-use App\Domain\Building\InsulationLevel;
+use App\Domain\Building\WallInsulation;
 use App\Domain\Energy\CarbonAccountant;
 use App\Domain\Energy\EnergyCalibration;
 use App\Domain\Finance\FinanceCalibration;
@@ -43,6 +45,7 @@ use function min;
 use function number_format;
 use function range;
 use function sprintf;
+use function ucfirst;
 
 /**
  * Builds the flat {@see GameView} from the domain state (game-design §3).
@@ -147,7 +150,7 @@ final readonly class GameViewFactory
             setpointBelowHealthy: $household->heatingSetpointC < $this->building->healthySetpointFloorC()->value,
             setpointDownEffectLabel: $this->setpointEffect($household, $currentAnnual, -1.0),
             setpointUpEffectLabel: $this->setpointEffect($household, $currentAnnual, 1.0),
-            insulationLabel: $household->insulation->label(),
+            insulationLabel: $this->envelopeLabel($household->envelope),
             dpeLetter: $dpe->finalClass->label(),
             dpeEnergyLetter: $dpe->energyClass->label(),
             dpeEnergyIntensity: (int) round($dpe->energyIntensity),
@@ -340,12 +343,8 @@ final readonly class GameViewFactory
             roofLabel: $household->solarKwc > 0.0
                 ? sprintf('%.0f kWc', $household->solarKwc)
                 : 'Pas de panneaux',
-            insulationTier: match ($household->insulation) {
-                InsulationLevel::Original => 0,
-                InsulationLevel::Retrofitted => 1,
-                InsulationLevel::Reinforced => 2,
-            },
-            insulationLabel: $household->insulation->label(),
+            insulationTier: $this->insulationTier($household->envelope),
+            insulationLabel: $this->envelopeLabel($household->envelope),
             heatingState: match (true) {
                 $household->boilerBroken => 'fioul-broken',
                 HeatingSystem::HeatPump === $household->heatingSystem => 'heat-pump',
@@ -363,6 +362,34 @@ final readonly class GameViewFactory
                 default => 'warm',
             },
         );
+    }
+
+    private function envelopeLabel(EnvelopeState $envelope): string
+    {
+        $done = [];
+        if ($envelope->roofInsulated) {
+            $done[] = 'combles';
+        }
+        if (WallInsulation::None !== $envelope->walls) {
+            $done[] = 'murs';
+        }
+        if (Glazing::Single !== $envelope->glazing) {
+            $done[] = 'vitrage';
+        }
+
+        return [] === $done ? 'D\'origine' : ucfirst(implode(' + ', $done));
+    }
+
+    /** Visual tier (0|1|2) for the scene shell, from the continuous loss factor. */
+    private function insulationTier(EnvelopeState $envelope): int
+    {
+        $factor = $this->building->envelopeLossFactor($envelope);
+
+        return match (true) {
+            $factor > 0.85 => 0,
+            $factor > 0.60 => 1,
+            default => 2,
+        };
     }
 
     private const int SPARKLINE_DAYS = 30;

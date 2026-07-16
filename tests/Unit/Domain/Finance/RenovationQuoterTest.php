@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\Finance;
 
+use App\Domain\Building\EnvelopeState;
+use App\Domain\Building\Glazing;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
-use App\Domain\Building\InsulationLevel;
+use App\Domain\Building\WallInsulation;
 use App\Domain\Finance\Renovation;
 use App\Domain\Finance\RenovationQuoter;
 use PHPUnit\Framework\TestCase;
@@ -15,27 +17,13 @@ final class RenovationQuoterTest extends TestCase
 {
     private static function barePassoire(): Household
     {
-        return new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler);
+        return new Household(0.0, 0.0, new EnvelopeState(false, WallInsulation::None, Glazing::Single), HeatingSystem::FuelOilBoiler);
     }
 
-    public function testInsulationQuoteDependsOnTheCurrentTier(): void
+    public function testInsulationQuoteIsNeutralizedUntilTheSurfaceWorksLand(): void
     {
-        $quoter = new RenovationQuoter();
-
-        $first = $quoter->quote(Renovation::Insulation, self::barePassoire());
-        self::assertNotNull($first);
-        self::assertSame(15000_00, $first->cost->cents);
-        self::assertSame(InsulationLevel::Retrofitted, $first->resultingHousehold->insulation);
-
-        $second = $quoter->quote(Renovation::Insulation, $first->resultingHousehold);
-        self::assertNotNull($second);
-        self::assertSame(25000_00, $second->cost->cents);
-        self::assertSame(InsulationLevel::Reinforced, $second->resultingHousehold->insulation);
-
-        self::assertNull(
-            $quoter->quote(Renovation::Insulation, $second->resultingHousehold),
-            'Nothing left to insulate at the top tier.',
-        );
+        // réactivé en Task 4 (devis par surface : combles/murs/vitrage).
+        self::assertNull(new RenovationQuoter()->quote(Renovation::Insulation, self::barePassoire()));
     }
 
     public function testSubsidisedWorksGetTheIncomeBracketPrime(): void
@@ -104,7 +92,7 @@ final class RenovationQuoterTest extends TestCase
     public function testAlreadyDoneWorksAreNotQuoted(): void
     {
         $quoter = new RenovationQuoter();
-        $equipped = new Household(3.0, 5.0, InsulationLevel::Original, HeatingSystem::HeatPump);
+        $equipped = new Household(3.0, 5.0, new EnvelopeState(false, WallInsulation::None, Glazing::Single), HeatingSystem::HeatPump);
 
         self::assertNull($quoter->quote(Renovation::SolarPanels, $equipped));
         self::assertNull($quoter->quote(Renovation::HomeBattery, $equipped));

@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Application;
 
 use App\Application\RenovationHandler;
+use App\Domain\Building\EnvelopeState;
+use App\Domain\Building\Glazing;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
-use App\Domain\Building\InsulationLevel;
+use App\Domain\Building\WallInsulation;
 use App\Domain\Finance\Money;
 use App\Domain\Finance\Renovation;
 use App\Domain\Simulation\GameState;
@@ -18,7 +20,7 @@ final class RenovationHandlerTest extends TestCase
     private static function bareState(float $savingsEuros = 8000.0): GameState
     {
         return GameState::start(
-            new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler),
+            new Household(0.0, 0.0, new EnvelopeState(false, WallInsulation::None, Glazing::Single), HeatingSystem::FuelOilBoiler),
             Money::fromEuros($savingsEuros),
         );
     }
@@ -63,7 +65,7 @@ final class RenovationHandlerTest extends TestCase
     public function testUnavailableWorkIsRefused(): void
     {
         $heatPumpHome = GameState::start(
-            new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::HeatPump),
+            new Household(0.0, 0.0, new EnvelopeState(false, WallInsulation::None, Glazing::Single), HeatingSystem::HeatPump),
             Money::fromEuros(8000.0),
         );
 
@@ -75,7 +77,7 @@ final class RenovationHandlerTest extends TestCase
     public function testTheBrokenBoilerCanBeRepairedInCashWithTheStartingSavings(): void
     {
         $broken = GameState::start(
-            new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler, boilerBroken: true),
+            new Household(0.0, 0.0, new EnvelopeState(false, WallInsulation::None, Glazing::Single), HeatingSystem::FuelOilBoiler, boilerBroken: true),
             Money::fromEuros(7750.0), // The recalibrated scenario savings.
         );
 
@@ -89,7 +91,7 @@ final class RenovationHandlerTest extends TestCase
     public function testTheRepairCannotBeFinancedWithTheLoan(): void
     {
         $broken = GameState::start(
-            new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler, boilerBroken: true),
+            new Household(0.0, 0.0, new EnvelopeState(false, WallInsulation::None, Glazing::Single), HeatingSystem::FuelOilBoiler, boilerBroken: true),
             Money::fromEuros(4000.0),
         );
 
@@ -101,18 +103,19 @@ final class RenovationHandlerTest extends TestCase
 
     public function testFullRenovationFitsUnderTheLoanCap(): void
     {
+        // Insulation quotes are neutralized (Renovation::Insulation → null) until
+        // Task 4 restores them as per-surface works — the loan-cap mechanism
+        // itself is exercised with the only remaining loan-eligible work.
         $handler = new RenovationHandler();
         $state = self::bareState();
 
-        foreach ([Renovation::Insulation, Renovation::Insulation, Renovation::HeatPump] as $work) {
+        foreach ([Renovation::HeatPump] as $work) {
             $result = $handler->order($state, $work, RenovationHandler::FINANCING_LOAN);
             self::assertInstanceOf(GameState::class, $result);
             $state = $result;
         }
 
-        // Nets: 9000 + 15000 + 7800 = 31 800 € — under the 50 000 € cap.
-        self::assertSame(31800_00, $state->loan->borrowedTotal->cents);
-        self::assertSame(InsulationLevel::Reinforced, $state->household->insulation);
+        self::assertSame(7800_00, $state->loan->borrowedTotal->cents);
         self::assertSame(HeatingSystem::HeatPump, $state->household->heatingSystem);
     }
 }
