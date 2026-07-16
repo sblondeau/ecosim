@@ -181,25 +181,53 @@ final class FinanceCalibration
     /** Isolation des combles (~100 m² de toiture). */
     public function roofInsulationCost(): Coefficient
     {
-        return new Coefficient(value: 4000.0, unit: '€', min: 2500.0, max: 6000.0, source: 'ADEME : isolation combles ~25-60 €/m²', reviewedOn: '2026-07-16');
+        return new Coefficient(
+            value: 4000.0,
+            unit: '€',
+            min: 2500.0,
+            max: 6000.0,
+            source: 'ADEME : isolation combles ~25-60 €/m²',
+            reviewedOn: '2026-07-16',
+        );
     }
 
     /** Isolation des murs par l'intérieur (ITI). */
     public function wallInsulationInteriorCost(): Coefficient
     {
-        return new Coefficient(value: 9000.0, unit: '€', min: 6000.0, max: 12000.0, source: 'ADEME : ITI ~50-90 €/m² de mur', reviewedOn: '2026-07-16');
+        return new Coefficient(
+            value: 9000.0,
+            unit: '€',
+            min: 6000.0,
+            max: 12000.0,
+            source: 'ADEME : ITI ~50-90 €/m² de mur',
+            reviewedOn: '2026-07-16',
+        );
     }
 
     /** Isolation des murs par l'extérieur (ITE). */
     public function wallInsulationExteriorCost(): Coefficient
     {
-        return new Coefficient(value: 18000.0, unit: '€', min: 12000.0, max: 25000.0, source: 'ADEME : ITE ~110-200 €/m² de mur (ravalement inclus)', reviewedOn: '2026-07-16');
+        return new Coefficient(
+            value: 18000.0,
+            unit: '€',
+            min: 12000.0,
+            max: 25000.0,
+            source: 'ADEME : ITE ~110-200 €/m² de mur (ravalement inclus)',
+            reviewedOn: '2026-07-16',
+        );
     }
 
     /** Remplacement des menuiseries (montée d'un cran de vitrage). */
     public function glazingUpgradeCost(): Coefficient
     {
-        return new Coefficient(value: 8000.0, unit: '€', min: 5000.0, max: 12000.0, source: 'ADEME : remplacement fenêtres ~500-800 €/fenêtre', reviewedOn: '2026-07-16');
+        return new Coefficient(
+            value: 8000.0,
+            unit: '€',
+            min: 5000.0,
+            max: 12000.0,
+            source: 'ADEME : remplacement fenêtres ~500-800 €/fenêtre',
+            reviewedOn: '2026-07-16',
+        );
     }
 
     /** Air/water heat pump, installed (replacing the fuel-oil boiler). */

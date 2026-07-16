@@ -104,6 +104,19 @@ final class GameDashboardTest extends KernelTestCase
         self::assertStringContainsString('éco-PTZ', $component->component()->notice);
     }
 
+    public function testSelectingWallsSlotOffersTheFourEnvelopeWorks(): void
+    {
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        // A brand-new game starts fully uninsulated: all four surface works are quoted.
+        $html = (string) $component->call('selectSlot', ['slot' => 'walls'])->render();
+
+        self::assertStringContainsString('Isolation des combles', $html);
+        self::assertStringContainsString('intérieure (ITI)', $html);
+        self::assertStringContainsString('extérieure (ITE)', $html);
+        self::assertStringContainsString('Menuiseries', $html);
+    }
+
     public function testSuccessfulRenovationInstallsAndNotifies(): void
     {
         $component = $this->createLiveComponent(GameDashboard::class);

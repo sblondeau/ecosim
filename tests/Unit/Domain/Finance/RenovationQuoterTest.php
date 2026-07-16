@@ -37,6 +37,15 @@ final class RenovationQuoterTest extends TestCase
         self::assertNull(new RenovationQuoter()->quote(Renovation::RoofInsulation, $household));
     }
 
+    public function testWallInsulationExteriorQuotedOnUninsulatedWalls(): void
+    {
+        $household = self::barePassoire();
+        $quote = new RenovationQuoter()->quote(Renovation::WallInsulationExterior, $household);
+
+        self::assertNotNull($quote);
+        self::assertSame(WallInsulation::Exterior, $quote->resultingHousehold->envelope->walls);
+    }
+
     public function testWallItiAndIteAreMutuallyExclusive(): void
     {
         $withWalls = self::barePassoire()
