@@ -117,6 +117,28 @@ final class GameDashboardTest extends KernelTestCase
         self::assertStringContainsString('Menuiseries', $html);
     }
 
+    public function testWallsSlotSurfacesTheRoofInsulationAdvice(): void
+    {
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        // A brand-new game is fully uninsulated: the roof-insulation quote
+        // carries its non-prescriptive "best value" advice (💡 badge).
+        $html = (string) $component->call('selectSlot', ['slot' => 'walls'])->render();
+
+        self::assertStringContainsString('gain/prix', $html, 'The roof-insulation advice renders in the walls drawer.');
+    }
+
+    public function testHeatingSlotCautionsAgainstAnOversizedHeatPump(): void
+    {
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        // The house starts poorly insulated (no boiler breakdown yet), so the
+        // heat-pump quote carries the ⚠️ oversizing caution.
+        $html = (string) $component->call('selectSlot', ['slot' => 'heating'])->render();
+
+        self::assertStringContainsString('surdimensionnée', $html, 'The heat-pump caution renders in the heating drawer.');
+    }
+
     public function testSuccessfulRenovationInstallsAndNotifies(): void
     {
         $component = $this->createLiveComponent(GameDashboard::class);

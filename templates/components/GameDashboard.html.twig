@@ -2,7 +2,9 @@
 {% set speed = this.speedValue %}
 {% set selected = this.selectedSlot %}
 {% set slots = ['roof', 'walls', 'heating', 'garage', 'living'] %}
-{# Focused panels anchored to the corner they belong to (slots default to ↘). #}
+{# Focused panels: the four axis corners plus weather/options open as
+   corner/edge popovers; equipment slots (roof/walls/heating/garage/living)
+   are explicitly routed to the scrollable side drawer instead. #}
 {% set panelPos = {
     finances: 'at-tl', comfort: 'at-tr', energy: 'at-bl', patrimoine: 'at-br',
     weather: 'at-top', options: 'at-bottom',
