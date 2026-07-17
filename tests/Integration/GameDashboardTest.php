@@ -180,6 +180,36 @@ final class GameDashboardTest extends KernelTestCase
         self::assertStringContainsString("chauffage électrique d'appoint forcé", $html);
     }
 
+    public function testRoofSlotOffersTheSolarKit(): void
+    {
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        // A brand-new game has no solar at all: the cheap plug-and-play kit is quoted.
+        $html = (string) $component->call('selectSlot', ['slot' => 'roof'])->render();
+
+        self::assertStringContainsString('Kit solaire', $html);
+    }
+
+    public function testGarageSlotOffersTheThermodynamicWaterHeater(): void
+    {
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        // A brand-new game starts on the baseline electric tank: the upgrade is quoted.
+        $html = (string) $component->call('selectSlot', ['slot' => 'garage'])->render();
+
+        self::assertStringContainsString('Chauffe-eau thermodynamique', $html);
+    }
+
+    public function testWallsSlotOffersTheDoubleFlowVentilation(): void
+    {
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        // A brand-new game has no ventilation upgrade yet: the VMC is quoted.
+        $html = (string) $component->call('selectSlot', ['slot' => 'walls'])->render();
+
+        self::assertStringContainsString('VMC double flux', $html);
+    }
+
     public function testSuccessfulRenovationInstallsAndNotifies(): void
     {
         $component = $this->createLiveComponent(GameDashboard::class);

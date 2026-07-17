@@ -13,7 +13,9 @@ use App\Domain\Building\EnvelopeState;
 use App\Domain\Building\Glazing;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
+use App\Domain\Building\Ventilation;
 use App\Domain\Building\WallInsulation;
+use App\Domain\Building\WaterHeater;
 use App\Domain\Energy\CarbonAccountant;
 use App\Domain\Energy\EnergyCalibration;
 use App\Domain\Finance\FinanceCalibration;
@@ -168,6 +170,13 @@ final readonly class GameViewFactory
                     ' ',
                 )
                 : '',
+            hasHeatRecoveryVentilation: Ventilation::DoubleFlow === $household->envelope->ventilation,
+            solarKindLabel: match (true) {
+                $household->solarKwc <= 0.0 => '',
+                $household->solarKwc < $this->energy->defaultSolarPeakPowerKwc()->value => sprintf('Kit solaire · %.1f kWc', $household->solarKwc),
+                default => sprintf('Panneaux solaires · %.0f kWc', $household->solarKwc),
+            },
+            waterHeaterLabel: WaterHeater::Thermodynamic === $household->waterHeater ? $household->waterHeater->label() : '',
             dpeLetter: $dpe->finalClass->label(),
             dpeEnergyLetter: $dpe->energyClass->label(),
             dpeEnergyIntensity: (int) round($dpe->energyIntensity),

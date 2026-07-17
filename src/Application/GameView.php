@@ -151,6 +151,19 @@ final readonly class GameView
          * fitted). Empty when the household isn't on a heat pump.
          */
         public string $heatPumpScopLabel = '',
+        // Ventilation/solar-kind/water-heater "done" flags (renovation tree, T5)
+        /** Heat-recovery (double-flow) ventilation already installed? */
+        public bool $hasHeatRecoveryVentilation = false,
+        /**
+         * The installed solar setup's kind and size ('Kit solaire · 0,9 kWc',
+         * 'Panneaux solaires · 3 kWc'). Empty when no solar is installed yet —
+         * distinct from the scene's plain kWc label, this names the *kind* of
+         * install (plug-and-play kit vs full) for the roof drawer's decision
+         * context (arbre travaux, Tranche 5).
+         */
+        public string $solarKindLabel = '',
+        /** Water-heater label, only when upgraded (thermodynamic) — empty on the baseline electric tank. */
+        public string $waterHeaterLabel = '',
         /**
          * Player-facing explanations of the metrics, keyed by topic. Built
          * from the calibration registry so every number quoted in a tooltip
