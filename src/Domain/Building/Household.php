@@ -28,6 +28,13 @@ final readonly class Household
         public bool $boilerBroken = false,
         /** The thermostat target the player dials (°C). Default 19 (Code de l'énergie R241-26). */
         public float $heatingSetpointC = 19.0,
+        /**
+         * Low-temperature emitters (underfloor heating / oversized BT radiators,
+         * ~35 °C water) instead of the original high-temperature cast-iron
+         * radiators (~65 °C water). Only the heat pump's SCOP is sensitive to
+         * this — a fuel-oil boiler burns the same regardless of emitter.
+         */
+        public bool $lowTempEmitters = false,
     ) {
         if ($solarKwc < 0.0) {
             throw new InvalidArgumentException("Solar power cannot be negative: {$solarKwc}.");
@@ -44,34 +51,40 @@ final readonly class Household
 
     public function withSolarKwc(float $solarKwc): self
     {
-        return new self($solarKwc, $this->batteryKwh, $this->envelope, $this->heatingSystem, $this->boilerBroken, $this->heatingSetpointC);
+        return new self($solarKwc, $this->batteryKwh, $this->envelope, $this->heatingSystem, $this->boilerBroken, $this->heatingSetpointC, $this->lowTempEmitters);
     }
 
     public function withBatteryKwh(float $batteryKwh): self
     {
-        return new self($this->solarKwc, $batteryKwh, $this->envelope, $this->heatingSystem, $this->boilerBroken, $this->heatingSetpointC);
+        return new self($this->solarKwc, $batteryKwh, $this->envelope, $this->heatingSystem, $this->boilerBroken, $this->heatingSetpointC, $this->lowTempEmitters);
     }
 
     public function withEnvelope(EnvelopeState $envelope): self
     {
-        return new self($this->solarKwc, $this->batteryKwh, $envelope, $this->heatingSystem, $this->boilerBroken, $this->heatingSetpointC);
+        return new self($this->solarKwc, $this->batteryKwh, $envelope, $this->heatingSystem, $this->boilerBroken, $this->heatingSetpointC, $this->lowTempEmitters);
     }
 
     /**
      * Replacing the heating system removes the old boiler — broken or not.
+     * The emitters stay in place: they're plumbing, not the generator.
      */
     public function withHeatingSystem(HeatingSystem $heatingSystem): self
     {
-        return new self($this->solarKwc, $this->batteryKwh, $this->envelope, $heatingSystem, boilerBroken: false, heatingSetpointC: $this->heatingSetpointC);
+        return new self($this->solarKwc, $this->batteryKwh, $this->envelope, $heatingSystem, boilerBroken: false, heatingSetpointC: $this->heatingSetpointC, lowTempEmitters: $this->lowTempEmitters);
     }
 
     public function withBoilerBroken(bool $boilerBroken): self
     {
-        return new self($this->solarKwc, $this->batteryKwh, $this->envelope, $this->heatingSystem, $boilerBroken, $this->heatingSetpointC);
+        return new self($this->solarKwc, $this->batteryKwh, $this->envelope, $this->heatingSystem, $boilerBroken, $this->heatingSetpointC, $this->lowTempEmitters);
     }
 
     public function withHeatingSetpointC(float $heatingSetpointC): self
     {
-        return new self($this->solarKwc, $this->batteryKwh, $this->envelope, $this->heatingSystem, $this->boilerBroken, $heatingSetpointC);
+        return new self($this->solarKwc, $this->batteryKwh, $this->envelope, $this->heatingSystem, $this->boilerBroken, $heatingSetpointC, $this->lowTempEmitters);
+    }
+
+    public function withLowTempEmitters(bool $lowTempEmitters): self
+    {
+        return new self($this->solarKwc, $this->batteryKwh, $this->envelope, $this->heatingSystem, $this->boilerBroken, $this->heatingSetpointC, $lowTempEmitters);
     }
 }

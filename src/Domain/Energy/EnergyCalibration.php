@@ -302,18 +302,37 @@ final class EnergyCalibration
     }
 
     /**
-     * Seasonal COP of the single Phase 0-1 heat-pump model, as measured in
-     * real conditions (not the optimistic nameplate figure).
+     * SCOP of the air/water heat pump on high-temperature emitters (old
+     * cast-iron radiators, ~65 °C water) — the scenario's default plumbing.
+     * A heat pump is a system, not a box: sized for a boiler's water
+     * temperature, it runs far from its efficient operating point.
      */
-    public function heatPumpScop(): Coefficient
+    public function heatPumpScopHighTempEmitters(): Coefficient
     {
         return new Coefficient(
-            value: 3.5,
-            unit: 'ratio',
-            min: 2.9,
-            max: 4.3,
-            source: 'ADEME : SCOP mesuré en conditions réelles, PAC air/eau (game-design §12)',
-            reviewedOn: '2025-01-01',
+            value: 2.5,
+            unit: 'SCOP',
+            min: 2.2,
+            max: 2.8,
+            source: 'ADEME / NF PAC : SCOP dégradé sur émetteurs haute température (~55-65 °C)',
+            reviewedOn: '2026-07-17',
+        );
+    }
+
+    /**
+     * SCOP on low-temperature emitters (underfloor heating / oversized BT
+     * radiators, ~35 °C water) — the nominal, sourced figure the heat pump
+     * was designed around.
+     */
+    public function heatPumpScopLowTempEmitters(): Coefficient
+    {
+        return new Coefficient(
+            value: 4.3,
+            unit: 'SCOP',
+            min: 4.0,
+            max: 4.6,
+            source: 'ADEME / NF PAC : SCOP nominal sur émetteurs basse température (~35 °C)',
+            reviewedOn: '2026-07-17',
         );
     }
 }

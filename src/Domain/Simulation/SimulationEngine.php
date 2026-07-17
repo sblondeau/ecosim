@@ -83,6 +83,7 @@ final readonly class SimulationEngine
             : $this->heatingEnergy->consumptionFor(
                 $household->heatingSystem,
                 $this->heatingNeed->dailyNeedKwh($household->envelope, $weather->temperatureC, $household->heatingSetpointC),
+                $household->lowTempEmitters,
             );
 
         $demand = $baseDemand + $heating->electricityKwh;

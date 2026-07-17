@@ -90,4 +90,34 @@ final class HouseholdTest extends TestCase
         self::assertSame(WallInsulation::Exterior, $renovated->envelope->walls);
         self::assertSame(HeatingSystem::FuelOilBoiler, $renovated->heatingSystem);
     }
+
+    public function testLowTempEmittersDefaultToFalseAndCanBeSet(): void
+    {
+        $household = new Household(0.0, 0.0, $this->original(), HeatingSystem::FuelOilBoiler);
+        self::assertFalse($household->lowTempEmitters, 'Default: original high-temperature radiators.');
+
+        $upgraded = $household->withLowTempEmitters(true);
+        self::assertTrue($upgraded->lowTempEmitters);
+        self::assertFalse($household->lowTempEmitters, 'original untouched');
+    }
+
+    public function testChangingHeatingSystemPreservesTheEmitters(): void
+    {
+        $lowTemp = new Household(0.0, 0.0, $this->original(), HeatingSystem::FuelOilBoiler, lowTempEmitters: true);
+
+        $heatPumpHome = $lowTemp->withHeatingSystem(HeatingSystem::HeatPump);
+
+        self::assertTrue($heatPumpHome->lowTempEmitters, 'Emitters are plumbing, not the generator — they stay when the boiler is swapped.');
+    }
+
+    public function testOtherWithersCarryTheLowTempEmittersFlag(): void
+    {
+        $lowTemp = new Household(0.0, 0.0, $this->original(), HeatingSystem::FuelOilBoiler, lowTempEmitters: true);
+
+        self::assertTrue($lowTemp->withSolarKwc(3.0)->lowTempEmitters);
+        self::assertTrue($lowTemp->withBatteryKwh(5.0)->lowTempEmitters);
+        self::assertTrue($lowTemp->withEnvelope(new EnvelopeState(true, WallInsulation::Interior, Glazing::Double))->lowTempEmitters);
+        self::assertTrue($lowTemp->withBoilerBroken(true)->lowTempEmitters);
+        self::assertTrue($lowTemp->withHeatingSetpointC(21.0)->lowTempEmitters);
+    }
 }

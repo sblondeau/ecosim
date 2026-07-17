@@ -100,6 +100,17 @@ final class SessionGameStoreTest extends TestCase
         self::assertTrue($this->store->current()->state->household->boilerBroken);
     }
 
+    public function testRoundTripsTheLowTempEmittersFlag(): void
+    {
+        $config = new GameConfig(seed: 42, epoch: new DateTimeImmutable('2025-01-01'), horizonDays: 10);
+        $lowTemp = new Household(0.0, 0.0, new EnvelopeState(false, WallInsulation::None, Glazing::Single), HeatingSystem::HeatPump, lowTempEmitters: true);
+
+        $progression = new TimeProgression(new DateTimeImmutable('@1750000000'), TickSpeed::Normal);
+        $this->store->save(new Game($config, GameState::start($lowTemp, Money::fromEuros(4000.0)), $progression));
+
+        self::assertTrue($this->store->current()->state->household->lowTempEmitters);
+    }
+
     public function testResetsWhenTheStoredFormatVersionMismatches(): void
     {
         // A pre-versioning payload (or any older format): day 99, no/old version key.
