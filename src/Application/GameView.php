@@ -142,6 +142,10 @@ final readonly class GameView
         public string $glazingLabel = '',
         /** Glazing already at its best tier (triple)? */
         public bool $glazingMaxed = false,
+        /** Draught-proofing (joints/calfeutrage) already done? */
+        public bool $hasDraughtProofing = false,
+        /** Thermal curtains already hung? */
+        public bool $hasThermalCurtains = false,
         // Heating "done" flags (renovation tree)
         /** Low-temperature emitters (underfloor/oversized radiators) already installed? */
         public bool $hasLowTempEmitters = false,

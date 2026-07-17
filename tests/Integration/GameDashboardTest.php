@@ -200,6 +200,17 @@ final class GameDashboardTest extends KernelTestCase
         self::assertStringContainsString('Chauffe-eau thermodynamique', $html);
     }
 
+    public function testLivingSlotOffersTheDraughtProofingAndThermalCurtainsGestures(): void
+    {
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        // A brand-new game starts with neither daily gesture done: both are quoted.
+        $html = (string) $component->call('selectSlot', ['slot' => 'living'])->render();
+
+        self::assertStringContainsString('Calfeutrage', $html);
+        self::assertStringContainsString('Rideaux thermiques', $html);
+    }
+
     public function testWallsSlotOffersTheDoubleFlowVentilation(): void
     {
         $component = $this->createLiveComponent(GameDashboard::class);
