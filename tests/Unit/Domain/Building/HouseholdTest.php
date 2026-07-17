@@ -9,6 +9,7 @@ use App\Domain\Building\Glazing;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
 use App\Domain\Building\WallInsulation;
+use App\Domain\Building\WaterHeater;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
@@ -119,5 +120,28 @@ final class HouseholdTest extends TestCase
         self::assertTrue($lowTemp->withEnvelope(new EnvelopeState(true, WallInsulation::Interior, Glazing::Double))->lowTempEmitters);
         self::assertTrue($lowTemp->withBoilerBroken(true)->lowTempEmitters);
         self::assertTrue($lowTemp->withHeatingSetpointC(21.0)->lowTempEmitters);
+    }
+
+    public function testWaterHeaterDefaultsToElectricTankAndCanBeSet(): void
+    {
+        $household = new Household(0.0, 0.0, $this->original(), HeatingSystem::FuelOilBoiler);
+        self::assertSame(WaterHeater::ElectricTank, $household->waterHeater, 'Default: electric tank, baked into the base demand.');
+
+        $thermo = $household->withWaterHeater(WaterHeater::Thermodynamic);
+        self::assertSame(WaterHeater::Thermodynamic, $thermo->waterHeater);
+        self::assertSame(WaterHeater::ElectricTank, $household->waterHeater, 'original untouched');
+    }
+
+    public function testOtherWithersCarryTheWaterHeaterChoice(): void
+    {
+        $thermo = new Household(0.0, 0.0, $this->original(), HeatingSystem::FuelOilBoiler, waterHeater: WaterHeater::Thermodynamic);
+
+        self::assertSame(WaterHeater::Thermodynamic, $thermo->withSolarKwc(3.0)->waterHeater);
+        self::assertSame(WaterHeater::Thermodynamic, $thermo->withBatteryKwh(5.0)->waterHeater);
+        self::assertSame(WaterHeater::Thermodynamic, $thermo->withEnvelope(new EnvelopeState(true, WallInsulation::Interior, Glazing::Double))->waterHeater);
+        self::assertSame(WaterHeater::Thermodynamic, $thermo->withHeatingSystem(HeatingSystem::HeatPump)->waterHeater, 'Replacing the heating system does not touch the water heater.');
+        self::assertSame(WaterHeater::Thermodynamic, $thermo->withBoilerBroken(false)->waterHeater);
+        self::assertSame(WaterHeater::Thermodynamic, $thermo->withHeatingSetpointC(21.0)->waterHeater);
+        self::assertSame(WaterHeater::Thermodynamic, $thermo->withLowTempEmitters(true)->waterHeater);
     }
 }

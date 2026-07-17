@@ -35,6 +35,8 @@ final readonly class Household
          * this — a fuel-oil boiler burns the same regardless of emitter.
          */
         public bool $lowTempEmitters = false,
+        /** How domestic hot water (ECS) is produced. Default electric tank (baked into the base demand). */
+        public WaterHeater $waterHeater = WaterHeater::ElectricTank,
     ) {
         if ($solarKwc < 0.0) {
             throw new InvalidArgumentException("Solar power cannot be negative: {$solarKwc}.");
@@ -51,17 +53,17 @@ final readonly class Household
 
     public function withSolarKwc(float $solarKwc): self
     {
-        return new self($solarKwc, $this->batteryKwh, $this->envelope, $this->heatingSystem, $this->boilerBroken, $this->heatingSetpointC, $this->lowTempEmitters);
+        return new self($solarKwc, $this->batteryKwh, $this->envelope, $this->heatingSystem, $this->boilerBroken, $this->heatingSetpointC, $this->lowTempEmitters, $this->waterHeater);
     }
 
     public function withBatteryKwh(float $batteryKwh): self
     {
-        return new self($this->solarKwc, $batteryKwh, $this->envelope, $this->heatingSystem, $this->boilerBroken, $this->heatingSetpointC, $this->lowTempEmitters);
+        return new self($this->solarKwc, $batteryKwh, $this->envelope, $this->heatingSystem, $this->boilerBroken, $this->heatingSetpointC, $this->lowTempEmitters, $this->waterHeater);
     }
 
     public function withEnvelope(EnvelopeState $envelope): self
     {
-        return new self($this->solarKwc, $this->batteryKwh, $envelope, $this->heatingSystem, $this->boilerBroken, $this->heatingSetpointC, $this->lowTempEmitters);
+        return new self($this->solarKwc, $this->batteryKwh, $envelope, $this->heatingSystem, $this->boilerBroken, $this->heatingSetpointC, $this->lowTempEmitters, $this->waterHeater);
     }
 
     /**
@@ -70,21 +72,26 @@ final readonly class Household
      */
     public function withHeatingSystem(HeatingSystem $heatingSystem): self
     {
-        return new self($this->solarKwc, $this->batteryKwh, $this->envelope, $heatingSystem, boilerBroken: false, heatingSetpointC: $this->heatingSetpointC, lowTempEmitters: $this->lowTempEmitters);
+        return new self($this->solarKwc, $this->batteryKwh, $this->envelope, $heatingSystem, boilerBroken: false, heatingSetpointC: $this->heatingSetpointC, lowTempEmitters: $this->lowTempEmitters, waterHeater: $this->waterHeater);
     }
 
     public function withBoilerBroken(bool $boilerBroken): self
     {
-        return new self($this->solarKwc, $this->batteryKwh, $this->envelope, $this->heatingSystem, $boilerBroken, $this->heatingSetpointC, $this->lowTempEmitters);
+        return new self($this->solarKwc, $this->batteryKwh, $this->envelope, $this->heatingSystem, $boilerBroken, $this->heatingSetpointC, $this->lowTempEmitters, $this->waterHeater);
     }
 
     public function withHeatingSetpointC(float $heatingSetpointC): self
     {
-        return new self($this->solarKwc, $this->batteryKwh, $this->envelope, $this->heatingSystem, $this->boilerBroken, $heatingSetpointC, $this->lowTempEmitters);
+        return new self($this->solarKwc, $this->batteryKwh, $this->envelope, $this->heatingSystem, $this->boilerBroken, $heatingSetpointC, $this->lowTempEmitters, $this->waterHeater);
     }
 
     public function withLowTempEmitters(bool $lowTempEmitters): self
     {
-        return new self($this->solarKwc, $this->batteryKwh, $this->envelope, $this->heatingSystem, $this->boilerBroken, $this->heatingSetpointC, $lowTempEmitters);
+        return new self($this->solarKwc, $this->batteryKwh, $this->envelope, $this->heatingSystem, $this->boilerBroken, $this->heatingSetpointC, $lowTempEmitters, $this->waterHeater);
+    }
+
+    public function withWaterHeater(WaterHeater $waterHeater): self
+    {
+        return new self($this->solarKwc, $this->batteryKwh, $this->envelope, $this->heatingSystem, $this->boilerBroken, $this->heatingSetpointC, $this->lowTempEmitters, $waterHeater);
     }
 }

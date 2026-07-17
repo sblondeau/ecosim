@@ -10,6 +10,7 @@ use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
 use App\Domain\Building\Ventilation;
 use App\Domain\Building\WallInsulation;
+use App\Domain\Building\WaterHeater;
 use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
 use App\Domain\Scenario\PrimoAccedantScenario;
@@ -119,6 +120,7 @@ final readonly class SessionGameStore implements GameStore
             boilerBroken: (bool) ($data['boilerBroken'] ?? false),
             heatingSetpointC: (float) ($data['setpointC'] ?? 19.0),
             lowTempEmitters: (bool) ($data['lowTempEmitters'] ?? false),
+            waterHeater: WaterHeater::from((string) ($data['waterHeater'] ?? WaterHeater::ElectricTank->value)),
         );
 
         $state = new GameState(
@@ -179,6 +181,7 @@ final readonly class SessionGameStore implements GameStore
             'boilerBroken' => $game->state->household->boilerBroken,
             'setpointC' => $game->state->household->heatingSetpointC,
             'lowTempEmitters' => $game->state->household->lowTempEmitters,
+            'waterHeater' => $game->state->household->waterHeater->value,
             'batteryLevelKwh' => $game->state->batteryLevelKwh,
             'savingsCents' => $game->state->savings->cents,
             'loanRemainingCents' => $game->state->loan->remaining->cents,

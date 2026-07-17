@@ -74,7 +74,7 @@ final readonly class SimulationEngine
         $weather = $this->weather->for($config->seed, $date);
 
         $production = $this->solar->dailyProductionKwh($household->solarKwc, $weather, $date);
-        $baseDemand = $this->baseDemand->dailyDemandKwh($config->seed, $date);
+        $baseDemand = $this->baseDemand->dailyDemandKwh($config->seed, $date, $household->waterHeater);
 
         // A broken boiler forces the emergency electric heaters (not a choice:
         // nobody lives at 4 °C) — Joule heating pours into the electric loop.

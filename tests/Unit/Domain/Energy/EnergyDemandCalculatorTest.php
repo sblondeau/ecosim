@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\Energy;
 
+use App\Domain\Building\WaterHeater;
 use App\Domain\Energy\EnergyDemandCalculator;
 use App\Domain\Time\GameDate;
 
@@ -77,5 +78,26 @@ final class EnergyDemandCalculatorTest extends TestCase
         }
 
         return $sum / $days;
+    }
+
+    public function testThermodynamicWaterHeaterCutsEcsElectricity(): void
+    {
+        $calc = new EnergyDemandCalculator();
+        $date = GameDate::fromDayIndex(new DateTimeImmutable('2025-06-15'), 100);
+        $electric = $calc->dailyDemandKwh(42, $date, WaterHeater::ElectricTank);
+        $thermo = $calc->dailyDemandKwh(42, $date, WaterHeater::Thermodynamic);
+        // économie = 2,5 × (1 − 1/3) = 1,666… → arrondi 2 décimales sur chaque terme
+        self::assertEqualsWithDelta(1.67, $electric - $thermo, 0.02);
+    }
+
+    public function testElectricTankKeepsTheBaselineDemand(): void
+    {
+        // le ballon électrique NE change PAS la demande (référence à 10 kWh) → non régressif
+        $calc = new EnergyDemandCalculator();
+        $date = GameDate::fromDayIndex(new DateTimeImmutable('2025-06-15'), 100);
+        self::assertSame(
+            $calc->dailyDemandKwh(42, $date, WaterHeater::ElectricTank),
+            $calc->dailyDemandKwh(42, $date), // défaut = ElectricTank
+        );
     }
 }

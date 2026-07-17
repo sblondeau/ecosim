@@ -12,6 +12,7 @@ use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
 use App\Domain\Building\Ventilation;
 use App\Domain\Building\WallInsulation;
+use App\Domain\Building\WaterHeater;
 use App\Domain\Finance\Money;
 use App\Domain\Simulation\DailySnapshot;
 use App\Domain\Simulation\GameConfig;
@@ -129,6 +130,32 @@ final class SessionGameStoreTest extends TestCase
         $this->store->save(new Game($config, GameState::start($lowTemp, Money::fromEuros(4000.0)), $progression));
 
         self::assertTrue($this->store->current()->state->household->lowTempEmitters);
+    }
+
+    public function testRoundTripsTheWaterHeaterChoice(): void
+    {
+        $config = new GameConfig(seed: 42, epoch: new DateTimeImmutable('2025-01-01'), horizonDays: 10);
+        $thermo = new Household(0.0, 0.0, new EnvelopeState(false, WallInsulation::None, Glazing::Single), HeatingSystem::FuelOilBoiler, waterHeater: WaterHeater::Thermodynamic);
+
+        $progression = new TimeProgression(new DateTimeImmutable('@1750000000'), TickSpeed::Normal);
+        $this->store->save(new Game($config, GameState::start($thermo, Money::fromEuros(4000.0)), $progression));
+
+        self::assertSame(WaterHeater::Thermodynamic, $this->store->current()->state->household->waterHeater);
+    }
+
+    public function testOlderSessionsWithoutAWaterHeaterKeyFallBackToElectricTank(): void
+    {
+        // FORMAT_VERSION 13 predates the 'waterHeater' key within the same tranche
+        // (added in Task 4, no extra version bump) — the fallback must still hydrate cleanly.
+        $this->session->set(self::SESSION_KEY, [
+            'version' => 13,
+            'seed' => 1,
+            'epoch' => '2025-01-01',
+            'horizonDays' => 365,
+            'currentDay' => 5,
+        ]);
+
+        self::assertSame(WaterHeater::ElectricTank, $this->store->current()->state->household->waterHeater);
     }
 
     public function testResetsWhenTheStoredFormatVersionMismatches(): void

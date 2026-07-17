@@ -385,4 +385,39 @@ final class EnergyCalibration
     {
         return new Coefficient(value: 1.0, unit: 'factor', min: 1.0, max: 1.0, source: 'Méthode DPE 2021 : coefficient d\'énergie primaire biomasse = 1,0', reviewedOn: '2026-07-17');
     }
+
+    /**
+     * Daily heat delivered as domestic hot water (ECS), electric share — the
+     * baseline `householdDailyBaseDemandKwh` already bakes this in as pure
+     * resistive (electric-tank) heating. A thermodynamic water heater does not
+     * need less heat; it produces the same heat more efficiently (below).
+     */
+    public function householdDailyEcsHeatKwh(): Coefficient
+    {
+        return new Coefficient(
+            value: 2.5,
+            unit: 'kWh/day',
+            min: 2.0,
+            max: 3.0,
+            source: 'ADEME : consommation ECS électrique d\'un foyer ≈ 900 kWh/an (≈2,5 kWh/j)',
+            reviewedOn: '2026-07-17',
+        );
+    }
+
+    /**
+     * COP of a thermodynamic water heater (small heat pump on the hot-water
+     * tank): 1 kWh electricity moves this many kWh of heat, versus 1:1 for a
+     * plain resistive electric tank.
+     */
+    public function waterHeaterThermodynamicCop(): Coefficient
+    {
+        return new Coefficient(
+            value: 3.0,
+            unit: 'COP',
+            min: 2.5,
+            max: 3.5,
+            source: 'ADEME : COP d\'un chauffe-eau thermodynamique ≈ 2,5-3,5',
+            reviewedOn: '2026-07-17',
+        );
+    }
 }
