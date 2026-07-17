@@ -424,11 +424,24 @@ le MVP Phase 0-1 reste verrouillé tant que la phase n'est pas ouverte.
 >   l'ECS (réduit la demande, défaut ballon élec non régressif). 3 travaux
 >   câblés + conseils ; lire/agir des slots roof/garage comblé. 291 tests.
 >
-> **Reste de l'arbre : T6 gestes (rideaux, calfeutrage)** = **dernière tranche**
-> de l'arbre resserré. Type d'isolant toujours différé Phase 5. **Différés
-> notés** : lire/agir du slot **living** (fait pour walls/heating/roof/garage) ;
-> `glazingMaxed` non distingué visuellement ; **visuel de scène** du pellet et
-> de la VMC (rendus par défaut, assets à faire) ; VMC simple flux différée.
+> - **T6 — gestes du quotidien** (`docs/specs/2026-07-17-tranche6-gestes-plan.md`) :
+>   **calfeutrage** (−0,04 perte, 80 €) + **rideaux thermiques** (−0,02 paroi
+>   froide, 120 €) sur `EnvelopeState`, **non subventionnés**. Conseils Info
+>   **anti-théâtre** (« geste bon marché… pas un gros levier ») — les magnitudes
+>   sont honnêtement petites vs les gros travaux. Zone séjour (dernier lire/agir
+>   comblé). 300 tests.
+>
+> **✅ ARBRE RESSERRÉ COMPLET (T1 → T6).** Le premier arbre de travaux
+> (game-design / spec `2026-07-15-arbre-travaux-design.md`) est entièrement
+> implémenté.
+>
+> **Pistes futures (backlog, hors arbre resserré)** : **carbone gris +
+> hiérarchie des leviers** (voir « Consommation par usage » ci-dessous) ;
+> conso par usage (électroménager/veille) ; **T2 dynamisme** (prix variables,
+> politiques + points d'arrêt) ; réalisme financier dans le temps (délais/dette,
+> voir remarque éco-PTZ) ; type d'isolant (Phase 5) ; VMC simple flux ;
+> **visuels de scène** du pellet et de la VMC (rendus par défaut, assets à
+> faire) ; distinction visuelle `glazingMaxed`.
 
 Répond à la mollesse structurelle du gameplay (décisions one-shot, milieu
 d'année vide) en **multipliant les choix de travaux**, avec pour **rôle premier
