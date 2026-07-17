@@ -21,6 +21,8 @@ final readonly class DailyBill
         public Money $fuelOilCost,
         /** Surplus sold to the grid today (a credit). */
         public Money $surplusRevenue,
+        /** Wood pellets burnt today (pellet boiler). */
+        public Money $pelletCost = new Money(0),
     ) {
     }
 
@@ -35,6 +37,6 @@ final readonly class DailyBill
      */
     public function netCost(): Money
     {
-        return $this->electricityCost->plus($this->fuelOilCost)->minus($this->surplusRevenue);
+        return $this->electricityCost->plus($this->fuelOilCost)->plus($this->pelletCost)->minus($this->surplusRevenue);
     }
 }

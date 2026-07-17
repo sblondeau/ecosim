@@ -64,6 +64,21 @@ final class FinanceCalibration
     }
 
     /**
+     * Wood pellet price (delivered), per kilogram.
+     */
+    public function pelletPricePerKg(): Coefficient
+    {
+        return new Coefficient(
+            value: 0.34,
+            unit: '€/kg',
+            min: 0.28,
+            max: 0.50,
+            source: 'ADEME / Propellet : prix granulés ~280-500 €/tonne (volatil)',
+            reviewedOn: '2026-07-17',
+        );
+    }
+
+    /**
      * Net monthly income of the scenario household (young couple, modest).
      */
     public function monthlyNetIncome(): Coefficient
