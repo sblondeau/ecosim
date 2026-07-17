@@ -140,6 +140,8 @@ final readonly class SessionGameStore implements GameStore
                 fuelOilCost: Money::fromCents((int) ($data['fuelCostCents'] ?? 0)),
                 surplusRevenue: Money::fromCents((int) ($data['revenueCents'] ?? 0)),
                 days: max(0, (int) ($data['daysLived'] ?? 0)),
+                pelletKg: (float) ($data['totalPellet'] ?? 0.0),
+                pelletCost: Money::fromCents((int) ($data['pelletCostCents'] ?? 0)),
             ),
         );
 
@@ -189,6 +191,8 @@ final readonly class SessionGameStore implements GameStore
             'fuelCostCents' => $game->state->totals->fuelOilCost->cents,
             'revenueCents' => $game->state->totals->surplusRevenue->cents,
             'daysLived' => $game->state->totals->days,
+            'totalPellet' => $game->state->totals->pelletKg,
+            'pelletCostCents' => $game->state->totals->pelletCost->cents,
         ];
     }
 }

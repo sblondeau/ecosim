@@ -100,6 +100,23 @@ final class SessionGameStoreTest extends TestCase
         self::assertTrue($this->store->current()->state->household->boilerBroken);
     }
 
+    public function testRoundTripsCumulativePelletTotals(): void
+    {
+        $config = new GameConfig(seed: 42, epoch: new DateTimeImmutable('2025-01-01'), horizonDays: 10);
+        $household = new Household(0.0, 0.0, new EnvelopeState(false, WallInsulation::None, Glazing::Single), HeatingSystem::PelletBoiler);
+        $state = GameState::start($household, Money::fromEuros(8000.0))->advanced($this->someDay($config, $household));
+
+        self::assertGreaterThan(0.0, $state->totals->pelletKg, 'Sanity check: the pellet boiler burns pellets on a lived day.');
+        self::assertGreaterThan(0, $state->totals->pelletCost->cents, 'Sanity check: burning pellets costs money.');
+
+        $progression = new TimeProgression(new DateTimeImmutable('@1750000000'), TickSpeed::Normal);
+        $this->store->save(new Game($config, $state, $progression));
+        $loaded = $this->store->current();
+
+        self::assertSame($state->totals->pelletKg, $loaded->state->totals->pelletKg);
+        self::assertSame($state->totals->pelletCost->cents, $loaded->state->totals->pelletCost->cents);
+    }
+
     public function testRoundTripsTheLowTempEmittersFlag(): void
     {
         $config = new GameConfig(seed: 42, epoch: new DateTimeImmutable('2025-01-01'), horizonDays: 10);
