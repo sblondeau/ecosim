@@ -12,9 +12,10 @@ use App\Domain\Building\Household;
  * Non-prescriptive advice about renovations (game-design: pédagogie par les
  * systèmes, pas de dirigisme). For an available work and the current house,
  * returns an informative repère (Info) or a caution against a genuine
- * sequencing mistake (Caution) — never a "do this next". Only two situations
- * warrant a caution: a heat pump in a poorly-insulated house, and glazing
- * prioritised before the envelope is treated. Pure and deterministic.
+ * sequencing mistake (Caution) — never a "do this next". A caution is reserved
+ * for the few real ordering mistakes: a heat pump in a poorly-insulated house,
+ * glazing prioritised before the envelope is treated, and double-flow
+ * ventilation installed before the envelope is insulated. Pure and deterministic.
  */
 final readonly class RenovationAdvisor
 {

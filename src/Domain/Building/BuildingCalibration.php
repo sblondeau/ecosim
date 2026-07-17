@@ -184,7 +184,7 @@ final class BuildingCalibration
     /** Plancher du facteur de déperdition (au-delà, l'enveloppe seule ne descend pas — plancher/étanchéité, phases suivantes). */
     public function envelopeLossFloor(): Coefficient
     {
-        return new Coefficient(value: 0.15, unit: 'fraction', min: 0.10, max: 0.20, source: 'Calibration de jeu : plancher physique, l\'enveloppe seule ne fait pas un BBC (résiduel ventilation/plancher/ponts)', reviewedOn: '2026-07-16');
+        return new Coefficient(value: 0.15, unit: 'fraction', min: 0.10, max: 0.20, source: 'Calibration de jeu : plancher physique, l\'enveloppe seule ne fait pas un BBC (résiduel plancher/ponts/étanchéité ; la ventilation est désormais modélisée)', reviewedOn: '2026-07-16');
     }
 
     /**

@@ -416,12 +416,19 @@ le MVP Phase 0-1 reste verrouillé tant que la phase n'est pas ouverte.
 >   granulés exclusifs) ; 2 travaux chiffrés+câblés + conseils non prescriptifs ;
 >   tiroir chauffage lire/agir. Bascule SCOP assumée (PAC seule = 2,5). 270 tests.
 >
-> **Reste de l'arbre (tranches à planifier)** : T5 ventilation (VMC) + production
-> & ECS (kit plug-and-play, chauffe-eau thermo) · T6 gestes (rideaux,
-> calfeutrage). Type d'isolant toujours différé Phase 5. **Différés notés** :
-> contexte-décision lire/agir des slots **garage/living** (fait pour walls +
-> heating, à propager avec T5) ; `glazingMaxed` non distingué visuellement ;
-> **visuel de scène du pellet** (rendu comme le fioul, asset à faire).
+> - **T5 — ventilation + production + ECS** (`docs/specs/2026-07-17-tranche5-ventilation-production-ecs-plan.md`) :
+>   **VMC double flux** = 4ᵉ surface d'enveloppe (récupère la chaleur, −0,14 ;
+>   rouvre le chemin sous 0,50) + conseil « à poser après avoir isolé » ; **kit
+>   solaire plug-and-play** (0,9 kWc, 800 €, sans installateur ni aide ; upgrade
+>   vers l'installation complète) ; **chauffe-eau thermodynamique** = découpe de
+>   l'ECS (réduit la demande, défaut ballon élec non régressif). 3 travaux
+>   câblés + conseils ; lire/agir des slots roof/garage comblé. 291 tests.
+>
+> **Reste de l'arbre : T6 gestes (rideaux, calfeutrage)** = **dernière tranche**
+> de l'arbre resserré. Type d'isolant toujours différé Phase 5. **Différés
+> notés** : lire/agir du slot **living** (fait pour walls/heating/roof/garage) ;
+> `glazingMaxed` non distingué visuellement ; **visuel de scène** du pellet et
+> de la VMC (rendus par défaut, assets à faire) ; VMC simple flux différée.
 
 Répond à la mollesse structurelle du gameplay (décisions one-shot, milieu
 d'année vide) en **multipliant les choix de travaux**, avec pour **rôle premier
