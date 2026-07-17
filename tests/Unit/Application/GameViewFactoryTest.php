@@ -10,6 +10,7 @@ use App\Domain\Building\EnvelopeState;
 use App\Domain\Building\Glazing;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
+use App\Domain\Building\Ventilation;
 use App\Domain\Building\WallInsulation;
 use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
@@ -43,6 +44,12 @@ final class GameViewFactoryTest extends TestCase
     private static function bestEnvelope(): EnvelopeState
     {
         return new EnvelopeState(true, WallInsulation::Exterior, Glazing::Triple);
+    }
+
+    /** Roof + walls (ITE) + double glazing + VMC double flux + curtains, no draught-proofing. */
+    private static function perSurfaceRenovatedEnvelope(): EnvelopeState
+    {
+        return new EnvelopeState(true, WallInsulation::Exterior, Glazing::Double, Ventilation::DoubleFlow, draughtProofed: false, thermalCurtains: true);
     }
 
     private static function passoire(): Household
@@ -219,8 +226,7 @@ final class GameViewFactoryTest extends TestCase
         self::assertSame('winter', $scene->season);
         self::assertGreaterThanOrEqual(0.0, $scene->sunElevationRatio);
         self::assertLessThan(0.2, $scene->sunElevationRatio, 'Mid-January sits close to the winter-solstice minimum (ratio 0).');
-        self::assertSame('empty', $scene->roofState);
-        self::assertSame(0, $scene->insulationTier);
+        self::assertSame('empty', $scene->solarState);
         self::assertSame('fioul', $scene->heatingState);
         self::assertSame('empty', $scene->garageState);
         self::assertTrue($scene->chimneySmoking, 'The boiler burns fuel in January — the chimney shows it.');
@@ -230,8 +236,7 @@ final class GameViewFactoryTest extends TestCase
         $renovated = new Household(3.0, 5.0, self::bestEnvelope(), HeatingSystem::HeatPump);
         $scene = $factory->build($config, GameState::start($renovated, Money::fromEuros(4000.0)))->scene;
 
-        self::assertSame('installed', $scene->roofState);
-        self::assertSame(2, $scene->insulationTier);
+        self::assertSame('full', $scene->solarState);
         self::assertSame('heat-pump', $scene->heatingState);
         self::assertFalse($scene->chimneySmoking, 'A heat pump never smokes.');
         self::assertSame('warm', $scene->comfortState);
@@ -242,6 +247,37 @@ final class GameViewFactoryTest extends TestCase
         self::assertSame('fioul-broken', $scene->heatingState);
         self::assertFalse($scene->chimneySmoking, 'A dead boiler burns nothing.');
         self::assertSame('cold', $scene->comfortState, 'Emergency heat only: the occupant is freezing.');
+    }
+
+    public function testSceneReflectsEnvelopeAndEquipmentPerSurface(): void
+    {
+        $factory = new GameViewFactory();
+        $config = self::config();
+
+        // A bare passoire: every surface at its worst, no kit, no curtains.
+        $bare = new Household(0.0, 0.0, self::original(), HeatingSystem::FuelOilBoiler);
+        $s = $factory->build($config, GameState::start($bare, Money::fromEuros(4000.0)))->scene;
+
+        self::assertFalse($s->roofInsulated);
+        self::assertSame('none', $s->wallInsulation);
+        self::assertSame('single', $s->glazing);
+        self::assertSame('none', $s->ventilation);
+        self::assertFalse($s->thermalCurtains);
+        self::assertSame('fioul', $s->heatingState);
+        self::assertSame('empty', $s->solarState);
+
+        // Roof + walls (ITE) + double glazing + VMC double flux + curtains +
+        // pellet boiler + a small solar kit (below the 3 kWc full install).
+        $renovated = new Household(1.5, 0.0, self::perSurfaceRenovatedEnvelope(), HeatingSystem::PelletBoiler);
+        $s = $factory->build($config, GameState::start($renovated, Money::fromEuros(4000.0)))->scene;
+
+        self::assertTrue($s->roofInsulated);
+        self::assertSame('exterior', $s->wallInsulation);
+        self::assertSame('double', $s->glazing);
+        self::assertSame('double-flow', $s->ventilation);
+        self::assertSame('pellet', $s->heatingState);
+        self::assertSame('kit', $s->solarState);
+        self::assertTrue($s->thermalCurtains);
     }
 
     public function testGroundSnowAccumulatesAndMeltsGradually(): void

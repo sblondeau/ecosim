@@ -2,6 +2,9 @@
    itself is a plain solid gable (no cutaway) so solar panels have a single
    unambiguous surface to sit flush on. The `insulation` prop (0|1|2) drives
    the visible wall insulation layer locally; roof snow, room tint and
-   chimney smoke follow scene-wide ambience classes. #}
+   chimney smoke follow scene-wide ambience classes. Caller-derived from the
+   per-surface HouseSceneView fields (roofInsulated/wallInsulation) — this
+   component still only knows the legacy 3-tier bucket; per-surface visuals
+   land in a later task (arbre travaux T7). #}
 {% props insulation = 0 %}
 <g class="house house--ins-{{ insulation }}"{{ attributes }}>{{ include('game/scene/assets/house-cutaway.svg') }}</g>
