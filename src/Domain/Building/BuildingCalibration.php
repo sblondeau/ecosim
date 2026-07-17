@@ -187,6 +187,18 @@ final class BuildingCalibration
         return new Coefficient(value: 0.15, unit: 'fraction', min: 0.10, max: 0.20, source: 'Calibration de jeu : plancher physique, l\'enveloppe seule ne fait pas un BBC (résiduel plancher/ponts/étanchéité ; la ventilation est désormais modélisée)', reviewedOn: '2026-07-16');
     }
 
+    /** Calfeutrage / joints : coupe les courants d'air. Petit geste — quelques % des pertes (vs combles 24 %). */
+    public function draughtProofingLossReduction(): Coefficient
+    {
+        return new Coefficient(value: 0.04, unit: 'fraction', min: 0.02, max: 0.06, source: 'ADEME : fuites d\'air ~20 % des déperditions cumulées ; calfeutrage/joints de base = quelques %', reviewedOn: '2026-07-17');
+    }
+
+    /** Rideaux thermiques : coupent le rayonnement froid des fenêtres la nuit. Petit gain de ressenti. */
+    public function thermalCurtainsColdWallRelief(): Coefficient
+    {
+        return new Coefficient(value: 0.02, unit: 'fraction', min: 0.01, max: 0.03, source: 'ADEME : rideaux thermiques, petit gain de température ressentie près des vitres', reviewedOn: '2026-07-17');
+    }
+
     /**
      * Fraction de la déperdition d'origine qui subsiste, agrégée depuis les
      * surfaces traitées. 1,0 = maison d'origine (référence, DPE inchangé).
@@ -212,6 +224,8 @@ final class BuildingCalibration
         };
 
         $removed += Ventilation::DoubleFlow === $envelope->ventilation ? $this->ventilationHeatRecoveryLossReduction()->value : 0.0;
+
+        $removed += $envelope->draughtProofed ? $this->draughtProofingLossReduction()->value : 0.0;
 
         // Rounded to 6 decimals: the sourced coefficients carry at most 3
         // significant decimals, so this only clears binary floating-point
@@ -283,6 +297,10 @@ final class BuildingCalibration
             Glazing::Double => $this->doubleGlazingColdWallRelief()->value,
             Glazing::Triple => $this->tripleGlazingColdWallRelief()->value,
         };
+
+        if ($envelope->thermalCurtains) {
+            $penalty -= $this->thermalCurtainsColdWallRelief()->value;
+        }
 
         return max($this->coldWallPenaltyFloor()->value, $penalty);
     }

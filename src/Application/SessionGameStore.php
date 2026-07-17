@@ -44,7 +44,7 @@ final readonly class SessionGameStore implements GameStore
      * format is thrown away and the game restarts, instead of being silently
      * rebuilt into a valid-looking but absurd state by the hydrate fallbacks.
      */
-    private const int FORMAT_VERSION = 13;
+    private const int FORMAT_VERSION = 14;
 
     public function __construct(
         private RequestStack $requestStack,
@@ -115,6 +115,8 @@ final readonly class SessionGameStore implements GameStore
                 walls: WallInsulation::from((string) ($data['walls'] ?? WallInsulation::None->value)),
                 glazing: Glazing::from((string) ($data['glazing'] ?? Glazing::Single->value)),
                 ventilation: Ventilation::from((string) ($data['ventilation'] ?? Ventilation::None->value)),
+                draughtProofed: (bool) ($data['draughtProofed'] ?? false),
+                thermalCurtains: (bool) ($data['thermalCurtains'] ?? false),
             ),
             heatingSystem: HeatingSystem::from((string) ($data['heating'] ?? HeatingSystem::FuelOilBoiler->value)),
             boilerBroken: (bool) ($data['boilerBroken'] ?? false),
@@ -177,6 +179,8 @@ final readonly class SessionGameStore implements GameStore
             'walls' => $game->state->household->envelope->walls->value,
             'glazing' => $game->state->household->envelope->glazing->value,
             'ventilation' => $game->state->household->envelope->ventilation->value,
+            'draughtProofed' => $game->state->household->envelope->draughtProofed,
+            'thermalCurtains' => $game->state->household->envelope->thermalCurtains,
             'heating' => $game->state->household->heatingSystem->value,
             'boilerBroken' => $game->state->household->boilerBroken,
             'setpointC' => $game->state->household->heatingSetpointC,

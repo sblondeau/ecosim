@@ -143,12 +143,26 @@ final class SessionGameStoreTest extends TestCase
         self::assertSame(WaterHeater::Thermodynamic, $this->store->current()->state->household->waterHeater);
     }
 
+    public function testRoundTripsTheDraughtProofingAndThermalCurtainsGestures(): void
+    {
+        $config = new GameConfig(seed: 42, epoch: new DateTimeImmutable('2025-01-01'), horizonDays: 10);
+        $household = new Household(0.0, 0.0, new EnvelopeState(false, WallInsulation::None, Glazing::Single, Ventilation::None, draughtProofed: true, thermalCurtains: true), HeatingSystem::FuelOilBoiler);
+
+        $progression = new TimeProgression(new DateTimeImmutable('@1750000000'), TickSpeed::Normal);
+        $this->store->save(new Game($config, GameState::start($household, Money::fromEuros(4000.0)), $progression));
+        $loaded = $this->store->current();
+
+        self::assertTrue($loaded->state->household->envelope->draughtProofed);
+        self::assertTrue($loaded->state->household->envelope->thermalCurtains);
+    }
+
     public function testOlderSessionsWithoutAWaterHeaterKeyFallBackToElectricTank(): void
     {
-        // FORMAT_VERSION 13 predates the 'waterHeater' key within the same tranche
-        // (added in Task 4, no extra version bump) — the fallback must still hydrate cleanly.
+        // Simulates a session on the current FORMAT_VERSION but missing the
+        // 'waterHeater' key (e.g. a key added within a tranche without a
+        // version bump) — the fallback must still hydrate cleanly.
         $this->session->set(self::SESSION_KEY, [
-            'version' => 13,
+            'version' => 14,
             'seed' => 1,
             'epoch' => '2025-01-01',
             'horizonDays' => 365,

@@ -62,6 +62,67 @@ final class EnvelopeStateTest extends TestCase
         self::assertSame(Glazing::Double, $ventilationRenovated->glazing, 'withVentilation must not reset glazing');
     }
 
+    /**
+     * The wither trap: with 6 fields, EVERY with* method must thread ALL SIX
+     * into `new self(...)`. A missed thread silently resets a gesture (or any
+     * other field) on an unrelated renovation. Starts from a fully
+     * non-default envelope — every field set to something other than its
+     * default — so a dropped thread cannot hide behind a coincidental default.
+     */
+    public function testEveryWitherPreservesAllOtherFieldsFromAFullyNonDefaultEnvelope(): void
+    {
+        $envelope = new EnvelopeState(
+            roofInsulated: true,
+            walls: WallInsulation::Exterior,
+            glazing: Glazing::Triple,
+            ventilation: Ventilation::DoubleFlow,
+            draughtProofed: true,
+            thermalCurtains: true,
+        );
+
+        $afterRoof = $envelope->withRoofInsulated(false);
+        self::assertSame(WallInsulation::Exterior, $afterRoof->walls, 'withRoofInsulated must not reset walls');
+        self::assertSame(Glazing::Triple, $afterRoof->glazing, 'withRoofInsulated must not reset glazing');
+        self::assertSame(Ventilation::DoubleFlow, $afterRoof->ventilation, 'withRoofInsulated must not reset ventilation');
+        self::assertTrue($afterRoof->draughtProofed, 'withRoofInsulated must not reset draughtProofed');
+        self::assertTrue($afterRoof->thermalCurtains, 'withRoofInsulated must not reset thermalCurtains');
+
+        $afterWalls = $envelope->withWalls(WallInsulation::None);
+        self::assertTrue($afterWalls->roofInsulated, 'withWalls must not reset roofInsulated');
+        self::assertSame(Glazing::Triple, $afterWalls->glazing, 'withWalls must not reset glazing');
+        self::assertSame(Ventilation::DoubleFlow, $afterWalls->ventilation, 'withWalls must not reset ventilation');
+        self::assertTrue($afterWalls->draughtProofed, 'withWalls must not reset draughtProofed');
+        self::assertTrue($afterWalls->thermalCurtains, 'withWalls must not reset thermalCurtains');
+
+        $afterGlazing = $envelope->withGlazing(Glazing::Single);
+        self::assertTrue($afterGlazing->roofInsulated, 'withGlazing must not reset roofInsulated');
+        self::assertSame(WallInsulation::Exterior, $afterGlazing->walls, 'withGlazing must not reset walls');
+        self::assertSame(Ventilation::DoubleFlow, $afterGlazing->ventilation, 'withGlazing must not reset ventilation');
+        self::assertTrue($afterGlazing->draughtProofed, 'withGlazing must not reset draughtProofed');
+        self::assertTrue($afterGlazing->thermalCurtains, 'withGlazing must not reset thermalCurtains');
+
+        $afterVentilation = $envelope->withVentilation(Ventilation::None);
+        self::assertTrue($afterVentilation->roofInsulated, 'withVentilation must not reset roofInsulated');
+        self::assertSame(WallInsulation::Exterior, $afterVentilation->walls, 'withVentilation must not reset walls');
+        self::assertSame(Glazing::Triple, $afterVentilation->glazing, 'withVentilation must not reset glazing');
+        self::assertTrue($afterVentilation->draughtProofed, 'withVentilation must not reset draughtProofed');
+        self::assertTrue($afterVentilation->thermalCurtains, 'withVentilation must not reset thermalCurtains');
+
+        $afterDraughtProofed = $envelope->withDraughtProofed(false);
+        self::assertTrue($afterDraughtProofed->roofInsulated, 'withDraughtProofed must not reset roofInsulated');
+        self::assertSame(WallInsulation::Exterior, $afterDraughtProofed->walls, 'withDraughtProofed must not reset walls');
+        self::assertSame(Glazing::Triple, $afterDraughtProofed->glazing, 'withDraughtProofed must not reset glazing');
+        self::assertSame(Ventilation::DoubleFlow, $afterDraughtProofed->ventilation, 'withDraughtProofed must not reset ventilation');
+        self::assertTrue($afterDraughtProofed->thermalCurtains, 'withDraughtProofed must not reset thermalCurtains');
+
+        $afterThermalCurtains = $envelope->withThermalCurtains(false);
+        self::assertTrue($afterThermalCurtains->roofInsulated, 'withThermalCurtains must not reset roofInsulated');
+        self::assertSame(WallInsulation::Exterior, $afterThermalCurtains->walls, 'withThermalCurtains must not reset walls');
+        self::assertSame(Glazing::Triple, $afterThermalCurtains->glazing, 'withThermalCurtains must not reset glazing');
+        self::assertSame(Ventilation::DoubleFlow, $afterThermalCurtains->ventilation, 'withThermalCurtains must not reset ventilation');
+        self::assertTrue($afterThermalCurtains->draughtProofed, 'withThermalCurtains must not reset draughtProofed');
+    }
+
     public function testLabelsAreFrench(): void
     {
         self::assertSame('Intérieure (ITI)', WallInsulation::Interior->label());
