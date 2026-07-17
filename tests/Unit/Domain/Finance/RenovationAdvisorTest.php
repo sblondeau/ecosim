@@ -160,4 +160,22 @@ final class RenovationAdvisorTest extends TestCase
         self::assertSame(AdviceLevel::Info, $advice->level);
         self::assertSame('L\'eau chaude = ~15 % de l\'énergie, souvent oubliée : le thermodynamique divise sa conso par ~3.', $advice->message);
     }
+
+    public function testDraughtProofingAdviceIsHonestAboutTheSmallLever(): void
+    {
+        $advice = $this->advisor->adviceFor(Renovation::DraughtProofing, $this->house($this->bare()));
+
+        self::assertNotNull($advice);
+        self::assertSame(AdviceLevel::Info, $advice->level);
+        self::assertSame('Geste bon marché : coupe les courants d\'air (quelques % de pertes). Utile en complément — pas un gros levier.', $advice->message);
+    }
+
+    public function testThermalCurtainsAdviceIsHonestAboutTheSmallLever(): void
+    {
+        $advice = $this->advisor->adviceFor(Renovation::ThermalCurtains, $this->house($this->bare()));
+
+        self::assertNotNull($advice);
+        self::assertSame(AdviceLevel::Info, $advice->level);
+        self::assertSame('Geste bon marché : un peu de confort près des fenêtres la nuit. Petit levier, pas un substitut à l\'isolation.', $advice->message);
+    }
 }

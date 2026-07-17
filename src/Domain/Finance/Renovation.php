@@ -37,6 +37,10 @@ enum Renovation: string
     case VentilationDoubleFlow = 'ventilation_double_flow';
     /** Swap the electric-tank water heater for a thermodynamic one (arbre travaux, Tranche 5). */
     case WaterHeaterThermo = 'water_heater_thermo';
+    /** Draught-proofing (window seals, door sweeps) — cheap, small effect (arbre travaux, Tranche 6). */
+    case DraughtProofing = 'draught_proofing';
+    /** Thermal curtains — cheap, small effect (arbre travaux, Tranche 6). */
+    case ThermalCurtains = 'thermal_curtains';
 
     /**
      * Covered by the income-based prime (MaPrimeRénov'-like)?
@@ -46,7 +50,8 @@ enum Renovation: string
         return match ($this) {
             self::RoofInsulation, self::WallInsulationInterior, self::WallInsulationExterior, self::Glazing, self::HeatPump, self::LowTempEmitters, self::PelletBoiler, self::VentilationDoubleFlow, self::WaterHeaterThermo => true,
             // Repairing fossil equipment is not energy-performance work.
-            self::SolarKit, self::SolarPanels, self::HomeBattery, self::BoilerRepair => false,
+            // Cheap gestures are not covered either — too small to qualify.
+            self::SolarKit, self::SolarPanels, self::HomeBattery, self::BoilerRepair, self::DraughtProofing, self::ThermalCurtains => false,
         };
     }
 

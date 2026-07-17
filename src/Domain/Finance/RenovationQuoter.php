@@ -47,6 +47,8 @@ final readonly class RenovationQuoter
             Renovation::PelletBoiler => $this->pelletBoilerQuote($household),
             Renovation::VentilationDoubleFlow => $this->ventilationQuote($household),
             Renovation::WaterHeaterThermo => $this->waterHeaterThermoQuote($household),
+            Renovation::DraughtProofing => $this->draughtProofingQuote($household),
+            Renovation::ThermalCurtains => $this->thermalCurtainsQuote($household),
         };
     }
 
@@ -256,6 +258,38 @@ final readonly class RenovationQuoter
             cost: $price,
             subsidy: $this->subsidy->subsidyFor($price),
             resultingHousehold: $household->withWaterHeater(WaterHeater::Thermodynamic),
+        );
+    }
+
+    private function draughtProofingQuote(Household $household): ?RenovationQuote
+    {
+        if ($household->envelope->draughtProofed) {
+            return null;
+        }
+        $price = Money::fromEuros($this->calibration->draughtProofingCost()->value);
+
+        return new RenovationQuote(
+            work: Renovation::DraughtProofing,
+            title: 'Calfeutrage / joints',
+            cost: $price,
+            subsidy: Money::zero(),
+            resultingHousehold: $household->withEnvelope($household->envelope->withDraughtProofed(true)),
+        );
+    }
+
+    private function thermalCurtainsQuote(Household $household): ?RenovationQuote
+    {
+        if ($household->envelope->thermalCurtains) {
+            return null;
+        }
+        $price = Money::fromEuros($this->calibration->thermalCurtainsCost()->value);
+
+        return new RenovationQuote(
+            work: Renovation::ThermalCurtains,
+            title: 'Rideaux thermiques',
+            cost: $price,
+            subsidy: Money::zero(),
+            resultingHousehold: $household->withEnvelope($household->envelope->withThermalCurtains(true)),
         );
     }
 }

@@ -352,6 +352,18 @@ final class FinanceCalibration
         );
     }
 
+    /** Draught-proofing: window seals, door sweeps, mastic. */
+    public function draughtProofingCost(): Coefficient
+    {
+        return new Coefficient(value: 80.0, unit: '€', min: 40.0, max: 150.0, source: 'ADEME / produits : joints de fenêtres, boudins de porte, mastic', reviewedOn: '2026-07-17');
+    }
+
+    /** Thermal curtains (lined), a handful of windows. */
+    public function thermalCurtainsCost(): Coefficient
+    {
+        return new Coefficient(value: 120.0, unit: '€', min: 60.0, max: 250.0, source: 'Produits : rideaux thermiques doublés (par fenêtre × quelques ouvertures)', reviewedOn: '2026-07-17');
+    }
+
     /** Absolute cap on the renovation prime. */
     public function subsidyCap(): Coefficient
     {

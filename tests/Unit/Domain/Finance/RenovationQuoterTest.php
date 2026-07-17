@@ -227,6 +227,42 @@ final class RenovationQuoterTest extends TestCase
         );
     }
 
+    public function testDraughtProofingQuotedUntilDone(): void
+    {
+        $quoter = new RenovationQuoter();
+        $household = self::barePassoire();
+        $quote = $quoter->quote(Renovation::DraughtProofing, $household);
+
+        self::assertNotNull($quote);
+        self::assertSame(80_00, $quote->cost->cents);
+        self::assertSame(0, $quote->subsidy->cents, 'No public money for a cheap gesture.');
+        self::assertFalse(Renovation::DraughtProofing->isSubsidised());
+        self::assertTrue($quote->resultingHousehold->envelope->draughtProofed);
+
+        self::assertNull(
+            $quoter->quote(Renovation::DraughtProofing, $quote->resultingHousehold),
+            'Already draught-proofed: no longer offered.',
+        );
+    }
+
+    public function testThermalCurtainsQuotedUntilDone(): void
+    {
+        $quoter = new RenovationQuoter();
+        $household = self::barePassoire();
+        $quote = $quoter->quote(Renovation::ThermalCurtains, $household);
+
+        self::assertNotNull($quote);
+        self::assertSame(120_00, $quote->cost->cents);
+        self::assertSame(0, $quote->subsidy->cents, 'No public money for a cheap gesture.');
+        self::assertFalse(Renovation::ThermalCurtains->isSubsidised());
+        self::assertTrue($quote->resultingHousehold->envelope->thermalCurtains);
+
+        self::assertNull(
+            $quoter->quote(Renovation::ThermalCurtains, $quote->resultingHousehold),
+            'Already hung: no longer offered.',
+        );
+    }
+
     public function testPelletBoilerReplacesTheGenerator(): void
     {
         $quoter = new RenovationQuoter();

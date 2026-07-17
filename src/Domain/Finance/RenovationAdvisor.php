@@ -80,6 +80,14 @@ final readonly class RenovationAdvisor
                 AdviceLevel::Info,
                 'L\'eau chaude = ~15 % de l\'énergie, souvent oubliée : le thermodynamique divise sa conso par ~3.',
             ),
+            Renovation::DraughtProofing => new RenovationAdvice(
+                AdviceLevel::Info,
+                'Geste bon marché : coupe les courants d\'air (quelques % de pertes). Utile en complément — pas un gros levier.',
+            ),
+            Renovation::ThermalCurtains => new RenovationAdvice(
+                AdviceLevel::Info,
+                'Geste bon marché : un peu de confort près des fenêtres la nuit. Petit levier, pas un substitut à l\'isolation.',
+            ),
         };
     }
 }
