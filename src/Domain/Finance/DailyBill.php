@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Domain\Finance;
 
 /**
- * The day's energy money flows — the two-line bill of the Phase 0-1 scope
- * (game-design §15: électricité + fioul) plus the surplus-resale credit.
+ * The day's energy money flows — electricity, the active heating fuel
+ * (fuel oil OR wood pellets, mutually exclusive: one generator at a time),
+ * and the surplus-resale credit.
  *
  * Lines are kept separate on purpose (multi-criteria principle, §1): the
  * player must see which carrier costs what — that is how electrifying the
- * heating becomes readable on the budget.
+ * heating (or switching fuel) becomes readable on the budget.
  */
 final readonly class DailyBill
 {

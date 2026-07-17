@@ -408,12 +408,20 @@ le MVP Phase 0-1 reste verrouillé tant que la phase n'est pas ouverte.
 >   statique. 246 tests, « ready to merge ». Née d'un retour joueur : panneau de
 >   coin qui débordait, fouillis, pas de pédagogie.
 >
-> **Reste de l'arbre (tranches à planifier)** : T4 chauffage (granulés,
-> émetteurs BT → SCOP) · T5 production & ECS (kit plug-and-play, chauffe-eau
-> thermo) · T6 gestes (rideaux, calfeutrage). Type d'isolant toujours différé
-> Phase 5. **Différés notés** : contexte-décision lire/agir des slots
-> heating/garage/living (fait pour walls, à propager avec T4/T5) ; `glazingMaxed`
-> exposé mais pas encore distingué visuellement.
+> - **T4 — chauffage complet** (`docs/specs/2026-07-17-tranche4-chauffage-plan.md`) :
+>   **émetteurs basse température** → le SCOP de la PAC dépend d'eux (2,5 fonte /
+>   4,3 BT), *seule la PAC sensible* (fioul/granulés insensibles) ; **chaudière
+>   à granulés** = 3ᵉ vecteur pellet (kg, prix, CO₂ ~30 g/kWh) traversant
+>   facture/totaux/CO₂/DPE — « facture 2 lignes » préservée à l'œil (fioul et
+>   granulés exclusifs) ; 2 travaux chiffrés+câblés + conseils non prescriptifs ;
+>   tiroir chauffage lire/agir. Bascule SCOP assumée (PAC seule = 2,5). 270 tests.
+>
+> **Reste de l'arbre (tranches à planifier)** : T5 ventilation (VMC) + production
+> & ECS (kit plug-and-play, chauffe-eau thermo) · T6 gestes (rideaux,
+> calfeutrage). Type d'isolant toujours différé Phase 5. **Différés notés** :
+> contexte-décision lire/agir des slots **garage/living** (fait pour walls +
+> heating, à propager avec T5) ; `glazingMaxed` non distingué visuellement ;
+> **visuel de scène du pellet** (rendu comme le fioul, asset à faire).
 
 Répond à la mollesse structurelle du gameplay (décisions one-shot, milieu
 d'année vide) en **multipliant les choix de travaux**, avec pour **rôle premier
