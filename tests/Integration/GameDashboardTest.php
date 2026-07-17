@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration;
 
+use App\Domain\Scenario\PrimoAccedantScenario;
 use App\Twig\Components\GameDashboard;
 
 use function str_contains;
@@ -160,6 +161,23 @@ final class GameDashboardTest extends KernelTestCase
         $html = (string) $component->call('selectSlot', ['slot' => 'heating'])->render();
 
         self::assertStringContainsString('SCOP', $html, 'The low-temp-emitters advice quotes the heat pump\'s SCOP once a heat pump is installed.');
+    }
+
+    public function testHeatingSlotShowsTheBreakdownIndicatorOnceTheBoilerBreaksDown(): void
+    {
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        // `step` lives exactly one game day per call, wall-clock independent
+        // (TimeKeeper::step()) — BOILER_BREAKDOWN_DAY manual steps land right
+        // on the scripted breakdown morning (day 19 / January 20th).
+        for ($day = 0; $day < PrimoAccedantScenario::BOILER_BREAKDOWN_DAY; ++$day) {
+            $component->call('step');
+        }
+
+        $html = (string) $component->call('selectSlot', ['slot' => 'heating'])->render();
+
+        self::assertStringContainsString('En panne', $html, 'The heating slot flags the breakdown instead of the stale "Chaudière fioul" header.');
+        self::assertStringContainsString("chauffage électrique d'appoint forcé", $html);
     }
 
     public function testSuccessfulRenovationInstallsAndNotifies(): void

@@ -41,13 +41,18 @@
            ~4,3, cf. RenovationAdvisor). Le détail jour-à-jour (fioul brûlé,
            air intérieur…) vit déjà dans les coins Énergie/Confort — pas de
            doublon ici. #}
-        <div class="row">
-            <span class="key">Générateur actuel</span>
-            <span><strong>{{ game.heatingLabel }}</strong>{% if game.heatPumpScopLabel is not empty %} · SCOP effectif {{ game.heatPumpScopLabel }}{% endif %}</span>
-        </div>
-        {% set heatingDone = [game.heatingLabel] %}
-        {% if game.hasLowTempEmitters %}{% set heatingDone = heatingDone|merge(['Émetteurs basse température']) %}{% endif %}
-        <div class="done-strip">{% for d in heatingDone %}<span class="done-chip">✔ {{ d }}</span>{% endfor %}</div>
+        {% if game.boilerBroken %}
+            <div class="row"><span class="key">État</span><span class="neg"><strong>🚨 En panne</strong> — chauffage électrique d'appoint forcé</span></div>
+            <div class="row"><span class="key">Élec. de chauffage (jour)</span><span class="neg">{{ game.heatingElectricityKwh|number_format(1, ',', ' ') }} kWh</span></div>
+        {% else %}
+            <div class="row">
+                <span class="key">Générateur actuel</span>
+                <span><strong>{{ game.heatingLabel }}</strong>{% if game.heatPumpScopLabel is not empty %} · SCOP effectif {{ game.heatPumpScopLabel }}{% endif %}</span>
+            </div>
+            {% set heatingDone = [game.heatingLabel] %}
+            {% if game.hasLowTempEmitters %}{% set heatingDone = heatingDone|merge(['Émetteurs basse température']) %}{% endif %}
+            <div class="done-strip">{% for d in heatingDone %}<span class="done-chip">✔ {{ d }}</span>{% endfor %}</div>
+        {% endif %}
     {% elseif selected == 'garage' %}
         {% if game.batteryCapacityKwh > 0 %}
             <div class="row"><span class="key">Batterie → maison ce soir</span><span>{{ game.batteryDischargedKwh|number_format(1, ',', ' ') }} kWh</span></div>
