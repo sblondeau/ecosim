@@ -123,4 +123,21 @@ final class RenovationHandlerTest extends TestCase
         // 50 000 € éco-PTZ cap.
         self::assertSame(20400_00, $state->loan->borrowedTotal->cents);
     }
+
+    public function testLowTempEmittersAndPelletBoilerAreFinanceableWithTheLoan(): void
+    {
+        $handler = new RenovationHandler();
+        $state = self::bareState();
+
+        $withEmitters = $handler->order($state, Renovation::LowTempEmitters, RenovationHandler::FINANCING_LOAN);
+        self::assertInstanceOf(GameState::class, $withEmitters);
+        self::assertTrue($withEmitters->household->lowTempEmitters);
+        self::assertSame(3900_00, $withEmitters->loan->borrowedTotal->cents, 'Net cost (6500 − 2600 prime) borrowed.');
+
+        $withPellet = $handler->order($withEmitters, Renovation::PelletBoiler, RenovationHandler::FINANCING_LOAN);
+        self::assertInstanceOf(GameState::class, $withPellet);
+        self::assertSame(HeatingSystem::PelletBoiler, $withPellet->household->heatingSystem);
+        // 3900 (emitters) + 8400 (14000 − 5600 prime, pellet boiler) = 12 300 €.
+        self::assertSame(12300_00, $withPellet->loan->borrowedTotal->cents);
+    }
 }

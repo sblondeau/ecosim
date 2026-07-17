@@ -40,6 +40,8 @@ final readonly class RenovationQuoter
             Renovation::SolarPanels => $this->solarQuote($household),
             Renovation::HomeBattery => $this->batteryQuote($household),
             Renovation::BoilerRepair => $this->boilerRepairQuote($household),
+            Renovation::LowTempEmitters => $this->lowTempEmittersQuote($household),
+            Renovation::PelletBoiler => $this->pelletBoilerQuote($household),
         };
     }
 
@@ -162,6 +164,38 @@ final readonly class RenovationQuoter
             cost: Money::fromEuros($this->calibration->batteryInstallCost()->value),
             subsidy: Money::zero(),
             resultingHousehold: $household->withBatteryKwh($kwh),
+        );
+    }
+
+    private function lowTempEmittersQuote(Household $household): ?RenovationQuote
+    {
+        if ($household->lowTempEmitters) {
+            return null;
+        }
+        $price = Money::fromEuros($this->calibration->lowTempEmittersCost()->value);
+
+        return new RenovationQuote(
+            work: Renovation::LowTempEmitters,
+            title: 'Émetteurs basse température',
+            cost: $price,
+            subsidy: $this->subsidy->subsidyFor($price),
+            resultingHousehold: $household->withLowTempEmitters(true),
+        );
+    }
+
+    private function pelletBoilerQuote(Household $household): ?RenovationQuote
+    {
+        if (HeatingSystem::PelletBoiler === $household->heatingSystem) {
+            return null;
+        }
+        $price = Money::fromEuros($this->calibration->pelletBoilerCost()->value);
+
+        return new RenovationQuote(
+            work: Renovation::PelletBoiler,
+            title: 'Chaudière à granulés',
+            cost: $price,
+            subsidy: $this->subsidy->subsidyFor($price),
+            resultingHousehold: $household->withHeatingSystem(HeatingSystem::PelletBoiler),
         );
     }
 }

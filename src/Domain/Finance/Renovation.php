@@ -27,6 +27,10 @@ enum Renovation: string
     case HomeBattery = 'home_battery';
     /** Fix the broken fuel-oil boiler (the breakdown-event alternative to the heat pump). */
     case BoilerRepair = 'boiler_repair';
+    /** Low-temperature emitters (underfloor/oversized radiators) — boosts a heat pump's SCOP. */
+    case LowTempEmitters = 'low_temp_emitters';
+    /** Automatic wood-pellet boiler — replaces the generator, cheap and low-carbon fuel. */
+    case PelletBoiler = 'pellet_boiler';
 
     /**
      * Covered by the income-based prime (MaPrimeRénov'-like)?
@@ -34,7 +38,7 @@ enum Renovation: string
     public function isSubsidised(): bool
     {
         return match ($this) {
-            self::RoofInsulation, self::WallInsulationInterior, self::WallInsulationExterior, self::Glazing, self::HeatPump => true,
+            self::RoofInsulation, self::WallInsulationInterior, self::WallInsulationExterior, self::Glazing, self::HeatPump, self::LowTempEmitters, self::PelletBoiler => true,
             // Repairing fossil equipment is not energy-performance work.
             self::SolarPanels, self::HomeBattery, self::BoilerRepair => false,
         };

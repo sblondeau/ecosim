@@ -284,6 +284,32 @@ final class FinanceCalibration
         );
     }
 
+    /** Low-temperature emitters (underfloor heating / oversized radiators, ~100 m²). */
+    public function lowTempEmittersCost(): Coefficient
+    {
+        return new Coefficient(
+            value: 6500.0,
+            unit: '€',
+            min: 4000.0,
+            max: 9000.0,
+            source: 'ADEME : plancher chauffant / émetteurs basse température (~100 m²)',
+            reviewedOn: '2026-07-17',
+        );
+    }
+
+    /** Automatic wood-pellet boiler, installed, including the silo. */
+    public function pelletBoilerCost(): Coefficient
+    {
+        return new Coefficient(
+            value: 14000.0,
+            unit: '€',
+            min: 10000.0,
+            max: 20000.0,
+            source: 'ADEME : chaudière automatique à granulés + silo',
+            reviewedOn: '2026-07-17',
+        );
+    }
+
     /** Absolute cap on the renovation prime. */
     public function subsidyCap(): Coefficient
     {

@@ -96,4 +96,31 @@ final class RenovationAdvisorTest extends TestCase
         self::assertStringContainsString('surface habitable', $iti->message);
         self::assertStringContainsString('façade', $ite->message);
     }
+
+    public function testLowTempEmittersHighlightTheScopGainWithAHeatPump(): void
+    {
+        $advice = $this->advisor->adviceFor(Renovation::LowTempEmitters, $this->house($this->bare(), HeatingSystem::HeatPump));
+
+        self::assertNotNull($advice);
+        self::assertSame(AdviceLevel::Info, $advice->level);
+        self::assertStringContainsString('SCOP', $advice->message);
+    }
+
+    public function testLowTempEmittersAreOfLimitedUseWithoutAHeatPump(): void
+    {
+        $advice = $this->advisor->adviceFor(Renovation::LowTempEmitters, $this->house($this->bare()));
+
+        self::assertNotNull($advice);
+        self::assertSame(AdviceLevel::Info, $advice->level);
+        self::assertStringContainsString('pompe à chaleur', $advice->message);
+    }
+
+    public function testPelletBoilerAdvisesLowCarbonButManualHandling(): void
+    {
+        $advice = $this->advisor->adviceFor(Renovation::PelletBoiler, $this->house($this->bare()));
+
+        self::assertNotNull($advice);
+        self::assertSame(AdviceLevel::Info, $advice->level);
+        self::assertStringContainsString('silo', $advice->message);
+    }
 }

@@ -145,4 +145,38 @@ final class RenovationQuoterTest extends TestCase
         self::assertNull($quoter->quote(Renovation::HomeBattery, $equipped));
         self::assertNull($quoter->quote(Renovation::HeatPump, $equipped));
     }
+
+    public function testLowTempEmittersQuotedUntilInstalled(): void
+    {
+        $quoter = new RenovationQuoter();
+        $household = self::barePassoire();
+        $quote = $quoter->quote(Renovation::LowTempEmitters, $household);
+
+        self::assertNotNull($quote);
+        self::assertSame(6500_00, $quote->cost->cents);
+        self::assertSame(2600_00, $quote->subsidy->cents, '"Intermédiaire" bracket, 40 %.');
+        self::assertTrue($quote->resultingHousehold->lowTempEmitters);
+
+        self::assertNull(
+            $quoter->quote(Renovation::LowTempEmitters, $quote->resultingHousehold),
+            'Already installed: no longer offered.',
+        );
+    }
+
+    public function testPelletBoilerReplacesTheGenerator(): void
+    {
+        $quoter = new RenovationQuoter();
+        $household = self::barePassoire();
+        $quote = $quoter->quote(Renovation::PelletBoiler, $household);
+
+        self::assertNotNull($quote);
+        self::assertSame(14000_00, $quote->cost->cents);
+        self::assertSame(5600_00, $quote->subsidy->cents, '"Intermédiaire" bracket, 40 %.');
+        self::assertSame(HeatingSystem::PelletBoiler, $quote->resultingHousehold->heatingSystem);
+
+        self::assertNull(
+            $quoter->quote(Renovation::PelletBoiler, $quote->resultingHousehold),
+            'Already the pellet boiler: no longer offered.',
+        );
+    }
 }

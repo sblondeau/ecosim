@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Finance;
 
 use App\Domain\Building\BuildingCalibration;
+use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
 
 /**
@@ -59,6 +60,13 @@ final readonly class RenovationAdvisor
             Renovation::HomeBattery => new RenovationAdvice(
                 AdviceLevel::Info,
                 'Stocke le surplus solaire pour le consommer le soir.',
+            ),
+            Renovation::LowTempEmitters => HeatingSystem::HeatPump === $household->heatingSystem
+                ? new RenovationAdvice(AdviceLevel::Info, 'Fait passer le SCOP de votre PAC de ~2,5 à ~4,3 : moins d\'électricité pour la même chaleur.')
+                : new RenovationAdvice(AdviceLevel::Info, 'Utile surtout avec une pompe à chaleur (améliore fortement son rendement) ; sans effet sur une chaudière.'),
+            Renovation::PelletBoiler => new RenovationAdvice(
+                AdviceLevel::Info,
+                'Combustible bon marché et bas carbone (~30 g/kWh), mais manuel : stockage et chargement du silo.',
             ),
         };
     }
