@@ -473,6 +473,30 @@ joueur) :
 Non planifié : à raccrocher à la phase « dynamisme » ou à une extension de
 l'arbre côté équipements électriques.
 
+**Deux exigences pédagogiques (réflexion joueur, juillet 2026) pour que ce soit
+honnête et pas du théâtre — s'appliquent à TOUT l'arbre, pas qu'aux usages :**
+
+- **Carbone gris (fabrication) + amortissement carbone.** Aujourd'hui l'axe CO₂
+  (`CarbonAccountant`) ne compte que le carbone *à l'usage*. Or fabriquer un
+  équipement a un coût carbone (énergie grise) parfois non négligeable vs
+  l'économie : garder un appareil qui marche peut battre le remplacer ; une PAC,
+  des panneaux, une VMC ont une **dette carbone de fabrication** → un **temps de
+  retour carbone** (parfois long, parfois jamais atteint). Transforme « verdir »
+  en *investissement carbone avec amortissement*. Sourçable (ADEME / Base
+  Carbone : contenu carbone de fabrication par équipement). Reframe l'axe
+  Environnement en **CO₂ usage + CO₂ fabrication**. Croise [[environnement-co2]].
+- **Ordres de grandeur / hiérarchie des leviers.** Personne n'a les magnitudes en
+  tête → on fait des gestes contraignants et minuscules (éteindre la box ~17
+  kWh/an) en ratant le gros levier (chauffage = milliers de kWh/an ; avion =
+  centaines de kg d'un coup). Rendre les impacts **comparables sur une échelle
+  commune** (kgCO₂/an, €/an) et **classer les leviers** pour que le joueur voie
+  que l'isolation écrase le geste — et qu'un petit geste **ne compense jamais**
+  un mauvais gros arbitrage. Le jeu a déjà la matière (effets « ≈ X €/an », Δ
+  DPE, CO₂ vécu) ; il manque la **mise en contraste explicite**.
+- **Impact immédiat, dès les gestes (T6)** : présenter rideaux/calfeutrage
+  **honnêtement** (petit gain de confort, pas un gros levier) — ne pas les
+  survendre dans les conseils. C'est l'anti-théâtre appliqué tout de suite.
+
 ## Dynamisme du gameplay — rythme de décision (phase dédiée, réflexion juillet 2026)
 
 Thème **frère** de l'arbre de travaux ci-dessus : deux réponses au **même**
