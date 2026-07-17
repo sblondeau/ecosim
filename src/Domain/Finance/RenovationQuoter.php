@@ -9,6 +9,7 @@ use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
 use App\Domain\Building\Ventilation;
 use App\Domain\Building\WallInsulation;
+use App\Domain\Building\WaterHeater;
 use App\Domain\Energy\EnergyCalibration;
 
 use function sprintf;
@@ -45,6 +46,7 @@ final readonly class RenovationQuoter
             Renovation::LowTempEmitters => $this->lowTempEmittersQuote($household),
             Renovation::PelletBoiler => $this->pelletBoilerQuote($household),
             Renovation::VentilationDoubleFlow => $this->ventilationQuote($household),
+            Renovation::WaterHeaterThermo => $this->waterHeaterThermoQuote($household),
         };
     }
 
@@ -238,6 +240,22 @@ final readonly class RenovationQuoter
             cost: $price,
             subsidy: $this->subsidy->subsidyFor($price),
             resultingHousehold: $household->withEnvelope($household->envelope->withVentilation(Ventilation::DoubleFlow)),
+        );
+    }
+
+    private function waterHeaterThermoQuote(Household $household): ?RenovationQuote
+    {
+        if (WaterHeater::Thermodynamic === $household->waterHeater) {
+            return null;
+        }
+        $price = Money::fromEuros($this->calibration->waterHeaterThermoCost()->value);
+
+        return new RenovationQuote(
+            work: Renovation::WaterHeaterThermo,
+            title: 'Chauffe-eau thermodynamique',
+            cost: $price,
+            subsidy: $this->subsidy->subsidyFor($price),
+            resultingHousehold: $household->withWaterHeater(WaterHeater::Thermodynamic),
         );
     }
 }

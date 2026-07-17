@@ -10,6 +10,7 @@ use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
 use App\Domain\Building\Ventilation;
 use App\Domain\Building\WallInsulation;
+use App\Domain\Building\WaterHeater;
 use App\Domain\Finance\Renovation;
 use App\Domain\Finance\RenovationQuoter;
 use PHPUnit\Framework\TestCase;
@@ -206,6 +207,23 @@ final class RenovationQuoterTest extends TestCase
         self::assertNull(
             $quoter->quote(Renovation::VentilationDoubleFlow, $quote->resultingHousehold),
             'Already installed: no longer offered.',
+        );
+    }
+
+    public function testWaterHeaterThermoQuotedUntilInstalled(): void
+    {
+        $quoter = new RenovationQuoter();
+        $household = self::barePassoire();
+        $quote = $quoter->quote(Renovation::WaterHeaterThermo, $household);
+
+        self::assertNotNull($quote);
+        self::assertSame(3500_00, $quote->cost->cents);
+        self::assertSame(1400_00, $quote->subsidy->cents, '"Intermédiaire" bracket, 40 %.');
+        self::assertSame(WaterHeater::Thermodynamic, $quote->resultingHousehold->waterHeater);
+
+        self::assertNull(
+            $quoter->quote(Renovation::WaterHeaterThermo, $quote->resultingHousehold),
+            'Already thermodynamic: no longer offered.',
         );
     }
 

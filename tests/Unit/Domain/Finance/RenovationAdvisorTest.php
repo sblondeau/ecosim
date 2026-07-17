@@ -151,4 +151,13 @@ final class RenovationAdvisorTest extends TestCase
         self::assertSame(AdviceLevel::Info, $advice->level);
         self::assertStringContainsString('silo', $advice->message);
     }
+
+    public function testWaterHeaterThermoAdvisesTheOftenOverlookedShare(): void
+    {
+        $advice = $this->advisor->adviceFor(Renovation::WaterHeaterThermo, $this->house($this->bare()));
+
+        self::assertNotNull($advice);
+        self::assertSame(AdviceLevel::Info, $advice->level);
+        self::assertSame('L\'eau chaude = ~15 % de l\'énergie, souvent oubliée : le thermodynamique divise sa conso par ~3.', $advice->message);
+    }
 }

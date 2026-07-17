@@ -339,6 +339,19 @@ final class FinanceCalibration
         );
     }
 
+    /** Thermodynamic water heater (small heat pump), installed, replacing the electric tank. */
+    public function waterHeaterThermoCost(): Coefficient
+    {
+        return new Coefficient(
+            value: 3500.0,
+            unit: '€',
+            min: 2500.0,
+            max: 4500.0,
+            source: 'ADEME : chauffe-eau thermodynamique posé, ~2 500-4 500 €',
+            reviewedOn: '2026-07-17',
+        );
+    }
+
     /** Absolute cap on the renovation prime. */
     public function subsidyCap(): Coefficient
     {

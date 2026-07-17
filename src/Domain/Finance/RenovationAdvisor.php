@@ -75,6 +75,10 @@ final readonly class RenovationAdvisor
             Renovation::VentilationDoubleFlow => $poorlyInsulated
                 ? new RenovationAdvice(AdviceLevel::Caution, 'À poser plutôt APRÈS l\'isolation : la VMC double flux récupère la chaleur, autant qu\'il y en ait à récupérer.')
                 : new RenovationAdvice(AdviceLevel::Info, 'Récupère la chaleur de l\'air extrait et renouvelle l\'air sainement.'),
+            Renovation::WaterHeaterThermo => new RenovationAdvice(
+                AdviceLevel::Info,
+                'L\'eau chaude = ~15 % de l\'énergie, souvent oubliée : le thermodynamique divise sa conso par ~3.',
+            ),
         };
     }
 }
