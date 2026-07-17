@@ -120,7 +120,7 @@ solarState: match (true) {
 
 **Visuels :**
 - **Chaudière granulés** (`heatingState=pellet`) : corps de chaudière + **silo/trémie** (bois/granulés), teinte distincte du fioul. Placée dans le local technique comme le fioul.
-- **Kit solaire** (`solarState=kit`) : 1-2 petits panneaux (≠ la grille complète), posés sur le versant.
+- **Kit solaire** (`solarState=kit`) : 1-2 petits panneaux **AU SOL / dans le jardin / contre le mur** (PAS sur le toit — c'est tout l'intérêt du plug-and-play : sans installateur ni travail en hauteur). Le contraste visuel avec l'installation complète (`full`, sur le versant) est aussi la leçon : le kit est le geste accessible, le toit est le chantier.
 
 - [ ] **Step 1:** Asset `boiler-pellet` (silo + corps) ; `Boiler` gère `state=pellet`.
 - [ ] **Step 2:** `SolarPanels` : prop `variant=kit|full` → petit vs complet ; `_cutaway` passe la variante depuis `solarState`.
