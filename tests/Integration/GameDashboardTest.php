@@ -139,6 +139,29 @@ final class GameDashboardTest extends KernelTestCase
         self::assertStringContainsString('surdimensionnée', $html, 'The heat-pump caution renders in the heating drawer.');
     }
 
+    public function testHeatingSlotOffersThePelletBoilerAndLowTempEmitters(): void
+    {
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        // A brand-new game is still on the fuel-oil boiler with no emitters
+        // upgrade yet: both alternative-generator quotes are on offer.
+        $html = (string) $component->call('selectSlot', ['slot' => 'heating'])->render();
+
+        self::assertStringContainsString('Chaudière à granulés', $html);
+        self::assertStringContainsString('Émetteurs basse température', $html);
+    }
+
+    public function testLowTempEmittersCardSurfacesTheScopAdviceOnceAHeatPumpIsInstalled(): void
+    {
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        // Éco-PTZ covers the heat pump within its cap — no cash needed.
+        $component->call('order', ['work' => 'heat_pump', 'financing' => 'loan']);
+        $html = (string) $component->call('selectSlot', ['slot' => 'heating'])->render();
+
+        self::assertStringContainsString('SCOP', $html, 'The low-temp-emitters advice quotes the heat pump\'s SCOP once a heat pump is installed.');
+    }
+
     public function testSuccessfulRenovationInstallsAndNotifies(): void
     {
         $component = $this->createLiveComponent(GameDashboard::class);

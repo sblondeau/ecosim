@@ -157,6 +157,17 @@ final readonly class GameViewFactory
             wallInsulationLabel: WallInsulation::None === $household->envelope->walls ? '' : $household->envelope->walls->label(),
             glazingLabel: Glazing::Single === $household->envelope->glazing ? '' : $household->envelope->glazing->label(),
             glazingMaxed: Glazing::Triple === $household->envelope->glazing,
+            hasLowTempEmitters: $household->lowTempEmitters,
+            heatPumpScopLabel: HeatingSystem::HeatPump === $household->heatingSystem
+                ? number_format(
+                    $household->lowTempEmitters
+                        ? $this->energy->heatPumpScopLowTempEmitters()->value
+                        : $this->energy->heatPumpScopHighTempEmitters()->value,
+                    1,
+                    ',',
+                    ' ',
+                )
+                : '',
             dpeLetter: $dpe->finalClass->label(),
             dpeEnergyLetter: $dpe->energyClass->label(),
             dpeEnergyIntensity: (int) round($dpe->energyIntensity),

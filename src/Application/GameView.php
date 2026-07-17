@@ -142,6 +142,15 @@ final readonly class GameView
         public string $glazingLabel = '',
         /** Glazing already at its best tier (triple)? */
         public bool $glazingMaxed = false,
+        // Heating "done" flags (renovation tree)
+        /** Low-temperature emitters (underfloor/oversized radiators) already installed? */
+        public bool $hasLowTempEmitters = false,
+        /**
+         * The heat pump's effective SCOP given the current emitters, formatted
+         * ('2,5' on old high-temp radiators, '4,3' once low-temp emitters are
+         * fitted). Empty when the household isn't on a heat pump.
+         */
+        public string $heatPumpScopLabel = '',
         /**
          * Player-facing explanations of the metrics, keyed by topic. Built
          * from the calibration registry so every number quoted in a tooltip

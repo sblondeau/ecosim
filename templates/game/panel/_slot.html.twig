@@ -14,7 +14,7 @@
 {% set worksOfSlot = {
     roof: ['solar_panels'],
     walls: ['roof_insulation', 'wall_insulation_interior', 'wall_insulation_exterior', 'glazing'],
-    heating: ['boiler_repair', 'heat_pump'],
+    heating: ['boiler_repair', 'heat_pump', 'pellet_boiler', 'low_temp_emitters'],
     garage: ['home_battery'],
     living: [],
 } %}
@@ -36,21 +36,18 @@
             <div class="done-strip">{% for d in envelopeDone %}<span class="done-chip">✔ {{ d }}</span>{% endfor %}</div>
         {% endif %}
     {% elseif selected == 'heating' %}
-        {% if game.boilerBroken %}
-            <div class="row"><span class="key">État</span><span class="neg"><strong>En panne</strong> — appoint électrique forcé</span></div>
-            <div class="row"><span class="key">Élec. de chauffage (jour)</span><span class="neg">{{ game.heatingElectricityKwh|number_format(1, ',', ' ') }} kWh</span></div>
-        {% else %}
-            {% if game.fuelOilLitres > 0 %}
-                <div class="row"><span class="key">Fioul brûlé (jour){{ ui.tip(game.help.fuelOil) }}</span><span>{{ game.fuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
-            {% endif %}
-            {% if game.pelletKg > 0 %}
-                <div class="row"><span class="key">Granulés brûlés (jour)</span><span>{{ game.pelletKg|number_format(1, ',', ' ') }} kg</span></div>
-            {% endif %}
-            {% if game.heatingElectricityKwh > 0 %}
-                <div class="row"><span class="key">Élec. de chauffage (jour)</span><span>{{ game.heatingElectricityKwh|number_format(1, ',', ' ') }} kWh</span></div>
-            {% endif %}
-        {% endif %}
-        <div class="row"><span class="key">Air intérieur</span><span>{{ game.indoorTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
+        {# Décision-context : le générateur en place (+ son SCOP effectif pour
+           une PAC — les émetteurs basse température le font grimper de ~2,5 à
+           ~4,3, cf. RenovationAdvisor). Le détail jour-à-jour (fioul brûlé,
+           air intérieur…) vit déjà dans les coins Énergie/Confort — pas de
+           doublon ici. #}
+        <div class="row">
+            <span class="key">Générateur actuel</span>
+            <span><strong>{{ game.heatingLabel }}</strong>{% if game.heatPumpScopLabel is not empty %} · SCOP effectif {{ game.heatPumpScopLabel }}{% endif %}</span>
+        </div>
+        {% set heatingDone = [game.heatingLabel] %}
+        {% if game.hasLowTempEmitters %}{% set heatingDone = heatingDone|merge(['Émetteurs basse température']) %}{% endif %}
+        <div class="done-strip">{% for d in heatingDone %}<span class="done-chip">✔ {{ d }}</span>{% endfor %}</div>
     {% elseif selected == 'garage' %}
         {% if game.batteryCapacityKwh > 0 %}
             <div class="row"><span class="key">Batterie → maison ce soir</span><span>{{ game.batteryDischargedKwh|number_format(1, ',', ' ') }} kWh</span></div>
