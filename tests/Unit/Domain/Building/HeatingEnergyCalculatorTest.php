@@ -71,6 +71,15 @@ final class HeatingEnergyCalculatorTest extends TestCase
         self::assertGreaterThan(3.0, $boilerFinalKwh / $heatPump->electricityKwh);
     }
 
+    public function testPelletBoilerBurnsKilograms(): void
+    {
+        // 414 kWh ÷ 0,90 rendement ÷ 4,6 kWh/kg = 100,0 kg
+        $c = new HeatingEnergyCalculator()->consumptionFor(HeatingSystem::PelletBoiler, 414.0);
+        self::assertSame(100.0, $c->pelletKg);
+        self::assertSame(0.0, $c->fuelOilLitres);
+        self::assertSame(0.0, $c->electricityKwh);
+    }
+
     public function testOldRadiatorsShrinkButDoNotEraseTheElectrificationLesson(): void
     {
         // "A heat pump is a system, not a box": on the original high-temperature

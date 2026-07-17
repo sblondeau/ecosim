@@ -53,6 +53,17 @@ final readonly class HeatingEnergyCalculator
                     : $this->calibration->heatPumpScopHighTempEmitters()->value), 2),
                 fuelOilLitres: 0.0,
             ),
+            HeatingSystem::PelletBoiler => new HeatingConsumption(
+                needKwh: $needKwh,
+                electricityKwh: 0.0,
+                fuelOilLitres: 0.0,
+                pelletKg: round(
+                    $needKwh
+                        / $this->calibration->pelletBoilerEfficiency()->value
+                        / $this->calibration->pelletEnergyKwhPerKg()->value,
+                    2,
+                ),
+            ),
         };
     }
 }

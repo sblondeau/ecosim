@@ -335,4 +335,37 @@ final class EnergyCalibration
             reviewedOn: '2026-07-17',
         );
     }
+
+    /**
+     * Seasonal efficiency of an automatic pellet (granulés) boiler — a
+     * modern, well-regulated combustion appliance (arbre travaux T4).
+     */
+    public function pelletBoilerEfficiency(): Coefficient
+    {
+        return new Coefficient(value: 0.90, unit: 'fraction', min: 0.85, max: 0.95, source: 'ADEME : rendement chaudière automatique à granulés', reviewedOn: '2026-07-17');
+    }
+
+    /**
+     * Energy content of wood pellets (net calorific value).
+     */
+    public function pelletEnergyKwhPerKg(): Coefficient
+    {
+        return new Coefficient(value: 4.6, unit: 'kWh/kg', min: 4.6, max: 5.2, source: 'Norme ENplus / ADEME : PCI granulés bois ~4,6-5 kWh/kg', reviewedOn: '2026-07-17');
+    }
+
+    /**
+     * CO₂ content of wood pellets, combustion + upstream — the DPE climate
+     * label factor. Biomass is near-carbon-neutral on combustion, so this is
+     * far below fossil fuels.
+     */
+    public function pelletCo2GramsPerKwh(): Coefficient
+    {
+        return new Coefficient(value: 30.0, unit: 'gCO2e/kWh', min: 20.0, max: 40.0, source: 'ADEME Base Carbone : granulés bois (combustion + amont), ~30 g CO2e/kWh', reviewedOn: '2026-07-17');
+    }
+
+    /** DPE primary-energy factor for biomass (wood/pellets): 1.0, unlike electricity's 2.3. */
+    public function pelletPrimaryEnergyFactor(): Coefficient
+    {
+        return new Coefficient(value: 1.0, unit: 'factor', min: 1.0, max: 1.0, source: 'Méthode DPE 2021 : coefficient d\'énergie primaire biomasse = 1,0', reviewedOn: '2026-07-17');
+    }
 }
