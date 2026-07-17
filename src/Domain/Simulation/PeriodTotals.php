@@ -35,6 +35,8 @@ final readonly class PeriodTotals
         public Money $fuelOilCost = new Money(0),
         public Money $surplusRevenue = new Money(0),
         public int $days = 0,
+        public float $pelletKg = 0.0,
+        public Money $pelletCost = new Money(0),
     ) {
     }
 
@@ -51,6 +53,8 @@ final readonly class PeriodTotals
             fuelOilCost: $this->fuelOilCost->plus($day->bill->fuelOilCost),
             surplusRevenue: $this->surplusRevenue->plus($day->bill->surplusRevenue),
             days: $this->days + 1,
+            pelletKg: $this->pelletKg + $day->heating->pelletKg,
+            pelletCost: $this->pelletCost->plus($day->bill->pelletCost),
         );
     }
 
@@ -83,6 +87,6 @@ final readonly class PeriodTotals
      */
     public function netEnergyCost(): Money
     {
-        return $this->electricityCost->plus($this->fuelOilCost)->minus($this->surplusRevenue);
+        return $this->electricityCost->plus($this->fuelOilCost)->plus($this->pelletCost)->minus($this->surplusRevenue);
     }
 }
