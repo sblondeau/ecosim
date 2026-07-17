@@ -101,6 +101,8 @@ final readonly class GameView
         public int $dpeClimateBandPct,
         public float $heatingElectricityKwh,
         public float $fuelOilLitres,
+        /** Wood pellets burnt today, in kilograms (pellet boiler). */
+        public float $pelletKg,
         public int $comfortScorePct,
         public float $indoorTemperatureC,
         public float $feltTemperatureC,
@@ -117,6 +119,8 @@ final readonly class GameView
         public float $totalExportKwh,
         public int $totalSelfSufficiencyPct,
         public float $totalFuelOilLitres,
+        /** Wood pellets burnt since day 1, in kilograms. */
+        public float $totalPelletKg,
         public int $averageComfortPct,
         public string $totalElectricityCostLabel,
         public string $totalFuelOilCostLabel,

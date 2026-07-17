@@ -43,6 +43,9 @@
             {% if game.fuelOilLitres > 0 %}
                 <div class="row"><span class="key">Fioul brûlé (jour){{ ui.tip(game.help.fuelOil) }}</span><span>{{ game.fuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
             {% endif %}
+            {% if game.pelletKg > 0 %}
+                <div class="row"><span class="key">Granulés brûlés (jour)</span><span>{{ game.pelletKg|number_format(1, ',', ' ') }} kg</span></div>
+            {% endif %}
             {% if game.heatingElectricityKwh > 0 %}
                 <div class="row"><span class="key">Élec. de chauffage (jour)</span><span>{{ game.heatingElectricityKwh|number_format(1, ',', ' ') }} kWh</span></div>
             {% endif %}

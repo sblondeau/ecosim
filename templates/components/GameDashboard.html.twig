@@ -163,6 +163,9 @@
                 <div class="card">
                     <h2>Énergie & climat</h2>
                     <div class="row"><span class="key">Fioul consommé</span><span>{{ report.totalFuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
+                    {% if report.totalPelletKg > 0 %}
+                        <div class="row"><span class="key">Granulés consommés</span><span>{{ report.totalPelletKg|number_format(1, ',', ' ') }} kg</span></div>
+                    {% endif %}
                     <div class="row"><span class="key">Autosuffisance électrique</span><span>{{ report.totalSelfSufficiencyPct }} %</span></div>
                     <div class="row"><span class="key">CO₂ émis sur l'année</span><span><strong>{{ report.totalCo2EmittedLabel }}</strong></span></div>
                     <div class="row"><span class="key">Coût énergie net sur l'année</span><span>{{ report.totalNetEnergyCostLabel }}</span></div>

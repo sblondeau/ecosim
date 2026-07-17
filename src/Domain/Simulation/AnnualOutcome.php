@@ -21,6 +21,8 @@ final readonly class AnnualOutcome
         public float $electricityKwh = 0.0,
         /** Year's fuel-oil use, in litres, for the DPE labels. */
         public float $fuelOilLitres = 0.0,
+        /** Year's wood-pellet use, in kilograms, for the DPE labels and CO₂. */
+        public float $pelletKg = 0.0,
     ) {
     }
 }

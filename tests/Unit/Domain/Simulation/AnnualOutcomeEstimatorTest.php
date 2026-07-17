@@ -81,6 +81,18 @@ final class AnnualOutcomeEstimatorTest extends TestCase
         self::assertGreaterThan(0.0, $panelsOnly->productionKwh);
     }
 
+    public function testAPelletHouseholdAccumulatesPelletKgOverTheYear(): void
+    {
+        $estimator = new AnnualOutcomeEstimator();
+
+        $pelletHouse = $estimator->estimate(
+            new Household(0.0, 0.0, self::original(), HeatingSystem::PelletBoiler),
+        );
+
+        self::assertGreaterThan(0.0, $pelletHouse->pelletKg, 'A passoire heated by pellets burns pellets all winter.');
+        self::assertSame(0.0, $pelletHouse->fuelOilLitres, 'No fuel oil at all — the carrier is exclusive.');
+    }
+
     public function testABrokenBoilerYearRunsOnRuinousEmergencyHeat(): void
     {
         $estimator = new AnnualOutcomeEstimator();

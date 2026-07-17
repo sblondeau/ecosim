@@ -25,15 +25,18 @@ final readonly class CarbonAccountant
     }
 
     /**
-     * CO₂ emitted, in kilograms, by burning $fuelOilLitres of fuel oil and
-     * drawing $gridImportKwh from the grid.
+     * CO₂ emitted, in kilograms, by burning $fuelOilLitres of fuel oil,
+     * burning $pelletKg of wood pellets, and drawing $gridImportKwh from the
+     * grid.
      */
-    public function emittedKg(float $fuelOilLitres, float $gridImportKwh): float
+    public function emittedKg(float $fuelOilLitres, float $gridImportKwh, float $pelletKg = 0.0): float
     {
         $fuelKwh = $fuelOilLitres * $this->energy->fuelOilEnergyKwhPerLitre()->value;
+        $pelletKwh = $pelletKg * $this->energy->pelletEnergyKwhPerKg()->value;
 
         $grams = $fuelKwh * $this->energy->fuelOilCo2GramsPerKwh()->value
-            + $gridImportKwh * $this->energy->electricityCo2GramsPerKwh()->value;
+            + $gridImportKwh * $this->energy->electricityCo2GramsPerKwh()->value
+            + $pelletKwh * $this->energy->pelletCo2GramsPerKwh()->value;
 
         return $grams / 1000.0;
     }

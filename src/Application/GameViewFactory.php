@@ -93,7 +93,7 @@ final readonly class GameViewFactory
         $effortRate = $currentAnnual->netEnergyCost->euros() / $annualIncome;
 
         // The two official DPE labels (energy + climate), from the year's real energy.
-        $dpe = $this->dpeCertifier->certify($currentAnnual->electricityKwh, $currentAnnual->fuelOilLitres);
+        $dpe = $this->dpeCertifier->certify($currentAnnual->electricityKwh, $currentAnnual->fuelOilLitres, $currentAnnual->pelletKg);
 
         // Monthly budget split by nature (living / energy / debt) so the Finances
         // panel shows where the money goes. Energy is the reference year ÷ 12 (an
@@ -166,6 +166,7 @@ final readonly class GameViewFactory
             dpeClimateBandPct: (int) round($dpe->climateBandFillPct),
             heatingElectricityKwh: $snapshot->heating->electricityKwh,
             fuelOilLitres: $snapshot->heating->fuelOilLitres,
+            pelletKg: $snapshot->heating->pelletKg,
             comfortScorePct: $snapshot->comfort->score,
             indoorTemperatureC: $snapshot->comfort->indoorC,
             feltTemperatureC: $snapshot->comfort->feltC,
@@ -184,7 +185,8 @@ final readonly class GameViewFactory
             totalFuelOilCostLabel: $totals->fuelOilCost->format(),
             totalSurplusRevenueLabel: $totals->surplusRevenue->format(),
             totalNetEnergyCostLabel: $totals->netEnergyCost()->format(),
-            co2EmittedLabel: self::co2Label($this->carbon->emittedKg($totals->fuelOilLitres, $totals->importKwh)),
+            co2EmittedLabel: self::co2Label($this->carbon->emittedKg($totals->fuelOilLitres, $totals->importKwh, $totals->pelletKg)),
+            totalPelletKg: round($totals->pelletKg, 1),
             help: $this->helpTexts(),
             actions: $this->actionsFor($state, $currentAnnual),
             endReport: $this->engine->isFinished($config, $state) ? $this->endReport($state) : null,
@@ -223,9 +225,10 @@ final readonly class GameViewFactory
             loanRemainingLabel: $state->loan->remaining->format(),
             averageComfortPct: $state->totals->averageComfortScore(),
             totalFuelOilLitres: round($state->totals->fuelOilLitres, 1),
+            totalPelletKg: round($state->totals->pelletKg, 1),
             totalSelfSufficiencyPct: (int) round($state->totals->selfSufficiencyRatio() * 100),
             totalNetEnergyCostLabel: $state->totals->netEnergyCost()->format(),
-            totalCo2EmittedLabel: self::co2Label($this->carbon->emittedKg($state->totals->fuelOilLitres, $state->totals->importKwh)),
+            totalCo2EmittedLabel: self::co2Label($this->carbon->emittedKg($state->totals->fuelOilLitres, $state->totals->importKwh, $state->totals->pelletKg)),
         );
     }
 
@@ -477,7 +480,7 @@ final readonly class GameViewFactory
     {
         $annual = $this->estimator->estimate($household);
 
-        return $this->dpeCertifier->certify($annual->electricityKwh, $annual->fuelOilLitres)->finalClass;
+        return $this->dpeCertifier->certify($annual->electricityKwh, $annual->fuelOilLitres, $annual->pelletKg)->finalClass;
     }
 
     /**
@@ -555,8 +558,8 @@ final readonly class GameViewFactory
     {
         $labels = [];
 
-        $dpeBefore = $this->dpeCertifier->certify($before->electricityKwh, $before->fuelOilLitres)->finalClass;
-        $dpeAfter = $this->dpeCertifier->certify($after->electricityKwh, $after->fuelOilLitres)->finalClass;
+        $dpeBefore = $this->dpeCertifier->certify($before->electricityKwh, $before->fuelOilLitres, $before->pelletKg)->finalClass;
+        $dpeAfter = $this->dpeCertifier->certify($after->electricityKwh, $after->fuelOilLitres, $after->pelletKg)->finalClass;
         if ($dpeAfter !== $dpeBefore) {
             $labels[] = sprintf('Étiquette DPE : %s → %s', $dpeBefore->label(), $dpeAfter->label());
 

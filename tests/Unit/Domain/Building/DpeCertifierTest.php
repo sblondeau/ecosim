@@ -48,4 +48,21 @@ final class DpeCertifierTest extends TestCase
         self::assertGreaterThanOrEqual(0.0, $dpe->climateBandFillPct);
         self::assertLessThanOrEqual(100.0, $dpe->climateBandFillPct);
     }
+
+    public function testPelletHeatingHasAFarBetterClimateLabelThanFuelOil(): void
+    {
+        // Same ~100 m² passoire, same base electricity — the only variable is
+        // the heating carrier: 3150 L of fuel oil vs. the pellet mass for a
+        // comparable energy content (fuel oil ≈ 9.96 kWh/L → 31 374 kWh
+        // ÷ 4.6 kWh/kg ≈ 6821 kg pellets).
+        $fuelOil = new DpeCertifier()->certify(electricityKwh: 3650.0, fuelOilLitres: 3150.0);
+        $pellet = new DpeCertifier()->certify(electricityKwh: 3650.0, fuelOilLitres: 0.0, pelletKg: 6821.0);
+
+        self::assertSame(DpeClass::G, $fuelOil->climateClass);
+        self::assertGreaterThan(
+            $fuelOil->climateClass->stepsAboveWorst(),
+            $pellet->climateClass->stepsAboveWorst(),
+            'Pellets (30 g/kWh) must rate far better on the climate label than fuel oil (324 g/kWh).',
+        );
+    }
 }

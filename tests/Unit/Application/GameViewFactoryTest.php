@@ -95,6 +95,21 @@ final class GameViewFactoryTest extends TestCase
         self::assertSame('6,5 t', $factory->build($config, $heavy)->co2EmittedLabel);
     }
 
+    public function testPelletHeatedHouseHasAFarBetterClimateLabelThanFuelOil(): void
+    {
+        $factory = new GameViewFactory();
+        $config = self::config();
+
+        $fuelOil = $factory->build($config, GameState::start(self::passoire(), Money::fromEuros(8000.0)));
+
+        $pelletHouse = new Household(0.0, 0.0, self::original(), HeatingSystem::PelletBoiler);
+        $pellet = $factory->build($config, GameState::start($pelletHouse, Money::fromEuros(8000.0)));
+
+        self::assertGreaterThan(0.0, $pellet->pelletKg, 'A January day heated by pellets burns pellets.');
+        self::assertSame(0.0, $pellet->fuelOilLitres);
+        self::assertNotSame($fuelOil->dpeClimateLetter, $pellet->dpeClimateLetter, 'Same passoire, pellets rate far better on climate.');
+    }
+
     public function testPropertyValueBreaksDownAsGreenValueOverThePurchasePrice(): void
     {
         $factory = new GameViewFactory();

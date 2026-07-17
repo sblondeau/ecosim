@@ -7,6 +7,9 @@
     <div class="row"><span class="key">Importé / exporté</span><span>{{ game.totalImportKwh|number_format(1, ',', ' ') }} / {{ game.totalExportKwh|number_format(1, ',', ' ') }} kWh</span></div>
     <div class="row"><span class="key">Autosuffisance globale</span><span>{{ game.totalSelfSufficiencyPct }} %</span></div>
     <div class="row"><span class="key">Fioul consommé</span><span>{{ game.totalFuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
+    {% if game.totalPelletKg > 0 %}
+        <div class="row"><span class="key">Granulés consommés</span><span>{{ game.totalPelletKg|number_format(1, ',', ' ') }} kg</span></div>
+    {% endif %}
     <div class="row"><span class="key">Confort moyen</span><span>{{ game.averageComfortPct }} %</span></div>
     <div class="row"><span class="key">Facture électricité</span><span class="neg">−{{ game.totalElectricityCostLabel }}</span></div>
     <div class="row"><span class="key">Facture fioul</span><span class="neg">−{{ game.totalFuelOilCostLabel }}</span></div>
