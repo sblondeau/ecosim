@@ -447,6 +447,25 @@ volontairement **différé à la Phase 5** dans la spec, car son intérêt (dép
 / confort d'été) n'a de sens qu'une fois les canicules modélisées — pas de
 magnitude truquée (§1).
 
+## Consommation par usage — itemiser la demande électrique (piste, réflexion juillet 2026)
+
+**Déclencheur/amorce : la Tranche 5 casse déjà l'ECS (eau chaude) de la demande
+de base** (`householdDailyBaseDemandKwh` → appareils + ECS, avec COP du
+chauffe-eau). C'est la première fissure dans le bloc de conso forfaitaire.
+Une fois les usages itemisés, ça débloque une famille de mécaniques (idée
+joueur) :
+- **efficacité des équipements** : électroménager (A→A+++), éclairage LED,
+  chauffe-eau (déjà fait) → travaux/gestes bon marché, sourcés (étiquette
+  énergie, ADEME) ;
+- **sobriété / usages** : veille des appareils, délestage, **décalage des
+  usages** (lave-linge en heures creuses / au pic solaire) → le levier
+  *comportement*, distinct du levier *équipement* (« consommer moins » vs
+  « consommer mieux ») ;
+- se marie avec le **prix variable** (HP/HC, autoconsommation) de la phase
+  « dynamisme » ci-dessous, et avec la batterie / le pilotage.
+Non planifié : à raccrocher à la phase « dynamisme » ou à une extension de
+l'arbre côté équipements électriques.
+
 ## Dynamisme du gameplay — rythme de décision (phase dédiée, réflexion juillet 2026)
 
 Thème **frère** de l'arbre de travaux ci-dessus : deux réponses au **même**
