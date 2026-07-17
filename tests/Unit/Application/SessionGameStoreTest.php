@@ -10,6 +10,7 @@ use App\Domain\Building\EnvelopeState;
 use App\Domain\Building\Glazing;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
+use App\Domain\Building\Ventilation;
 use App\Domain\Building\WallInsulation;
 use App\Domain\Finance\Money;
 use App\Domain\Simulation\DailySnapshot;
@@ -54,6 +55,7 @@ final class SessionGameStoreTest extends TestCase
         self::assertFalse($game->state->household->envelope->roofInsulated, 'The scenario starts uninsulated.');
         self::assertSame(WallInsulation::None, $game->state->household->envelope->walls);
         self::assertSame(Glazing::Single, $game->state->household->envelope->glazing);
+        self::assertSame(Ventilation::None, $game->state->household->envelope->ventilation, 'The scenario starts with natural ventilation.');
         self::assertSame(HeatingSystem::FuelOilBoiler, $game->state->household->heatingSystem, 'The scenario starts on fuel oil.');
         self::assertSame(7750_00, $game->state->savings->cents, 'Tight post-purchase savings: just below the heat pump net cost on day 1.');
         self::assertTrue($this->session->has(self::SESSION_KEY), 'The fresh game is persisted.');
@@ -62,7 +64,7 @@ final class SessionGameStoreTest extends TestCase
     public function testRoundTripsAGameThroughTheSession(): void
     {
         $config = new GameConfig(seed: 42, epoch: new DateTimeImmutable('2025-01-01'), horizonDays: 10);
-        $household = new Household(3.0, 5.0, new EnvelopeState(true, WallInsulation::Interior, Glazing::Double), HeatingSystem::HeatPump);
+        $household = new Household(3.0, 5.0, new EnvelopeState(true, WallInsulation::Interior, Glazing::Double, Ventilation::DoubleFlow), HeatingSystem::HeatPump);
         $state = GameState::start($household, Money::fromEuros(8000.0))->advanced($this->someDay($config, $household));
 
         $progression = new TimeProgression(new DateTimeImmutable('@1750000000'), TickSpeed::Triple);
@@ -80,6 +82,7 @@ final class SessionGameStoreTest extends TestCase
         self::assertTrue($loaded->state->household->envelope->roofInsulated);
         self::assertSame(WallInsulation::Interior, $loaded->state->household->envelope->walls);
         self::assertSame(Glazing::Double, $loaded->state->household->envelope->glazing);
+        self::assertSame(Ventilation::DoubleFlow, $loaded->state->household->envelope->ventilation);
         self::assertSame(HeatingSystem::HeatPump, $loaded->state->household->heatingSystem);
         self::assertSame($state->batteryLevelKwh, $loaded->state->batteryLevelKwh);
         self::assertSame($state->savings->cents, $loaded->state->savings->cents);

@@ -175,7 +175,13 @@ final class BuildingCalibration
         return new Coefficient(value: 0.08, unit: 'fraction', min: 0.06, max: 0.10, source: 'ADEME : fenêtres ~10-15 % × gain triple vitrage ~60 % (rendement décroissant)', reviewedOn: '2026-07-16');
     }
 
-    /** Plancher du facteur de déperdition (au-delà, l'enveloppe seule ne descend pas — VMC/plancher/étanchéité, phases suivantes). */
+    /** VMC double flux : récupère la chaleur de l'air extrait (le renouvellement d'air ~20 % des pertes, récup ~70 %). */
+    public function ventilationHeatRecoveryLossReduction(): Coefficient
+    {
+        return new Coefficient(value: 0.14, unit: 'fraction', min: 0.10, max: 0.18, source: 'ADEME : VMC double flux, récupération ~70-90 % sur le renouvellement d\'air (~20 % des déperditions)', reviewedOn: '2026-07-17');
+    }
+
+    /** Plancher du facteur de déperdition (au-delà, l'enveloppe seule ne descend pas — plancher/étanchéité, phases suivantes). */
     public function envelopeLossFloor(): Coefficient
     {
         return new Coefficient(value: 0.15, unit: 'fraction', min: 0.10, max: 0.20, source: 'Calibration de jeu : plancher physique, l\'enveloppe seule ne fait pas un BBC (résiduel ventilation/plancher/ponts)', reviewedOn: '2026-07-16');
@@ -204,6 +210,8 @@ final class BuildingCalibration
             Glazing::Double => $this->doubleGlazingLossReduction()->value,
             Glazing::Triple => $this->tripleGlazingLossReduction()->value,
         };
+
+        $removed += Ventilation::DoubleFlow === $envelope->ventilation ? $this->ventilationHeatRecoveryLossReduction()->value : 0.0;
 
         // Rounded to 6 decimals: the sourced coefficients carry at most 3
         // significant decimals, so this only clears binary floating-point

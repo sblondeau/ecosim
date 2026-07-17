@@ -8,6 +8,7 @@ use App\Domain\Building\EnvelopeState;
 use App\Domain\Building\Glazing;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
+use App\Domain\Building\Ventilation;
 use App\Domain\Building\WallInsulation;
 use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
@@ -42,7 +43,7 @@ final readonly class SessionGameStore implements GameStore
      * format is thrown away and the game restarts, instead of being silently
      * rebuilt into a valid-looking but absurd state by the hydrate fallbacks.
      */
-    private const int FORMAT_VERSION = 12;
+    private const int FORMAT_VERSION = 13;
 
     public function __construct(
         private RequestStack $requestStack,
@@ -112,6 +113,7 @@ final readonly class SessionGameStore implements GameStore
                 roofInsulated: (bool) ($data['roofInsulated'] ?? false),
                 walls: WallInsulation::from((string) ($data['walls'] ?? WallInsulation::None->value)),
                 glazing: Glazing::from((string) ($data['glazing'] ?? Glazing::Single->value)),
+                ventilation: Ventilation::from((string) ($data['ventilation'] ?? Ventilation::None->value)),
             ),
             heatingSystem: HeatingSystem::from((string) ($data['heating'] ?? HeatingSystem::FuelOilBoiler->value)),
             boilerBroken: (bool) ($data['boilerBroken'] ?? false),
@@ -172,6 +174,7 @@ final readonly class SessionGameStore implements GameStore
             'roofInsulated' => $game->state->household->envelope->roofInsulated,
             'walls' => $game->state->household->envelope->walls->value,
             'glazing' => $game->state->household->envelope->glazing->value,
+            'ventilation' => $game->state->household->envelope->ventilation->value,
             'heating' => $game->state->household->heatingSystem->value,
             'boilerBroken' => $game->state->household->boilerBroken,
             'setpointC' => $game->state->household->heatingSetpointC,

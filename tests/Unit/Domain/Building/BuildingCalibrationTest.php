@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Domain\Building;
 use App\Domain\Building\BuildingCalibration;
 use App\Domain\Building\EnvelopeState;
 use App\Domain\Building\Glazing;
+use App\Domain\Building\Ventilation;
 use App\Domain\Building\WallInsulation;
 use PHPUnit\Framework\TestCase;
 
@@ -39,6 +40,20 @@ final class BuildingCalibrationTest extends TestCase
     {
         $best = new EnvelopeState(true, WallInsulation::Exterior, Glazing::Triple);
         self::assertEqualsWithDelta(0.50, $this->calibration->envelopeLossFactor($best), 1e-9);
+    }
+
+    public function testDoubleFlowVentilationRecoversHeat(): void
+    {
+        $bare = new EnvelopeState(false, WallInsulation::None, Glazing::Single, Ventilation::None);
+        $vmc = new EnvelopeState(false, WallInsulation::None, Glazing::Single, Ventilation::DoubleFlow);
+        self::assertEqualsWithDelta(1.0, $this->calibration->envelopeLossFactor($bare), 1e-9);
+        self::assertEqualsWithDelta(0.86, $this->calibration->envelopeLossFactor($vmc), 1e-9); // 1 − 0,14
+    }
+
+    public function testVentilationReopensThePathBelowHalf(): void
+    {
+        $full = new EnvelopeState(true, WallInsulation::Exterior, Glazing::Triple, Ventilation::DoubleFlow);
+        self::assertEqualsWithDelta(0.36, $this->calibration->envelopeLossFactor($full), 1e-9); // 0,50 − 0,14
     }
 
     public function testColdWallPenaltyDropsWithWallsAndGlazing(): void
