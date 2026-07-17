@@ -31,6 +31,8 @@ enum Renovation: string
     case LowTempEmitters = 'low_temp_emitters';
     /** Automatic wood-pellet boiler — replaces the generator, cheap and low-carbon fuel. */
     case PelletBoiler = 'pellet_boiler';
+    /** VMC double flux — recovers heat from extracted air (arbre travaux, Tranche 5). */
+    case VentilationDoubleFlow = 'ventilation_double_flow';
 
     /**
      * Covered by the income-based prime (MaPrimeRénov'-like)?
@@ -38,7 +40,7 @@ enum Renovation: string
     public function isSubsidised(): bool
     {
         return match ($this) {
-            self::RoofInsulation, self::WallInsulationInterior, self::WallInsulationExterior, self::Glazing, self::HeatPump, self::LowTempEmitters, self::PelletBoiler => true,
+            self::RoofInsulation, self::WallInsulationInterior, self::WallInsulationExterior, self::Glazing, self::HeatPump, self::LowTempEmitters, self::PelletBoiler, self::VentilationDoubleFlow => true,
             // Repairing fossil equipment is not energy-performance work.
             self::SolarPanels, self::HomeBattery, self::BoilerRepair => false,
         };

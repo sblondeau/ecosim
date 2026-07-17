@@ -115,6 +115,25 @@ final class RenovationAdvisorTest extends TestCase
         self::assertStringContainsString('pompe à chaleur', $advice->message);
     }
 
+    public function testVentilationDoubleFlowCautionedInAPoorlyInsulatedHouse(): void
+    {
+        $advice = $this->advisor->adviceFor(Renovation::VentilationDoubleFlow, $this->house($this->bare()));
+
+        self::assertNotNull($advice);
+        self::assertSame(AdviceLevel::Caution, $advice->level);
+        self::assertStringContainsString('APRÈS l\'isolation', $advice->message);
+    }
+
+    public function testVentilationDoubleFlowIsInfoOnceInsulated(): void
+    {
+        $insulated = new EnvelopeState(true, WallInsulation::Interior, Glazing::Single); // f = 0.60
+        $advice = $this->advisor->adviceFor(Renovation::VentilationDoubleFlow, $this->house($insulated));
+
+        self::assertNotNull($advice);
+        self::assertSame(AdviceLevel::Info, $advice->level);
+        self::assertStringContainsString('Récupère la chaleur', $advice->message);
+    }
+
     public function testPelletBoilerAdvisesLowCarbonButManualHandling(): void
     {
         $advice = $this->advisor->adviceFor(Renovation::PelletBoiler, $this->house($this->bare()));

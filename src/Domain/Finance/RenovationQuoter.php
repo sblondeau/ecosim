@@ -7,6 +7,7 @@ namespace App\Domain\Finance;
 use App\Domain\Building\Glazing;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
+use App\Domain\Building\Ventilation;
 use App\Domain\Building\WallInsulation;
 use App\Domain\Energy\EnergyCalibration;
 
@@ -42,6 +43,7 @@ final readonly class RenovationQuoter
             Renovation::BoilerRepair => $this->boilerRepairQuote($household),
             Renovation::LowTempEmitters => $this->lowTempEmittersQuote($household),
             Renovation::PelletBoiler => $this->pelletBoilerQuote($household),
+            Renovation::VentilationDoubleFlow => $this->ventilationQuote($household),
         };
     }
 
@@ -196,6 +198,22 @@ final readonly class RenovationQuoter
             cost: $price,
             subsidy: $this->subsidy->subsidyFor($price),
             resultingHousehold: $household->withHeatingSystem(HeatingSystem::PelletBoiler),
+        );
+    }
+
+    private function ventilationQuote(Household $household): ?RenovationQuote
+    {
+        if (Ventilation::None !== $household->envelope->ventilation) {
+            return null;
+        }
+        $price = Money::fromEuros($this->calibration->ventilationDoubleFlowCost()->value);
+
+        return new RenovationQuote(
+            work: Renovation::VentilationDoubleFlow,
+            title: 'VMC double flux',
+            cost: $price,
+            subsidy: $this->subsidy->subsidyFor($price),
+            resultingHousehold: $household->withEnvelope($household->envelope->withVentilation(Ventilation::DoubleFlow)),
         );
     }
 }

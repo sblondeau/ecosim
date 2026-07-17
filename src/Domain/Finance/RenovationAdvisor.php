@@ -68,6 +68,9 @@ final readonly class RenovationAdvisor
                 AdviceLevel::Info,
                 'Combustible bon marché et bas carbone (~30 g/kWh), mais manuel : stockage et chargement du silo.',
             ),
+            Renovation::VentilationDoubleFlow => $poorlyInsulated
+                ? new RenovationAdvice(AdviceLevel::Caution, 'À poser plutôt APRÈS l\'isolation : la VMC double flux récupère la chaleur, autant qu\'il y en ait à récupérer.')
+                : new RenovationAdvice(AdviceLevel::Info, 'Récupère la chaleur de l\'air extrait et renouvelle l\'air sainement.'),
         };
     }
 }

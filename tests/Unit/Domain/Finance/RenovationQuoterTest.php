@@ -8,6 +8,7 @@ use App\Domain\Building\EnvelopeState;
 use App\Domain\Building\Glazing;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
+use App\Domain\Building\Ventilation;
 use App\Domain\Building\WallInsulation;
 use App\Domain\Finance\Renovation;
 use App\Domain\Finance\RenovationQuoter;
@@ -159,6 +160,23 @@ final class RenovationQuoterTest extends TestCase
 
         self::assertNull(
             $quoter->quote(Renovation::LowTempEmitters, $quote->resultingHousehold),
+            'Already installed: no longer offered.',
+        );
+    }
+
+    public function testVentilationDoubleFlowQuotedWhenNoneInstalled(): void
+    {
+        $quoter = new RenovationQuoter();
+        $household = self::barePassoire();
+        $quote = $quoter->quote(Renovation::VentilationDoubleFlow, $household);
+
+        self::assertNotNull($quote);
+        self::assertSame(6000_00, $quote->cost->cents);
+        self::assertSame(2400_00, $quote->subsidy->cents, '"Intermédiaire" bracket, 40 %.');
+        self::assertSame(Ventilation::DoubleFlow, $quote->resultingHousehold->envelope->ventilation);
+
+        self::assertNull(
+            $quoter->quote(Renovation::VentilationDoubleFlow, $quote->resultingHousehold),
             'Already installed: no longer offered.',
         );
     }

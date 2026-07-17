@@ -310,6 +310,19 @@ final class FinanceCalibration
         );
     }
 
+    /** VMC double flux, installed (~100 m²). */
+    public function ventilationDoubleFlowCost(): Coefficient
+    {
+        return new Coefficient(
+            value: 6000.0,
+            unit: '€',
+            min: 4000.0,
+            max: 9000.0,
+            source: 'ADEME : VMC double flux posée, maison individuelle ~100 m²',
+            reviewedOn: '2026-07-17',
+        );
+    }
+
     /** Absolute cap on the renovation prime. */
     public function subsidyCap(): Coefficient
     {
