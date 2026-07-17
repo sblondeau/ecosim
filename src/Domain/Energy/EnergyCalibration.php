@@ -110,6 +110,23 @@ final class EnergyCalibration
         return new Coefficient(3.0, 'kWc', 3.0, 3.0, 'Installation résidentielle type (jeu, 1 seul modèle)', '2025-01-01');
     }
 
+    /**
+     * Installed peak power of the plug-and-play solar kit (no installer, a
+     * single balcony/garden panel with a micro-inverter) — the cheap entry
+     * point below the full installation (arbre travaux, Tranche 5).
+     */
+    public function solarKitPeakPowerKwc(): Coefficient
+    {
+        return new Coefficient(
+            value: 0.9,
+            unit: 'kWc',
+            min: 0.4,
+            max: 1.5,
+            source: 'Marché des kits solaires plug-and-play grand public (1-2 panneaux + micro-onduleur, ~300-600 Wc/panneau)',
+            reviewedOn: '2026-07-17',
+        );
+    }
+
     /** Mean daily base household electricity demand (excluding fuel-oil heating). */
     public function householdDailyBaseDemandKwh(): Coefficient
     {

@@ -38,6 +38,7 @@ final readonly class RenovationQuoter
             Renovation::WallInsulationExterior => $this->wallQuote($household, WallInsulation::Exterior, Renovation::WallInsulationExterior, 'Isolation des murs — extérieure (ITE)', $this->calibration->wallInsulationExteriorCost()->value),
             Renovation::Glazing => $this->glazingQuote($household),
             Renovation::HeatPump => $this->heatPumpQuote($household),
+            Renovation::SolarKit => $this->solarKitQuote($household),
             Renovation::SolarPanels => $this->solarQuote($household),
             Renovation::HomeBattery => $this->batteryQuote($household),
             Renovation::BoilerRepair => $this->boilerRepairQuote($household),
@@ -133,9 +134,32 @@ final readonly class RenovationQuoter
         );
     }
 
+    /**
+     * The plug-and-play kit — no installer, no aid — is the cheap entry
+     * point: available on a bare roof only, superseded by the full install.
+     */
+    private function solarKitQuote(Household $household): ?RenovationQuote
+    {
+        if (0.0 !== $household->solarKwc) {
+            return null;
+        }
+
+        $kwc = $this->energy->solarKitPeakPowerKwc()->value;
+
+        return new RenovationQuote(
+            work: Renovation::SolarKit,
+            title: sprintf('Kit solaire plug-and-play %.1f kWc', $kwc),
+            cost: Money::fromEuros($this->calibration->solarKitInstallCost()->value),
+            subsidy: Money::zero(),
+            resultingHousehold: $household->withSolarKwc($kwc),
+        );
+    }
+
     private function solarQuote(Household $household): ?RenovationQuote
     {
-        if ($household->solarKwc > 0.0) {
+        // The gate is the full install's own power, not zero: this also
+        // offers the full install as an upgrade from the plug-and-play kit.
+        if ($household->solarKwc >= $this->energy->defaultSolarPeakPowerKwc()->value) {
             return null;
         }
 

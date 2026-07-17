@@ -134,6 +134,15 @@ final class RenovationAdvisorTest extends TestCase
         self::assertStringContainsString('Récupère la chaleur', $advice->message);
     }
 
+    public function testSolarKitAdvisesTheAccessibleFirstStep(): void
+    {
+        $advice = $this->advisor->adviceFor(Renovation::SolarKit, $this->house($this->bare()));
+
+        self::assertNotNull($advice);
+        self::assertSame(AdviceLevel::Info, $advice->level);
+        self::assertSame('Le premier pas accessible : sans installateur ni aide, rendement modeste.', $advice->message);
+    }
+
     public function testPelletBoilerAdvisesLowCarbonButManualHandling(): void
     {
         $advice = $this->advisor->adviceFor(Renovation::PelletBoiler, $this->house($this->bare()));

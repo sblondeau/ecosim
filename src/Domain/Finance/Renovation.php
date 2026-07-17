@@ -23,6 +23,8 @@ enum Renovation: string
     /** Windows: single → double → triple glazing. */
     case Glazing = 'glazing';
     case HeatPump = 'heat_pump';
+    /** Plug-and-play kit — no installer, no aid, the cheap entry point below {@see self::SolarPanels}. */
+    case SolarKit = 'solar_kit';
     case SolarPanels = 'solar_panels';
     case HomeBattery = 'home_battery';
     /** Fix the broken fuel-oil boiler (the breakdown-event alternative to the heat pump). */
@@ -42,7 +44,7 @@ enum Renovation: string
         return match ($this) {
             self::RoofInsulation, self::WallInsulationInterior, self::WallInsulationExterior, self::Glazing, self::HeatPump, self::LowTempEmitters, self::PelletBoiler, self::VentilationDoubleFlow => true,
             // Repairing fossil equipment is not energy-performance work.
-            self::SolarPanels, self::HomeBattery, self::BoilerRepair => false,
+            self::SolarKit, self::SolarPanels, self::HomeBattery, self::BoilerRepair => false,
         };
     }
 

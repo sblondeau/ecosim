@@ -118,6 +118,33 @@ final class RenovationQuoterTest extends TestCase
         self::assertSame(5.0, $quote->resultingHousehold->batteryKwh);
     }
 
+    public function testSolarKitIsTheCheapEntryPointAndUpgradesToTheFullInstall(): void
+    {
+        $quoter = new RenovationQuoter();
+        $bare = self::barePassoire();
+
+        // Nothing installed yet: both the kit and the full install are on offer.
+        $kitQuote = $quoter->quote(Renovation::SolarKit, $bare);
+        self::assertNotNull($kitQuote, 'The plug-and-play kit is offered on a bare house.');
+        self::assertSame(0.9, $kitQuote->resultingHousehold->solarKwc);
+        self::assertSame(800_00, $kitQuote->cost->cents);
+        self::assertSame(0, $kitQuote->subsidy->cents, 'No public money for production equipment.');
+        self::assertNotNull($quoter->quote(Renovation::SolarPanels, $bare), 'The full install is also on offer from scratch.');
+
+        // Once the kit is installed: the kit is no longer offered, but the full
+        // install now appears as an upgrade path.
+        $afterKit = $kitQuote->resultingHousehold;
+        self::assertNull($quoter->quote(Renovation::SolarKit, $afterKit), 'Already have a kit: not offered again.');
+        $upgradeQuote = $quoter->quote(Renovation::SolarPanels, $afterKit);
+        self::assertNotNull($upgradeQuote, 'The full install upgrades from the kit.');
+        self::assertSame(3.0, $upgradeQuote->resultingHousehold->solarKwc);
+
+        // Once the full install is done: neither is offered any more.
+        $afterFull = $upgradeQuote->resultingHousehold;
+        self::assertNull($quoter->quote(Renovation::SolarKit, $afterFull));
+        self::assertNull($quoter->quote(Renovation::SolarPanels, $afterFull));
+    }
+
     public function testBoilerRepairIsOnlyQuotedWhenBroken(): void
     {
         $quoter = new RenovationQuoter();
@@ -142,6 +169,7 @@ final class RenovationQuoterTest extends TestCase
         $quoter = new RenovationQuoter();
         $equipped = new Household(3.0, 5.0, new EnvelopeState(false, WallInsulation::None, Glazing::Single), HeatingSystem::HeatPump);
 
+        self::assertNull($quoter->quote(Renovation::SolarKit, $equipped));
         self::assertNull($quoter->quote(Renovation::SolarPanels, $equipped));
         self::assertNull($quoter->quote(Renovation::HomeBattery, $equipped));
         self::assertNull($quoter->quote(Renovation::HeatPump, $equipped));

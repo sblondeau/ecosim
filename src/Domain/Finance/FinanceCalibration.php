@@ -271,6 +271,22 @@ final class FinanceCalibration
         );
     }
 
+    /**
+     * Plug-and-play solar kit (1-2 panels + micro-inverter, no installer) —
+     * the cheap entry point below the full installation (arbre travaux, T5).
+     */
+    public function solarKitInstallCost(): Coefficient
+    {
+        return new Coefficient(
+            value: 800.0,
+            unit: '€',
+            min: 400.0,
+            max: 1200.0,
+            source: 'Marché des kits solaires plug-and-play grand public, prix constaté 2024-2025',
+            reviewedOn: '2026-07-17',
+        );
+    }
+
     /** Home battery (the single 5 kWh catalogue model), installed. */
     public function batteryInstallCost(): Coefficient
     {

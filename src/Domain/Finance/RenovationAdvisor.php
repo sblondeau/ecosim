@@ -53,6 +53,10 @@ final readonly class RenovationAdvisor
                 AdviceLevel::Info,
                 'Rapide et peu cher, mais vous restez au fioul (facture et CO₂ élevés).',
             ),
+            Renovation::SolarKit => new RenovationAdvice(
+                AdviceLevel::Info,
+                'Le premier pas accessible : sans installateur ni aide, rendement modeste.',
+            ),
             Renovation::SolarPanels => new RenovationAdvice(
                 AdviceLevel::Info,
                 'Réduit la facture d\'électricité. Plus rentable une fois les besoins de chauffage réduits.',
