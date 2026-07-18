@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Finance;
 
+use App\Domain\Finance\Work\BoilerRepairWork;
+use App\Domain\Finance\Work\HeatPumpWork;
+use App\Domain\Finance\Work\LowTempEmittersWork;
+use App\Domain\Finance\Work\PelletBoilerWork;
+use App\Domain\Finance\Work\WaterHeaterThermoWork;
+
 use function array_values;
 
 use InvalidArgumentException;
@@ -85,6 +91,14 @@ final readonly class RenovationCatalog
      */
     private static function defaultWorks(): array
     {
-        return [];
+        return [
+            // Heating — the repair comes first: on a breakdown, the cheap fix
+            // must be the first thing offered.
+            new BoilerRepairWork(),
+            new HeatPumpWork(),
+            new PelletBoilerWork(),
+            new LowTempEmittersWork(),
+            new WaterHeaterThermoWork(),
+        ];
     }
 }

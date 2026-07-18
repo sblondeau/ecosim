@@ -73,13 +73,18 @@ final class RenovationCatalogTest extends TestCase
     }
 
     /**
-     * The default catalogue is empty until task 3 fills it; all this can
-     * assert today is that it is constructible. The real assertion — fifteen
-     * works, no duplicate — arrives in task 5, when it can be true.
+     * The default catalogue fills up drawer by drawer across tasks 3-5. The
+     * real assertion — fifteen works, no duplicate — arrives in task 5, when
+     * it can be true. For now: the heating drawer's slugs, in offer order.
      */
     public function testTheDefaultCatalogueIsConstructible(): void
     {
-        self::assertSame([], new RenovationCatalog()->all());
+        $slugs = array_map(
+            static fn (RenovationDefinition $w): string => $w->slug(),
+            new RenovationCatalog()->all(),
+        );
+
+        self::assertSame(['boiler_repair', 'heat_pump', 'pellet_boiler', 'low_temp_emitters', 'water_heater_thermo'], $slugs);
     }
 }
 

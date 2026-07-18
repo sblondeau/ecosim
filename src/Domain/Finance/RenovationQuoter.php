@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace App\Domain\Finance;
 
 use App\Domain\Building\Glazing;
-use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
 use App\Domain\Building\Ventilation;
 use App\Domain\Building\WallInsulation;
-use App\Domain\Building\WaterHeater;
 use App\Domain\Energy\EnergyCalibration;
+use LogicException;
 
 use function sprintf;
 
@@ -46,17 +45,16 @@ final readonly class RenovationQuoter
             Renovation::WallInsulationInterior => $this->wallQuote($household, WallInsulation::Interior, Renovation::WallInsulationInterior, 'Isolation des murs — intérieure (ITI)', $this->calibration->wallInsulationInteriorCost()->value),
             Renovation::WallInsulationExterior => $this->wallQuote($household, WallInsulation::Exterior, Renovation::WallInsulationExterior, 'Isolation des murs — extérieure (ITE)', $this->calibration->wallInsulationExteriorCost()->value),
             Renovation::Glazing => $this->glazingQuote($household),
-            Renovation::HeatPump => $this->heatPumpQuote($household),
             Renovation::SolarKit => $this->solarKitQuote($household),
             Renovation::SolarPanels => $this->solarQuote($household),
             Renovation::HomeBattery => $this->batteryQuote($household),
-            Renovation::BoilerRepair => $this->boilerRepairQuote($household),
-            Renovation::LowTempEmitters => $this->lowTempEmittersQuote($household),
-            Renovation::PelletBoiler => $this->pelletBoilerQuote($household),
             Renovation::VentilationDoubleFlow => $this->ventilationQuote($household),
-            Renovation::WaterHeaterThermo => $this->waterHeaterThermoQuote($household),
             Renovation::DraughtProofing => $this->draughtProofingQuote($household),
             Renovation::ThermalCurtains => $this->thermalCurtainsQuote($household),
+            // Migrated to the catalogue (tasks 3-5): a definition always
+            // answers these before the match is reached. Reaching here would
+            // mean defaultWorks() lost an entry — a real bug, not a legal state.
+            default => throw new LogicException(sprintf('"%s" is migrated to the renovation catalogue — the bridge above should have answered it.', $work->value)),
         };
     }
 
@@ -80,21 +78,6 @@ final readonly class RenovationQuoter
                 ? $this->subsidy->subsidyFor($offer->cost)
                 : Money::zero(),
             resultingHousehold: $offer->resultingHousehold,
-        );
-    }
-
-    private function boilerRepairQuote(Household $household): ?RenovationQuote
-    {
-        if (!$household->boilerBroken) {
-            return null;
-        }
-
-        return new RenovationQuote(
-            work: Renovation::BoilerRepair,
-            title: 'Réparer la chaudière fioul',
-            cost: Money::fromEuros($this->calibration->boilerRepairCost()->value),
-            subsidy: Money::zero(),
-            resultingHousehold: $household->withBoilerBroken(false),
         );
     }
 
@@ -149,23 +132,6 @@ final readonly class RenovationQuoter
             cost: $price,
             subsidy: $this->subsidy->subsidyFor($price),
             resultingHousehold: $household->withEnvelope($household->envelope->withGlazing($target)),
-        );
-    }
-
-    private function heatPumpQuote(Household $household): ?RenovationQuote
-    {
-        if (HeatingSystem::HeatPump === $household->heatingSystem) {
-            return null;
-        }
-
-        $price = Money::fromEuros($this->calibration->heatPumpInstallCost()->value);
-
-        return new RenovationQuote(
-            work: Renovation::HeatPump,
-            title: 'Pompe à chaleur air/eau',
-            cost: $price,
-            subsidy: $this->subsidy->subsidyFor($price),
-            resultingHousehold: $household->withHeatingSystem(HeatingSystem::HeatPump),
         );
     }
 
@@ -228,38 +194,6 @@ final readonly class RenovationQuoter
         );
     }
 
-    private function lowTempEmittersQuote(Household $household): ?RenovationQuote
-    {
-        if ($household->lowTempEmitters) {
-            return null;
-        }
-        $price = Money::fromEuros($this->calibration->lowTempEmittersCost()->value);
-
-        return new RenovationQuote(
-            work: Renovation::LowTempEmitters,
-            title: 'Émetteurs basse température',
-            cost: $price,
-            subsidy: $this->subsidy->subsidyFor($price),
-            resultingHousehold: $household->withLowTempEmitters(true),
-        );
-    }
-
-    private function pelletBoilerQuote(Household $household): ?RenovationQuote
-    {
-        if (HeatingSystem::PelletBoiler === $household->heatingSystem) {
-            return null;
-        }
-        $price = Money::fromEuros($this->calibration->pelletBoilerCost()->value);
-
-        return new RenovationQuote(
-            work: Renovation::PelletBoiler,
-            title: 'Chaudière à granulés',
-            cost: $price,
-            subsidy: $this->subsidy->subsidyFor($price),
-            resultingHousehold: $household->withHeatingSystem(HeatingSystem::PelletBoiler),
-        );
-    }
-
     private function ventilationQuote(Household $household): ?RenovationQuote
     {
         if (Ventilation::None !== $household->envelope->ventilation) {
@@ -273,22 +207,6 @@ final readonly class RenovationQuoter
             cost: $price,
             subsidy: $this->subsidy->subsidyFor($price),
             resultingHousehold: $household->withEnvelope($household->envelope->withVentilation(Ventilation::DoubleFlow)),
-        );
-    }
-
-    private function waterHeaterThermoQuote(Household $household): ?RenovationQuote
-    {
-        if (WaterHeater::Thermodynamic === $household->waterHeater) {
-            return null;
-        }
-        $price = Money::fromEuros($this->calibration->waterHeaterThermoCost()->value);
-
-        return new RenovationQuote(
-            work: Renovation::WaterHeaterThermo,
-            title: 'Chauffe-eau thermodynamique',
-            cost: $price,
-            subsidy: $this->subsidy->subsidyFor($price),
-            resultingHousehold: $household->withWaterHeater(WaterHeater::Thermodynamic),
         );
     }
 
