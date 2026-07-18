@@ -6,6 +6,9 @@ namespace App\Domain\Building;
 
 use App\Domain\Calibration\Coefficient;
 
+use function max;
+use function round;
+
 /**
  * Sourced coefficients for the Phase 0-1 building model: what is BUILT —
  * envelope heat loss, indoor temperatures, cold walls, comfort (game-design
@@ -139,76 +142,167 @@ final class BuildingCalibration
         );
     }
 
-    /**
-     * How much of the reference heat loss remains at a given insulation tier.
-     * 1.0 is the unrenovated original house — the calibration reference, not
-     * "zero insulation" (walls always resist a little; that residual
-     * resistance is already inside heatLossKwhPerDegreeDay).
-     */
-    public function insulationFactor(InsulationLevel $level): Coefficient
+    // --- Enveloppe par surfaces (Tranche 1) : chaque surface traitée retire une
+    // fraction de la déperdition TOTALE (part ADEME du poste × réduction obtenue). ---
+
+    /** Combles isolés : toiture ~28 % des pertes × réduction ~85 %. */
+    public function roofInsulationLossReduction(): Coefficient
     {
-        return match ($level) {
-            InsulationLevel::Original => new Coefficient(
-                value: 1.0,
-                unit: 'fraction',
-                min: 1.0,
-                max: 1.0,
-                source: 'Référence : état de départ du scénario (isolation d\'origine, game-design §15)',
-                reviewedOn: '2025-01-01',
-            ),
-            InsulationLevel::Retrofitted => new Coefficient(
-                value: 0.55,
-                unit: 'fraction',
-                min: 0.45,
-                max: 0.65,
-                source: 'ADEME : rénovation intermédiaire (combles + murs), −35 à −55 % de besoin de chauffage',
-                reviewedOn: '2025-01-01',
-            ),
-            InsulationLevel::Reinforced => new Coefficient(
-                value: 0.30,
-                unit: 'fraction',
-                min: 0.20,
-                max: 0.40,
-                source: 'ADEME : rénovation globale performante (niveau BBC rénovation), −60 à −80 % de besoin',
-                reviewedOn: '2025-01-01',
-            ),
-        };
+        return new Coefficient(value: 0.24, unit: 'fraction', min: 0.20, max: 0.28, source: 'ADEME : toiture ~25-30 % des déperditions × gain isolation combles ~80-90 %', reviewedOn: '2026-07-16');
+    }
+
+    /** Murs ITI : murs ~23 % des pertes × réduction ~70 % (ponts thermiques résiduels). */
+    public function wallInteriorLossReduction(): Coefficient
+    {
+        return new Coefficient(value: 0.16, unit: 'fraction', min: 0.13, max: 0.19, source: 'ADEME : murs ~20-25 % des déperditions × gain ITI ~65-75 %', reviewedOn: '2026-07-16');
+    }
+
+    /** Murs ITE : idem mais réduction ~80 % (pas de pont thermique). */
+    public function wallExteriorLossReduction(): Coefficient
+    {
+        return new Coefficient(value: 0.18, unit: 'fraction', min: 0.15, max: 0.21, source: 'ADEME : murs ~20-25 % des déperditions × gain ITE ~75-85 % (sans pont thermique)', reviewedOn: '2026-07-16');
+    }
+
+    /** Double vitrage : fenêtres ~13 % des pertes × réduction ~50 % vs simple. */
+    public function doubleGlazingLossReduction(): Coefficient
+    {
+        return new Coefficient(value: 0.065, unit: 'fraction', min: 0.05, max: 0.08, source: 'ADEME : fenêtres ~10-15 % des déperditions × gain double vitrage ~50 %', reviewedOn: '2026-07-16');
+    }
+
+    /** Triple vitrage : réduction ~62 % (rendement décroissant vs double). */
+    public function tripleGlazingLossReduction(): Coefficient
+    {
+        return new Coefficient(value: 0.08, unit: 'fraction', min: 0.06, max: 0.10, source: 'ADEME : fenêtres ~10-15 % × gain triple vitrage ~60 % (rendement décroissant)', reviewedOn: '2026-07-16');
+    }
+
+    /** VMC double flux : récupère la chaleur de l'air extrait (le renouvellement d'air ~20 % des pertes, récup ~70 %). */
+    public function ventilationHeatRecoveryLossReduction(): Coefficient
+    {
+        return new Coefficient(value: 0.14, unit: 'fraction', min: 0.10, max: 0.18, source: 'ADEME : VMC double flux, récupération ~70-90 % sur le renouvellement d\'air (~20 % des déperditions)', reviewedOn: '2026-07-17');
+    }
+
+    /** Plancher du facteur de déperdition (au-delà, l'enveloppe seule ne descend pas — plancher/étanchéité, phases suivantes). */
+    public function envelopeLossFloor(): Coefficient
+    {
+        return new Coefficient(value: 0.15, unit: 'fraction', min: 0.10, max: 0.20, source: 'Calibration de jeu : plancher physique, l\'enveloppe seule ne fait pas un BBC (résiduel plancher/ponts/étanchéité ; la ventilation est désormais modélisée)', reviewedOn: '2026-07-16');
+    }
+
+    /** Calfeutrage / joints : coupe les courants d'air. Petit geste — quelques % des pertes (vs combles 24 %). */
+    public function draughtProofingLossReduction(): Coefficient
+    {
+        return new Coefficient(value: 0.04, unit: 'fraction', min: 0.02, max: 0.06, source: 'ADEME : fuites d\'air ~20 % des déperditions cumulées ; calfeutrage/joints de base = quelques %', reviewedOn: '2026-07-17');
+    }
+
+    /** Rideaux thermiques : coupent le rayonnement froid des fenêtres la nuit. Petit gain de ressenti. */
+    public function thermalCurtainsColdWallRelief(): Coefficient
+    {
+        return new Coefficient(value: 0.02, unit: 'fraction', min: 0.01, max: 0.03, source: 'ADEME : rideaux thermiques, petit gain de température ressentie près des vitres', reviewedOn: '2026-07-17');
     }
 
     /**
-     * Cold-wall discomfort: fraction of the indoor/outdoor gap subtracted from
-     * the felt temperature (poorly insulated walls radiate cold even when the
-     * air is at the setpoint). ~0.15 × 19 °C gap ≈ 3 °C felt loss in a
-     * passoire on a freezing day.
+     * Fraction de la déperdition d'origine qui subsiste, agrégée depuis les
+     * surfaces traitées. 1,0 = maison d'origine (référence, DPE inchangé).
      */
-    public function coldWallPenaltyFactor(InsulationLevel $level): Coefficient
+    public function envelopeLossFactor(EnvelopeState $envelope): float
     {
-        return match ($level) {
-            InsulationLevel::Original => new Coefficient(
-                value: 0.15,
-                unit: 'fraction',
-                min: 0.10,
-                max: 0.20,
-                source: 'ADEME : effet parois froides, 1 à 3 °C de température ressentie en moins dans un logement mal isolé',
-                reviewedOn: '2025-01-01',
-            ),
-            InsulationLevel::Retrofitted => new Coefficient(
-                value: 0.07,
-                unit: 'fraction',
-                min: 0.04,
-                max: 0.10,
-                source: 'ADEME : effet parois froides réduit après isolation des parois principales',
-                reviewedOn: '2025-01-01',
-            ),
-            InsulationLevel::Reinforced => new Coefficient(
-                value: 0.03,
-                unit: 'fraction',
-                min: 0.01,
-                max: 0.05,
-                source: 'ADEME : parois isolées performantes, effet ressenti quasi nul',
-                reviewedOn: '2025-01-01',
-            ),
+        $removed = 0.0;
+
+        if ($envelope->roofInsulated) {
+            $removed += $this->roofInsulationLossReduction()->value;
+        }
+
+        $removed += match ($envelope->walls) {
+            WallInsulation::None => 0.0,
+            WallInsulation::Interior => $this->wallInteriorLossReduction()->value,
+            WallInsulation::Exterior => $this->wallExteriorLossReduction()->value,
         };
+
+        $removed += match ($envelope->glazing) {
+            Glazing::Single => 0.0,
+            Glazing::Double => $this->doubleGlazingLossReduction()->value,
+            Glazing::Triple => $this->tripleGlazingLossReduction()->value,
+        };
+
+        $removed += Ventilation::DoubleFlow === $envelope->ventilation ? $this->ventilationHeatRecoveryLossReduction()->value : 0.0;
+
+        $removed += $envelope->draughtProofed ? $this->draughtProofingLossReduction()->value : 0.0;
+
+        // Rounded to 6 decimals: the sourced coefficients carry at most 3
+        // significant decimals, so this only clears binary floating-point
+        // noise (e.g. 0.24 + 0.16 + 0.065 landing a hair below 0.535) —
+        // never a real precision loss.
+        return max($this->envelopeLossFloor()->value, round(1.0 - $removed, 6));
+    }
+
+    /**
+     * Above this residual loss factor, the house is "peu isolée" for advice
+     * purposes: an air/water heat pump would be oversized, and glazing is a
+     * low-priority spend. Game calibration (not a physical constant): 0.70
+     * means combles + murs not yet done (combles seul = 0,76 → encore peu isolé).
+     */
+    public function poorlyInsulatedEnvelopeCeiling(): Coefficient
+    {
+        return new Coefficient(value: 0.70, unit: 'fraction', min: 0.60, max: 0.80, source: 'Calibration de jeu : seuil de conseil « maison peu isolée » (repères ADEME : isoler avant de dimensionner une PAC)', reviewedOn: '2026-07-16');
+    }
+
+    // --- Confort : effet paroi froide, dominé par murs + vitrages (pas les combles). ---
+
+    /** Réduction de la pénalité paroi froide quand les murs sont isolés. */
+    public function wallColdWallRelief(): Coefficient
+    {
+        return new Coefficient(value: 0.08, unit: 'fraction', min: 0.05, max: 0.10, source: 'ADEME : effet parois froides, les murs sont la principale surface rayonnante', reviewedOn: '2026-07-16');
+    }
+
+    public function doubleGlazingColdWallRelief(): Coefficient
+    {
+        return new Coefficient(value: 0.04, unit: 'fraction', min: 0.02, max: 0.06, source: 'ADEME : vitrage isolant, réduction du rayonnement froid des fenêtres', reviewedOn: '2026-07-16');
+    }
+
+    public function tripleGlazingColdWallRelief(): Coefficient
+    {
+        return new Coefficient(value: 0.05, unit: 'fraction', min: 0.03, max: 0.07, source: 'ADEME : triple vitrage, rayonnement froid quasi nul', reviewedOn: '2026-07-16');
+    }
+
+    public function roofColdWallRelief(): Coefficient
+    {
+        return new Coefficient(value: 0.01, unit: 'fraction', min: 0.00, max: 0.02, source: 'ADEME : le plafond contribue peu à l\'effet paroi froide ressenti', reviewedOn: '2026-07-16');
+    }
+
+    /** Base de la pénalité paroi froide (maison d'origine). Planché de la pénalité résiduelle. */
+    public function baseColdWallPenaltyFactor(): Coefficient
+    {
+        return new Coefficient(value: 0.15, unit: 'fraction', min: 0.10, max: 0.20, source: 'ADEME : effet parois froides, 1 à 3 °C de ressenti en moins dans un logement mal isolé', reviewedOn: '2026-07-16');
+    }
+
+    public function coldWallPenaltyFloor(): Coefficient
+    {
+        return new Coefficient(value: 0.02, unit: 'fraction', min: 0.01, max: 0.03, source: 'ADEME : parois performantes, effet ressenti quasi nul (résiduel)', reviewedOn: '2026-07-16');
+    }
+
+    /** Fraction de l'écart intérieur/extérieur retirée au ressenti (parois froides), par surfaces. */
+    public function coldWallPenaltyFactor(EnvelopeState $envelope): float
+    {
+        $penalty = $this->baseColdWallPenaltyFactor()->value;
+
+        if ($envelope->roofInsulated) {
+            $penalty -= $this->roofColdWallRelief()->value;
+        }
+
+        if (WallInsulation::None !== $envelope->walls) {
+            $penalty -= $this->wallColdWallRelief()->value;
+        }
+
+        $penalty -= match ($envelope->glazing) {
+            Glazing::Single => 0.0,
+            Glazing::Double => $this->doubleGlazingColdWallRelief()->value,
+            Glazing::Triple => $this->tripleGlazingColdWallRelief()->value,
+        };
+
+        if ($envelope->thermalCurtains) {
+            $penalty -= $this->thermalCurtainsColdWallRelief()->value;
+        }
+
+        return max($this->coldWallPenaltyFloor()->value, $penalty);
     }
 
     /**

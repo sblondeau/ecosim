@@ -54,7 +54,18 @@ final class PeriodTotalsTest extends TestCase
         self::assertEqualsWithDelta(0.7, new PeriodTotals()->add(self::day())->selfSufficiencyRatio(), 1e-9);
     }
 
-    private static function day(): DailySnapshot
+    public function testAddAccumulatesPellet(): void
+    {
+        $day = self::day(pelletKg: 4.5, pelletCost: Money::fromCents(300));
+
+        $totals = new PeriodTotals()->add($day)->add($day);
+
+        self::assertSame(9.0, $totals->pelletKg);
+        self::assertSame(2 * 300, $totals->pelletCost->cents);
+        self::assertSame(2 * (66 + 1020 + 300 - 6), $totals->netEnergyCost()->cents);
+    }
+
+    private static function day(float $pelletKg = 0.0, ?Money $pelletCost = null): DailySnapshot
     {
         $epoch = DateTimeImmutable::createFromFormat('!Y-m-d', '2025-01-01');
         self::assertInstanceOf(DateTimeImmutable::class, $epoch);
@@ -72,12 +83,13 @@ final class PeriodTotalsTest extends TestCase
                 batteryDischargedKwh: 1.0,
                 batteryLevelKwh: 1.0,
             ),
-            heating: new HeatingConsumption(needKwh: 72.0, electricityKwh: 0.0, fuelOilLitres: 8.5),
+            heating: new HeatingConsumption(needKwh: 72.0, electricityKwh: 0.0, fuelOilLitres: 8.5, pelletKg: $pelletKg),
             comfort: new ThermalComfort(indoorC: 19.0, feltC: 17.0, score: 80),
             bill: new DailyBill(
                 electricityCost: Money::fromCents(66),
                 fuelOilCost: Money::fromCents(1020),
                 surplusRevenue: Money::fromCents(6),
+                pelletCost: $pelletCost ?? new Money(0),
             ),
             incomeCredited: Money::zero(),
             loanPayment: Money::zero(),

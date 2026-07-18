@@ -53,4 +53,15 @@ final class BillCalculatorTest extends TestCase
         // Game-design §8 : l'autoconsommation vaut ~18-20× la revente.
         self::assertGreaterThan(15.0, $ratio);
     }
+
+    public function testBillPricesPellets(): void
+    {
+        $bill = new BillCalculator()->billFor(
+            self::balance(import: 0.0, export: 0.0),
+            new HeatingConsumption(needKwh: 414.0, electricityKwh: 0.0, fuelOilLitres: 0.0, pelletKg: 100.0),
+        );
+
+        // 100 kg × 0,34 €.
+        self::assertSame('34,00 €', $bill->pelletCost->format());
+    }
 }

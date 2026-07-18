@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Domain\Building;
 
 use App\Domain\Building\DpeClass;
+use App\Domain\Building\Glazing;
 use App\Domain\Building\HeatingSystem;
-use App\Domain\Building\InsulationLevel;
+use App\Domain\Building\WallInsulation;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -77,8 +78,11 @@ final class DpeClassTest extends TestCase
         foreach (DpeClass::cases() as $class) {
             self::assertNotSame('', $class->label());
         }
-        foreach (InsulationLevel::cases() as $level) {
-            self::assertNotSame('', $level->label());
+        foreach (WallInsulation::cases() as $walls) {
+            self::assertNotSame('', $walls->label());
+        }
+        foreach (Glazing::cases() as $glazing) {
+            self::assertNotSame('', $glazing->label());
         }
         foreach (HeatingSystem::cases() as $system) {
             self::assertNotSame('', $system->label());

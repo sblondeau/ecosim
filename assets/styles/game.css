@@ -399,6 +399,21 @@ section>h2.section {
     padding: .1rem 0;
 }
 
+/* Icônes des devis : hors de la scène, aucune règle ne masque les calques
+   d'état (fumée/alarme/panneau « en panne ») du SVG chaudière réutilisé —
+   on les cache explicitement pour ne garder que le corps + la flamme. */
+.quote-icon .smoke,
+.quote-icon .alarm,
+.quote-icon .breakdown-sign {
+    display: none;
+}
+
+/* Chaudière à granulés : même asset que la chaudière fioul, teinté bois
+   (pas d'actif dédié pour un simple changement de combustible). */
+.quote-icon-wood {
+    filter: sepia(.6) hue-rotate(-12deg) saturate(1.5);
+}
+
 .quote-actions {
     display: flex;
     gap: .6rem;

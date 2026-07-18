@@ -31,6 +31,9 @@ final readonly class BillCalculator
             surplusRevenue: Money::fromEuros(
                 $balance->gridExportKwh * $this->calibration->surplusSellPricePerKwh()->value,
             ),
+            pelletCost: Money::fromEuros(
+                $heating->pelletKg * $this->calibration->pelletPricePerKg()->value,
+            ),
         );
     }
 }

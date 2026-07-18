@@ -7,6 +7,9 @@
     {% if game.fuelOilLitres > 0 %}
         <div class="row"><span class="key">Fioul brûlé{{ ui.tip(game.help.fuelOil) }}</span><span>{{ game.fuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
     {% endif %}
+    {% if game.pelletKg > 0 %}
+        <div class="row"><span class="key">Granulés brûlés</span><span>{{ game.pelletKg|number_format(1, ',', ' ') }} kg</span></div>
+    {% endif %}
     <div class="row"><span class="key">Autosuffisance{{ ui.tip(game.help.selfSufficiency) }}</span><span>{{ game.selfSufficiencyPct }} %</span></div>
 </div>
 <div class="card">

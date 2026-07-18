@@ -33,10 +33,10 @@ final readonly class EmergencyHeatingCalculator
      * @param float $internalGainsKwh heat already dissipated indoors over the
      *                                day (base electricity use), in kWh
      */
-    public function consumptionFor(InsulationLevel $insulation, float $outdoorC, float $internalGainsKwh): HeatingConsumption
+    public function consumptionFor(EnvelopeState $envelope, float $outdoorC, float $internalGainsKwh): HeatingConsumption
     {
         $lossPerDegree = $this->building->heatLossKwhPerDegreeDay()->value
-            * $this->building->insulationFactor($insulation)->value;
+            * $this->building->envelopeLossFactor($envelope);
 
         // Heat required to hold the survival setpoint, net of free gains.
         $wanted = max(

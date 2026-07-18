@@ -50,6 +50,7 @@ final readonly class AnnualOutcomeEstimator
             selfSufficiencyRatio: $state->totals->selfSufficiencyRatio(),
             electricityKwh: $state->totals->demandKwh,
             fuelOilLitres: $state->totals->fuelOilLitres,
+            pelletKg: $state->totals->pelletKg,
         );
     }
 }

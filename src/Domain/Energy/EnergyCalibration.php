@@ -110,6 +110,23 @@ final class EnergyCalibration
         return new Coefficient(3.0, 'kWc', 3.0, 3.0, 'Installation résidentielle type (jeu, 1 seul modèle)', '2025-01-01');
     }
 
+    /**
+     * Installed peak power of the plug-and-play solar kit (no installer, a
+     * single balcony/garden panel with a micro-inverter) — the cheap entry
+     * point below the full installation (arbre travaux, Tranche 5).
+     */
+    public function solarKitPeakPowerKwc(): Coefficient
+    {
+        return new Coefficient(
+            value: 0.9,
+            unit: 'kWc',
+            min: 0.4,
+            max: 1.5,
+            source: 'Marché des kits solaires plug-and-play grand public (1-2 panneaux + micro-onduleur, ~300-600 Wc/panneau)',
+            reviewedOn: '2026-07-17',
+        );
+    }
+
     /** Mean daily base household electricity demand (excluding fuel-oil heating). */
     public function householdDailyBaseDemandKwh(): Coefficient
     {
@@ -302,18 +319,105 @@ final class EnergyCalibration
     }
 
     /**
-     * Seasonal COP of the single Phase 0-1 heat-pump model, as measured in
-     * real conditions (not the optimistic nameplate figure).
+     * SCOP of the air/water heat pump on high-temperature emitters (old
+     * cast-iron radiators, ~65 °C water) — the scenario's default plumbing.
+     * A heat pump is a system, not a box: sized for a boiler's water
+     * temperature, it runs far from its efficient operating point.
      */
-    public function heatPumpScop(): Coefficient
+    public function heatPumpScopHighTempEmitters(): Coefficient
     {
         return new Coefficient(
-            value: 3.5,
-            unit: 'ratio',
-            min: 2.9,
-            max: 4.3,
-            source: 'ADEME : SCOP mesuré en conditions réelles, PAC air/eau (game-design §12)',
-            reviewedOn: '2025-01-01',
+            value: 2.5,
+            unit: 'SCOP',
+            min: 2.2,
+            max: 2.8,
+            source: 'ADEME / NF PAC : SCOP dégradé sur émetteurs haute température (~55-65 °C)',
+            reviewedOn: '2026-07-17',
+        );
+    }
+
+    /**
+     * SCOP on low-temperature emitters (underfloor heating / oversized BT
+     * radiators, ~35 °C water) — the nominal, sourced figure the heat pump
+     * was designed around.
+     */
+    public function heatPumpScopLowTempEmitters(): Coefficient
+    {
+        return new Coefficient(
+            value: 4.3,
+            unit: 'SCOP',
+            min: 4.0,
+            max: 4.6,
+            source: 'ADEME / NF PAC : SCOP nominal sur émetteurs basse température (~35 °C)',
+            reviewedOn: '2026-07-17',
+        );
+    }
+
+    /**
+     * Seasonal efficiency of an automatic pellet (granulés) boiler — a
+     * modern, well-regulated combustion appliance (arbre travaux T4).
+     */
+    public function pelletBoilerEfficiency(): Coefficient
+    {
+        return new Coefficient(value: 0.90, unit: 'fraction', min: 0.85, max: 0.95, source: 'ADEME : rendement chaudière automatique à granulés', reviewedOn: '2026-07-17');
+    }
+
+    /**
+     * Energy content of wood pellets (net calorific value).
+     */
+    public function pelletEnergyKwhPerKg(): Coefficient
+    {
+        return new Coefficient(value: 4.6, unit: 'kWh/kg', min: 4.6, max: 5.2, source: 'Norme ENplus / ADEME : PCI granulés bois ~4,6-5 kWh/kg', reviewedOn: '2026-07-17');
+    }
+
+    /**
+     * CO₂ content of wood pellets, combustion + upstream — the DPE climate
+     * label factor. Biomass is near-carbon-neutral on combustion, so this is
+     * far below fossil fuels.
+     */
+    public function pelletCo2GramsPerKwh(): Coefficient
+    {
+        return new Coefficient(value: 30.0, unit: 'gCO2e/kWh', min: 20.0, max: 40.0, source: 'ADEME Base Carbone : granulés bois (combustion + amont), ~30 g CO2e/kWh', reviewedOn: '2026-07-17');
+    }
+
+    /** DPE primary-energy factor for biomass (wood/pellets): 1.0, unlike electricity's 2.3. */
+    public function pelletPrimaryEnergyFactor(): Coefficient
+    {
+        return new Coefficient(value: 1.0, unit: 'factor', min: 1.0, max: 1.0, source: 'Méthode DPE 2021 : coefficient d\'énergie primaire biomasse = 1,0', reviewedOn: '2026-07-17');
+    }
+
+    /**
+     * Daily heat delivered as domestic hot water (ECS), electric share — the
+     * baseline `householdDailyBaseDemandKwh` already bakes this in as pure
+     * resistive (electric-tank) heating. A thermodynamic water heater does not
+     * need less heat; it produces the same heat more efficiently (below).
+     */
+    public function householdDailyEcsHeatKwh(): Coefficient
+    {
+        return new Coefficient(
+            value: 2.5,
+            unit: 'kWh/day',
+            min: 2.0,
+            max: 3.0,
+            source: 'ADEME : consommation ECS électrique d\'un foyer ≈ 900 kWh/an (≈2,5 kWh/j)',
+            reviewedOn: '2026-07-17',
+        );
+    }
+
+    /**
+     * COP of a thermodynamic water heater (small heat pump on the hot-water
+     * tank): 1 kWh electricity moves this many kWh of heat, versus 1:1 for a
+     * plain resistive electric tank.
+     */
+    public function waterHeaterThermodynamicCop(): Coefficient
+    {
+        return new Coefficient(
+            value: 3.0,
+            unit: 'COP',
+            min: 2.5,
+            max: 3.5,
+            source: 'ADEME : COP d\'un chauffe-eau thermodynamique ≈ 2,5-3,5',
+            reviewedOn: '2026-07-17',
         );
     }
 }

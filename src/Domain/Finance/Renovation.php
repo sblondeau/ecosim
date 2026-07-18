@@ -14,13 +14,33 @@ namespace App\Domain\Finance;
  */
 enum Renovation: string
 {
-    /** Upgrade the insulation to the next tier. */
-    case Insulation = 'insulation';
+    /** Insulate the attic/roof (priority #1, ~24 % of losses). */
+    case RoofInsulation = 'roof_insulation';
+    /** Walls, interior (ITI) — cheaper, eats living space. Exclusive with ITE. */
+    case WallInsulationInterior = 'wall_insulation_interior';
+    /** Walls, exterior (ITE) — dearer, better. Exclusive with ITI. */
+    case WallInsulationExterior = 'wall_insulation_exterior';
+    /** Windows: single → double → triple glazing. */
+    case Glazing = 'glazing';
     case HeatPump = 'heat_pump';
+    /** Plug-and-play kit — no installer, no aid, the cheap entry point below {@see self::SolarPanels}. */
+    case SolarKit = 'solar_kit';
     case SolarPanels = 'solar_panels';
     case HomeBattery = 'home_battery';
     /** Fix the broken fuel-oil boiler (the breakdown-event alternative to the heat pump). */
     case BoilerRepair = 'boiler_repair';
+    /** Low-temperature emitters (underfloor/oversized radiators) — boosts a heat pump's SCOP. */
+    case LowTempEmitters = 'low_temp_emitters';
+    /** Automatic wood-pellet boiler — replaces the generator, cheap and low-carbon fuel. */
+    case PelletBoiler = 'pellet_boiler';
+    /** VMC double flux — recovers heat from extracted air (arbre travaux, Tranche 5). */
+    case VentilationDoubleFlow = 'ventilation_double_flow';
+    /** Swap the electric-tank water heater for a thermodynamic one (arbre travaux, Tranche 5). */
+    case WaterHeaterThermo = 'water_heater_thermo';
+    /** Draught-proofing (window seals, door sweeps) — cheap, small effect (arbre travaux, Tranche 6). */
+    case DraughtProofing = 'draught_proofing';
+    /** Thermal curtains — cheap, small effect (arbre travaux, Tranche 6). */
+    case ThermalCurtains = 'thermal_curtains';
 
     /**
      * Covered by the income-based prime (MaPrimeRénov'-like)?
@@ -28,9 +48,10 @@ enum Renovation: string
     public function isSubsidised(): bool
     {
         return match ($this) {
-            self::Insulation, self::HeatPump => true,
+            self::RoofInsulation, self::WallInsulationInterior, self::WallInsulationExterior, self::Glazing, self::HeatPump, self::LowTempEmitters, self::PelletBoiler, self::VentilationDoubleFlow, self::WaterHeaterThermo => true,
             // Repairing fossil equipment is not energy-performance work.
-            self::SolarPanels, self::HomeBattery, self::BoilerRepair => false,
+            // Cheap gestures are not covered either — too small to qualify.
+            self::SolarKit, self::SolarPanels, self::HomeBattery, self::BoilerRepair, self::DraughtProofing, self::ThermalCurtains => false,
         };
     }
 

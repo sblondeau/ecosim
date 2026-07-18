@@ -101,6 +101,8 @@ final readonly class GameView
         public int $dpeClimateBandPct,
         public float $heatingElectricityKwh,
         public float $fuelOilLitres,
+        /** Wood pellets burnt today, in kilograms (pellet boiler). */
+        public float $pelletKg,
         public int $comfortScorePct,
         public float $indoorTemperatureC,
         public float $feltTemperatureC,
@@ -117,6 +119,8 @@ final readonly class GameView
         public float $totalExportKwh,
         public int $totalSelfSufficiencyPct,
         public float $totalFuelOilLitres,
+        /** Wood pellets burnt since day 1, in kilograms. */
+        public float $totalPelletKg,
         public int $averageComfortPct,
         public string $totalElectricityCostLabel,
         public string $totalFuelOilCostLabel,
@@ -129,6 +133,41 @@ final readonly class GameView
          * actually played.
          */
         public string $co2EmittedLabel = '0 kg',
+        // Envelope "done" flags (renovation tree)
+        /** Attic/roof already insulated? */
+        public bool $roofInsulated = false,
+        /** Wall insulation done so far (ITI/ITE label), empty when walls are untreated. */
+        public string $wallInsulationLabel = '',
+        /** Current glazing tier label ('Simple vitrage'...). */
+        public string $glazingLabel = '',
+        /** Glazing already at its best tier (triple)? */
+        public bool $glazingMaxed = false,
+        /** Draught-proofing (joints/calfeutrage) already done? */
+        public bool $hasDraughtProofing = false,
+        /** Thermal curtains already hung? */
+        public bool $hasThermalCurtains = false,
+        // Heating "done" flags (renovation tree)
+        /** Low-temperature emitters (underfloor/oversized radiators) already installed? */
+        public bool $hasLowTempEmitters = false,
+        /**
+         * The heat pump's effective SCOP given the current emitters, formatted
+         * ('2,5' on old high-temp radiators, '4,3' once low-temp emitters are
+         * fitted). Empty when the household isn't on a heat pump.
+         */
+        public string $heatPumpScopLabel = '',
+        // Ventilation/solar-kind/water-heater "done" flags (renovation tree, T5)
+        /** Heat-recovery (double-flow) ventilation already installed? */
+        public bool $hasHeatRecoveryVentilation = false,
+        /**
+         * The installed solar setup's kind and size ('Kit solaire · 0,9 kWc',
+         * 'Panneaux solaires · 3 kWc'). Empty when no solar is installed yet —
+         * distinct from the scene's plain kWc label, this names the *kind* of
+         * install (plug-and-play kit vs full) for the roof drawer's decision
+         * context (arbre travaux, Tranche 5).
+         */
+        public string $solarKindLabel = '',
+        /** Water-heater label, only when upgraded (thermodynamic) — empty on the baseline electric tank. */
+        public string $waterHeaterLabel = '',
         /**
          * Player-facing explanations of the metrics, keyed by topic. Built
          * from the calibration registry so every number quoted in a tooltip

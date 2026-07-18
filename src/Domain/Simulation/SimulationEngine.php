@@ -74,15 +74,16 @@ final readonly class SimulationEngine
         $weather = $this->weather->for($config->seed, $date);
 
         $production = $this->solar->dailyProductionKwh($household->solarKwc, $weather, $date);
-        $baseDemand = $this->baseDemand->dailyDemandKwh($config->seed, $date);
+        $baseDemand = $this->baseDemand->dailyDemandKwh($config->seed, $date, $household->waterHeater);
 
         // A broken boiler forces the emergency electric heaters (not a choice:
         // nobody lives at 4 °C) — Joule heating pours into the electric loop.
         $heating = $household->boilerBroken
-            ? $this->emergencyHeating->consumptionFor($household->insulation, $weather->temperatureC, $baseDemand)
+            ? $this->emergencyHeating->consumptionFor($household->envelope, $weather->temperatureC, $baseDemand)
             : $this->heatingEnergy->consumptionFor(
                 $household->heatingSystem,
-                $this->heatingNeed->dailyNeedKwh($household->insulation, $weather->temperatureC, $household->heatingSetpointC),
+                $this->heatingNeed->dailyNeedKwh($household->envelope, $weather->temperatureC, $household->heatingSetpointC),
+                $household->lowTempEmitters,
             );
 
         $demand = $baseDemand + $heating->electricityKwh;
@@ -92,8 +93,8 @@ final readonly class SimulationEngine
         // emergency heaters): the house sits at that equilibrium, at best the
         // survival setpoint, lower on cold days when the heaters are maxed out.
         $comfort = $household->boilerBroken
-            ? $this->comfort->unheatedComfortFor($household->insulation, $weather->temperatureC, $baseDemand + $heating->electricityKwh)
-            : $this->comfort->comfortFor($household->insulation, $weather->temperatureC, $household->heatingSetpointC);
+            ? $this->comfort->unheatedComfortFor($household->envelope, $weather->temperatureC, $baseDemand + $heating->electricityKwh)
+            : $this->comfort->comfortFor($household->envelope, $weather->temperatureC, $household->heatingSetpointC);
 
         return new DailySnapshot(
             $date,

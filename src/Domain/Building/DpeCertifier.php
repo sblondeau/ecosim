@@ -23,21 +23,26 @@ final readonly class DpeCertifier
     /**
      * @param float $electricityKwh year's electricity use (final energy)
      * @param float $fuelOilLitres  year's fuel-oil use (converted to energy here)
+     * @param float $pelletKg       year's wood-pellet use (converted to energy here)
      */
-    public function certify(float $electricityKwh, float $fuelOilLitres): DpeAssessment
+    public function certify(float $electricityKwh, float $fuelOilLitres, float $pelletKg = 0.0): DpeAssessment
     {
         $area = $this->building->referenceFloorAreaM2()->value;
         $fuelOilKwh = $fuelOilLitres * $this->energy->fuelOilEnergyKwhPerLitre()->value;
+        $pelletKwh = $pelletKg * $this->energy->pelletEnergyKwhPerKg()->value;
 
         // Energy label: primary energy per m². Electricity carries the 2.3
-        // factor; fossil fuels convert at 1.0 (their final energy IS primary).
+        // factor; fossil fuels convert at 1.0 (their final energy IS primary);
+        // biomass (pellets) also converts at 1.0.
         $primaryFactor = $this->energy->electricityPrimaryEnergyFactor()->value;
-        $energyIntensity = ($electricityKwh * $primaryFactor + $fuelOilKwh) / $area;
+        $pelletPrimaryFactor = $this->energy->pelletPrimaryEnergyFactor()->value;
+        $energyIntensity = ($electricityKwh * $primaryFactor + $fuelOilKwh + $pelletKwh * $pelletPrimaryFactor) / $area;
 
         // Climate label: grams of CO₂ → kilograms, per m².
         $climateIntensity = (
             $electricityKwh * $this->energy->electricityCo2GramsPerKwh()->value
             + $fuelOilKwh * $this->energy->fuelOilCo2GramsPerKwh()->value
+            + $pelletKwh * $this->energy->pelletCo2GramsPerKwh()->value
         ) / 1000.0 / $area;
 
         $energyClass = DpeClass::fromEnergyIntensity($energyIntensity);

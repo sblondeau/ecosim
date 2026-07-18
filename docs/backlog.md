@@ -386,6 +386,181 @@ minimal si on veut l'avancer.
   l'encode grossièrement, à raffiner quand l'été devient un vrai sujet
   (bornes saisonnières).
 
+## Arbre de travaux — rénovation détaillée (spec design, juillet 2026)
+
+**Design validé, spec écrite : `docs/specs/2026-07-15-arbre-travaux-design.md`**
+(branche `docs/arbre-travaux-spec`). Première extension **post-MVP (V1.x)** ;
+le MVP Phase 0-1 reste verrouillé tant que la phase n'est pas ouverte.
+
+> **État d'avancement (juillet 2026)** — **Tranches 1 à 3 IMPLÉMENTÉES.**
+>
+> - **T1 — enveloppe par surfaces** (`docs/specs/2026-07-16-tranche1-enveloppe-plan.md`) :
+>   `InsulationLevel` (3 paliers) → `EnvelopeState` (combles / murs ITI-ITE /
+>   vitrage) ; déperdition agrégée (facteur `1 − Σ retraits` sourcés, planché
+>   0,15) ; 4 travaux chiffrés+câblés ; DPE inchangé ; départ F/G préservé ;
+>   plafond enveloppe seule ≈ 0,50 (assumé). 233 tests, « ready to merge ».
+> - **T2+T3 — conseils + tiroir** (`docs/specs/2026-07-16-tranche2-3-conseils-tiroir-plan.md`) :
+>   `RenovationAdvisor` (domaine pur, **non prescriptif** — 2 niveaux 💡 repère /
+>   ⚠ déconseillé-maintenant, pas de ★ ni halo, choix préservés ; seuil 0,70 de
+>   « peu isolée » en calibration de jeu) ; badge de conseil sur `QuoteCard` +
+>   icônes des 4 travaux ; **tiroir latéral scrollable** (`.at-drawer`, règle le
+>   débordement) + séparation lire/agir + bande « ✔ fait » ; note éducative
+>   statique. 246 tests, « ready to merge ». Née d'un retour joueur : panneau de
+>   coin qui débordait, fouillis, pas de pédagogie.
+>
+> - **T4 — chauffage complet** (`docs/specs/2026-07-17-tranche4-chauffage-plan.md`) :
+>   **émetteurs basse température** → le SCOP de la PAC dépend d'eux (2,5 fonte /
+>   4,3 BT), *seule la PAC sensible* (fioul/granulés insensibles) ; **chaudière
+>   à granulés** = 3ᵉ vecteur pellet (kg, prix, CO₂ ~30 g/kWh) traversant
+>   facture/totaux/CO₂/DPE — « facture 2 lignes » préservée à l'œil (fioul et
+>   granulés exclusifs) ; 2 travaux chiffrés+câblés + conseils non prescriptifs ;
+>   tiroir chauffage lire/agir. Bascule SCOP assumée (PAC seule = 2,5). 270 tests.
+>
+> - **T5 — ventilation + production + ECS** (`docs/specs/2026-07-17-tranche5-ventilation-production-ecs-plan.md`) :
+>   **VMC double flux** = 4ᵉ surface d'enveloppe (récupère la chaleur, −0,14 ;
+>   rouvre le chemin sous 0,50) + conseil « à poser après avoir isolé » ; **kit
+>   solaire plug-and-play** (0,9 kWc, 800 €, sans installateur ni aide ; upgrade
+>   vers l'installation complète) ; **chauffe-eau thermodynamique** = découpe de
+>   l'ECS (réduit la demande, défaut ballon élec non régressif). 3 travaux
+>   câblés + conseils ; lire/agir des slots roof/garage comblé. 291 tests.
+>
+> - **T6 — gestes du quotidien** (`docs/specs/2026-07-17-tranche6-gestes-plan.md`) :
+>   **calfeutrage** (−0,04 perte, 80 €) + **rideaux thermiques** (−0,02 paroi
+>   froide, 120 €) sur `EnvelopeState`, **non subventionnés**. Conseils Info
+>   **anti-théâtre** (« geste bon marché… pas un gros levier ») — les magnitudes
+>   sont honnêtement petites vs les gros travaux. Zone séjour (dernier lire/agir
+>   comblé). 300 tests.
+>
+> **✅ ARBRE RESSERRÉ COMPLET (T1 → T6).** Le premier arbre de travaux
+> (game-design / spec `2026-07-15-arbre-travaux-design.md`) est entièrement
+> implémenté.
+>
+> **Pistes futures (backlog, hors arbre resserré)** : **carbone gris +
+> hiérarchie des leviers** (voir « Consommation par usage » ci-dessous) ;
+> conso par usage (électroménager/veille) ; **T2 dynamisme** (prix variables,
+> politiques + points d'arrêt) ; réalisme financier dans le temps (délais/dette,
+> voir remarque éco-PTZ) ; type d'isolant (Phase 5) ; VMC simple flux ;
+> **visuels de scène** du pellet et de la VMC (rendus par défaut, assets à
+> faire) ; distinction visuelle `glazingMaxed`.
+
+Répond à la mollesse structurelle du gameplay (décisions one-shot, milieu
+d'année vide) en **multipliant les choix de travaux**, avec pour **rôle premier
+la pédagogie de la rénovation** (le vrai parcours ADEME, pas un gating de jeu).
+
+- Mécanisme **« conseil non bloquant »** : aucun verrou ni malus artificiel ;
+  leçons montrées par le système (factures/SCOP/confort qui bougent) ou conseil
+  textuel (encarts 💡/⚠).
+- Contenu resserré (~une douzaine de nœuds / 5 branches) : enveloppe **par
+  surfaces** (combles, murs **ITI/ITE**, vitrage), ventilation (VMC), chauffage
+  (PAC, granulés, **émetteurs BT → SCOP** — levier spécifique PAC, combustion
+  insensible), production & ECS (PV **kit plug-and-play**/complet, batterie,
+  chauffe-eau thermo), **gestes** (rideaux, calfeutrage).
+- IHM : **zones de scène = branches**, séparation *lire* (4 coins) / *agir*
+  (zones), **tiroir latéral** pour les travaux, entêtes de contexte-décision.
+- Impact domaine : `Household` par surfaces, DPE recalculé, `RenovationAdvisor`
+  (moteur du conseil). Aides à périmètre inchangé. Tous coefficients à sourcer.
+
+**Déclencheur** : ouverture consciente de la phase V1.x → plan d'implémentation
+(`writing-plans`). **Croise** la section « Confort d'été & rénovation
+granulaire » ci-dessus : le **type d'isolant** (laine vs biosourcé) est
+volontairement **différé à la Phase 5** dans la spec, car son intérêt (déphasage
+/ confort d'été) n'a de sens qu'une fois les canicules modélisées — pas de
+magnitude truquée (§1).
+
+## Consommation par usage — itemiser la demande électrique (piste, réflexion juillet 2026)
+
+**Déclencheur/amorce : la Tranche 5 casse déjà l'ECS (eau chaude) de la demande
+de base** (`householdDailyBaseDemandKwh` → appareils + ECS, avec COP du
+chauffe-eau). C'est la première fissure dans le bloc de conso forfaitaire.
+Une fois les usages itemisés, ça débloque une famille de mécaniques (idée
+joueur) :
+- **efficacité des équipements** : électroménager (A→A+++), éclairage LED,
+  chauffe-eau (déjà fait) → travaux/gestes bon marché, sourcés (étiquette
+  énergie, ADEME) ;
+- **sobriété / usages** : veille des appareils, délestage, **décalage des
+  usages** (lave-linge en heures creuses / au pic solaire) → le levier
+  *comportement*, distinct du levier *équipement* (« consommer moins » vs
+  « consommer mieux ») ;
+- se marie avec le **prix variable** (HP/HC, autoconsommation) de la phase
+  « dynamisme » ci-dessous, et avec la batterie / le pilotage.
+Non planifié : à raccrocher à la phase « dynamisme » ou à une extension de
+l'arbre côté équipements électriques.
+
+**Deux exigences pédagogiques (réflexion joueur, juillet 2026) pour que ce soit
+honnête et pas du théâtre — s'appliquent à TOUT l'arbre, pas qu'aux usages :**
+
+- **Carbone gris (fabrication) + amortissement carbone.** Aujourd'hui l'axe CO₂
+  (`CarbonAccountant`) ne compte que le carbone *à l'usage*. Or fabriquer un
+  équipement a un coût carbone (énergie grise) parfois non négligeable vs
+  l'économie : garder un appareil qui marche peut battre le remplacer ; une PAC,
+  des panneaux, une VMC ont une **dette carbone de fabrication** → un **temps de
+  retour carbone** (parfois long, parfois jamais atteint). Transforme « verdir »
+  en *investissement carbone avec amortissement*. Sourçable (ADEME / Base
+  Carbone : contenu carbone de fabrication par équipement). Reframe l'axe
+  Environnement en **CO₂ usage + CO₂ fabrication**. Croise [[environnement-co2]].
+- **Ordres de grandeur / hiérarchie des leviers.** Personne n'a les magnitudes en
+  tête → on fait des gestes contraignants et minuscules (éteindre la box ~17
+  kWh/an) en ratant le gros levier (chauffage = milliers de kWh/an ; avion =
+  centaines de kg d'un coup). Rendre les impacts **comparables sur une échelle
+  commune** (kgCO₂/an, €/an) et **classer les leviers** pour que le joueur voie
+  que l'isolation écrase le geste — et qu'un petit geste **ne compense jamais**
+  un mauvais gros arbitrage. Le jeu a déjà la matière (effets « ≈ X €/an », Δ
+  DPE, CO₂ vécu) ; il manque la **mise en contraste explicite**.
+- **Impact immédiat, dès les gestes (T6)** : présenter rideaux/calfeutrage
+  **honnêtement** (petit gain de confort, pas un gros levier) — ne pas les
+  survendre dans les conseils. C'est l'anti-théâtre appliqué tout de suite.
+
+## Dynamisme du gameplay — rythme de décision (phase dédiée, réflexion juillet 2026)
+
+Thème **frère** de l'arbre de travaux ci-dessus : deux réponses au **même**
+problème (le gameplay MVP est **structurellement mou**). L'arbre attaque la
+**largeur** des choix ; cette phase-ci attaquerait le **rythme** — le milieu
+d'année vide. À traiter en **phase dédiée**, pas au premier arbre. Non planifié.
+
+**Diagnostic (à garder en tête).** La mollesse est *structurelle*, pas un manque
+de contenu : les décisions sont *one-shot* et front-loadées, aucune boucle
+récurrente ne porte le milieu de partie. Et le **tick temps réel** (même en ×1,
+a fortiori ×3 à 4 s/jour) rend le **micro-management impossible** — mais « régler
+le thermostat une fois pour toutes » est tout aussi plat. La prévision météo
+comme unique levier de micro-gestion a été jugée **trop tendue** dans ce cadre.
+
+**Modèle de design retenu de la réflexion — politiques + points d'arrêt** (pas de
+clic-par-tick) :
+- le joueur pose des **règles automatiques** (politiques) qui tournent seules ;
+- le jeu **s'auto-met en pause** aux moments qui comptent : événement, alerte,
+  franchissement de seuil, **bilan mensuel** ;
+- un bouton **« avancer jusqu'au prochain point de décision »** ;
+- garde-fou : des **politiques avec surcharge ponctuelle**, jamais des clics
+  quotidiens obligatoires. (Cohérent avec `TimeProgressionPolicy` /
+  `PausesWhileAway` déjà posé, et avec la pause auto au matin de la panne.)
+
+**Pistes de profondeur inventoriées** (sans trahir l'ADN : réalisme sourcé,
+multi-critères, pas de game over, pédagogie par les systèmes) :
+- **Prix variables de l'énergie** — HP/HC, Tempo, volatilité du fioul → donne du
+  sens au pilotage/stockage et à l'autoconsommation dans le temps.
+- **Calendrier d'événements** — pannes, aléas, échéances (au-delà de l'unique
+  panne scriptée actuelle) : la trame qui remplit l'année.
+- **Objectifs souples** — jamais un score unique (§1) ; des caps/paliers par axe
+  qui donnent une direction sans « gagner/perdre ».
+- **Programmation du thermostat** — cf. entrée « Face gameplay du levier 2 —
+  programmation du thermostat » plus haut dans ce backlog ; c'est la première
+  brique concrète de « politique » (consignes horaires/saisonnières).
+- **Modèle d'inertie / intermittence** — l'inertie thermique et l'intermittence
+  PV/vent rendent le *timing* des décisions signifiant (prérequis d'une partie
+  des points ci-dessus).
+- **Réalisme financier dans le temps** — délais de versement de l'éco-PTZ,
+  entretien récurrent, cycle de vie des équipements (croise la section « Cycle
+  de vie des équipements » de ce backlog).
+- **Persistance + graphe multi-années** — voir courber ses axes sur plusieurs
+  années (prérequis : étape « Persistance & méta-jeu »).
+- **Confort d'été / canicules** → **Phase 5** (hors scope ici, cf. « Confort
+  d'été & rénovation granulaire »).
+
+**Déclencheur** : jalon dédié « dynamisme du gameplay », après (ou en parallèle
+de) l'arbre de travaux — les deux se renforcent : les **gestes bon marché** de
+l'arbre créent déjà un séquençage par le budget qui préfigure la boucle
+récurrente visée ici.
+
 ## Confort thermique : représentation + consigne réglable (réflexion joueur, juillet 2026)
 
 Constat : le confort n'est qu'un %, peu lisible, et surtout **sans conséquence

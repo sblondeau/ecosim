@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Finance;
 
+use App\Domain\Building\Glazing;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
-use App\Domain\Building\InsulationLevel;
+use App\Domain\Building\Ventilation;
+use App\Domain\Building\WallInsulation;
+use App\Domain\Building\WaterHeater;
 use App\Domain\Energy\EnergyCalibration;
 
 use function sprintf;
@@ -31,11 +34,21 @@ final readonly class RenovationQuoter
     public function quote(Renovation $work, Household $household): ?RenovationQuote
     {
         return match ($work) {
-            Renovation::Insulation => $this->insulationQuote($household),
+            Renovation::RoofInsulation => $this->roofQuote($household),
+            Renovation::WallInsulationInterior => $this->wallQuote($household, WallInsulation::Interior, Renovation::WallInsulationInterior, 'Isolation des murs — intérieure (ITI)', $this->calibration->wallInsulationInteriorCost()->value),
+            Renovation::WallInsulationExterior => $this->wallQuote($household, WallInsulation::Exterior, Renovation::WallInsulationExterior, 'Isolation des murs — extérieure (ITE)', $this->calibration->wallInsulationExteriorCost()->value),
+            Renovation::Glazing => $this->glazingQuote($household),
             Renovation::HeatPump => $this->heatPumpQuote($household),
+            Renovation::SolarKit => $this->solarKitQuote($household),
             Renovation::SolarPanels => $this->solarQuote($household),
             Renovation::HomeBattery => $this->batteryQuote($household),
             Renovation::BoilerRepair => $this->boilerRepairQuote($household),
+            Renovation::LowTempEmitters => $this->lowTempEmittersQuote($household),
+            Renovation::PelletBoiler => $this->pelletBoilerQuote($household),
+            Renovation::VentilationDoubleFlow => $this->ventilationQuote($household),
+            Renovation::WaterHeaterThermo => $this->waterHeaterThermoQuote($household),
+            Renovation::DraughtProofing => $this->draughtProofingQuote($household),
+            Renovation::ThermalCurtains => $this->thermalCurtainsQuote($household),
         };
     }
 
@@ -54,32 +67,57 @@ final readonly class RenovationQuoter
         );
     }
 
-    private function insulationQuote(Household $household): ?RenovationQuote
+    private function roofQuote(Household $household): ?RenovationQuote
     {
-        [$cost, $target] = match ($household->insulation) {
-            InsulationLevel::Original => [
-                $this->calibration->insulationRetrofitCost(),
-                InsulationLevel::Retrofitted,
-            ],
-            InsulationLevel::Retrofitted => [
-                $this->calibration->insulationReinforceCost(),
-                InsulationLevel::Reinforced,
-            ],
-            InsulationLevel::Reinforced => [null, null],
-        };
-
-        if (null === $cost || null === $target) {
+        if ($household->envelope->roofInsulated) {
             return null;
         }
-
-        $price = Money::fromEuros($cost->value);
+        $price = Money::fromEuros($this->calibration->roofInsulationCost()->value);
 
         return new RenovationQuote(
-            work: Renovation::Insulation,
-            title: sprintf('Isolation « %s »', $target->label()),
+            work: Renovation::RoofInsulation,
+            title: 'Isolation des combles',
             cost: $price,
             subsidy: $this->subsidy->subsidyFor($price),
-            resultingHousehold: $household->withInsulation($target),
+            resultingHousehold: $household->withEnvelope($household->envelope->withRoofInsulated(true)),
+        );
+    }
+
+    private function wallQuote(Household $household, WallInsulation $target, Renovation $work, string $title, float $cost): ?RenovationQuote
+    {
+        // ITI et ITE mutuellement exclusifs : dès que les murs sont isolés, plus d'offre murs.
+        if (WallInsulation::None !== $household->envelope->walls) {
+            return null;
+        }
+        $price = Money::fromEuros($cost);
+
+        return new RenovationQuote(
+            work: $work,
+            title: $title,
+            cost: $price,
+            subsidy: $this->subsidy->subsidyFor($price),
+            resultingHousehold: $household->withEnvelope($household->envelope->withWalls($target)),
+        );
+    }
+
+    private function glazingQuote(Household $household): ?RenovationQuote
+    {
+        $target = match ($household->envelope->glazing) {
+            Glazing::Single => Glazing::Double,
+            Glazing::Double => Glazing::Triple,
+            Glazing::Triple => null,
+        };
+        if (null === $target) {
+            return null;
+        }
+        $price = Money::fromEuros($this->calibration->glazingUpgradeCost()->value);
+
+        return new RenovationQuote(
+            work: Renovation::Glazing,
+            title: sprintf('Menuiseries — %s', $target->label()),
+            cost: $price,
+            subsidy: $this->subsidy->subsidyFor($price),
+            resultingHousehold: $household->withEnvelope($household->envelope->withGlazing($target)),
         );
     }
 
@@ -100,9 +138,32 @@ final readonly class RenovationQuoter
         );
     }
 
+    /**
+     * The plug-and-play kit — no installer, no aid — is the cheap entry
+     * point: available on a bare roof only, superseded by the full install.
+     */
+    private function solarKitQuote(Household $household): ?RenovationQuote
+    {
+        if (0.0 !== $household->solarKwc) {
+            return null;
+        }
+
+        $kwc = $this->energy->solarKitPeakPowerKwc()->value;
+
+        return new RenovationQuote(
+            work: Renovation::SolarKit,
+            title: sprintf('Kit solaire plug-and-play %.1f kWc', $kwc),
+            cost: Money::fromEuros($this->calibration->solarKitInstallCost()->value),
+            subsidy: Money::zero(),
+            resultingHousehold: $household->withSolarKwc($kwc),
+        );
+    }
+
     private function solarQuote(Household $household): ?RenovationQuote
     {
-        if ($household->solarKwc > 0.0) {
+        // The gate is the full install's own power, not zero: this also
+        // offers the full install as an upgrade from the plug-and-play kit.
+        if ($household->solarKwc >= $this->energy->defaultSolarPeakPowerKwc()->value) {
             return null;
         }
 
@@ -133,6 +194,102 @@ final readonly class RenovationQuoter
             cost: Money::fromEuros($this->calibration->batteryInstallCost()->value),
             subsidy: Money::zero(),
             resultingHousehold: $household->withBatteryKwh($kwh),
+        );
+    }
+
+    private function lowTempEmittersQuote(Household $household): ?RenovationQuote
+    {
+        if ($household->lowTempEmitters) {
+            return null;
+        }
+        $price = Money::fromEuros($this->calibration->lowTempEmittersCost()->value);
+
+        return new RenovationQuote(
+            work: Renovation::LowTempEmitters,
+            title: 'Émetteurs basse température',
+            cost: $price,
+            subsidy: $this->subsidy->subsidyFor($price),
+            resultingHousehold: $household->withLowTempEmitters(true),
+        );
+    }
+
+    private function pelletBoilerQuote(Household $household): ?RenovationQuote
+    {
+        if (HeatingSystem::PelletBoiler === $household->heatingSystem) {
+            return null;
+        }
+        $price = Money::fromEuros($this->calibration->pelletBoilerCost()->value);
+
+        return new RenovationQuote(
+            work: Renovation::PelletBoiler,
+            title: 'Chaudière à granulés',
+            cost: $price,
+            subsidy: $this->subsidy->subsidyFor($price),
+            resultingHousehold: $household->withHeatingSystem(HeatingSystem::PelletBoiler),
+        );
+    }
+
+    private function ventilationQuote(Household $household): ?RenovationQuote
+    {
+        if (Ventilation::None !== $household->envelope->ventilation) {
+            return null;
+        }
+        $price = Money::fromEuros($this->calibration->ventilationDoubleFlowCost()->value);
+
+        return new RenovationQuote(
+            work: Renovation::VentilationDoubleFlow,
+            title: 'VMC double flux',
+            cost: $price,
+            subsidy: $this->subsidy->subsidyFor($price),
+            resultingHousehold: $household->withEnvelope($household->envelope->withVentilation(Ventilation::DoubleFlow)),
+        );
+    }
+
+    private function waterHeaterThermoQuote(Household $household): ?RenovationQuote
+    {
+        if (WaterHeater::Thermodynamic === $household->waterHeater) {
+            return null;
+        }
+        $price = Money::fromEuros($this->calibration->waterHeaterThermoCost()->value);
+
+        return new RenovationQuote(
+            work: Renovation::WaterHeaterThermo,
+            title: 'Chauffe-eau thermodynamique',
+            cost: $price,
+            subsidy: $this->subsidy->subsidyFor($price),
+            resultingHousehold: $household->withWaterHeater(WaterHeater::Thermodynamic),
+        );
+    }
+
+    private function draughtProofingQuote(Household $household): ?RenovationQuote
+    {
+        if ($household->envelope->draughtProofed) {
+            return null;
+        }
+        $price = Money::fromEuros($this->calibration->draughtProofingCost()->value);
+
+        return new RenovationQuote(
+            work: Renovation::DraughtProofing,
+            title: 'Calfeutrage / joints',
+            cost: $price,
+            subsidy: Money::zero(),
+            resultingHousehold: $household->withEnvelope($household->envelope->withDraughtProofed(true)),
+        );
+    }
+
+    private function thermalCurtainsQuote(Household $household): ?RenovationQuote
+    {
+        if ($household->envelope->thermalCurtains) {
+            return null;
+        }
+        $price = Money::fromEuros($this->calibration->thermalCurtainsCost()->value);
+
+        return new RenovationQuote(
+            work: Renovation::ThermalCurtains,
+            title: 'Rideaux thermiques',
+            cost: $price,
+            subsidy: Money::zero(),
+            resultingHousehold: $household->withEnvelope($household->envelope->withThermalCurtains(true)),
         );
     }
 }

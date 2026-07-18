@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\Scenario;
 
+use App\Domain\Building\EnvelopeState;
+use App\Domain\Building\Glazing;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
-use App\Domain\Building\InsulationLevel;
+use App\Domain\Building\WallInsulation;
 use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
 use App\Domain\Scenario\BoilerBreakdownEvent;
@@ -30,7 +32,7 @@ final class BoilerBreakdownEventTest extends TestCase
 
     private static function fioulHome(bool $broken = false): Household
     {
-        return new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::FuelOilBoiler, $broken);
+        return new Household(0.0, 0.0, new EnvelopeState(false, WallInsulation::None, Glazing::Single), HeatingSystem::FuelOilBoiler, $broken);
     }
 
     public function testFiresOnlyOnItsExactDay(): void
@@ -45,7 +47,7 @@ final class BoilerBreakdownEventTest extends TestCase
     public function testDoesNotFireOnceTheBoilerIsGoneOrAlreadyBroken(): void
     {
         $event = new BoilerBreakdownEvent(19);
-        $heatPumpHome = new Household(0.0, 0.0, InsulationLevel::Original, HeatingSystem::HeatPump);
+        $heatPumpHome = new Household(0.0, 0.0, new EnvelopeState(false, WallInsulation::None, Glazing::Single), HeatingSystem::HeatPump);
 
         self::assertFalse($event->shouldFire(self::config(), self::stateAt(19, $heatPumpHome)), 'Anticipating the switch avoids the event.');
         self::assertFalse($event->shouldFire(self::config(), self::stateAt(19, self::fioulHome(broken: true))));

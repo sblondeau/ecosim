@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Domain\Building\EnvelopeState;
+use App\Domain\Building\Glazing;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
-use App\Domain\Building\InsulationLevel;
+use App\Domain\Building\WallInsulation;
 use App\Domain\Energy\EnergyCalibration;
 use App\Domain\Finance\FinanceCalibration;
 use App\Domain\Finance\Money;
@@ -30,9 +32,10 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  *
  * Drives the same {@see SimulationEngine} as the web dashboard
  * ({@see \App\Controller\GameController}) — day by day, printing weather,
- * energy balance, heating and comfort for each tick. The building options
- * make configurations comparable (fioul passoire vs insulated heat-pump home)
- * before the in-game renovation actions exist.
+ * energy balance, heating and comfort for each tick. The house always starts
+ * with the scenario's original envelope (surface-by-surface renovation quotes
+ * are a game decision, not a CLI option); only the heating system is
+ * configurable, to compare fioul vs heat-pump runs.
  */
 #[AsCommand(
     name: 'app:simulate:demo',
@@ -47,7 +50,6 @@ final class SimulateDemoCommand extends Command
     protected function configure(): void
     {
         $calibration = new EnergyCalibration();
-        $insulations = implode('|', array_map(static fn (InsulationLevel $l): string => $l->value, InsulationLevel::cases()));
         $heatings = implode('|', array_map(static fn (HeatingSystem $h): string => $h->value, HeatingSystem::cases()));
 
         $this
@@ -56,7 +58,6 @@ final class SimulateDemoCommand extends Command
             ->addOption('seed', 's', InputOption::VALUE_REQUIRED, 'Weather seed (same seed = same weather)', (string) self::DEFAULT_SEED)
             ->addOption('solar', null, InputOption::VALUE_REQUIRED, sprintf('Installed solar peak power (kWc, catalogue model: %.0f)', $calibration->defaultSolarPeakPowerKwc()->value), '0')
             ->addOption('battery', null, InputOption::VALUE_REQUIRED, sprintf('Battery capacity (kWh, catalogue model: %.0f)', $calibration->defaultBatteryCapacityKwh()->value), '0')
-            ->addOption('insulation', null, InputOption::VALUE_REQUIRED, "Insulation level ({$insulations})", InsulationLevel::Original->value)
             ->addOption('heating', null, InputOption::VALUE_REQUIRED, "Heating system ({$heatings})", HeatingSystem::FuelOilBoiler->value);
     }
 
@@ -79,13 +80,6 @@ final class SimulateDemoCommand extends Command
             return Command::INVALID;
         }
 
-        $insulation = InsulationLevel::tryFrom((string) $input->getOption('insulation'));
-        if (null === $insulation) {
-            $io->error(sprintf('Invalid --insulation "%s".', (string) $input->getOption('insulation')));
-
-            return Command::INVALID;
-        }
-
         $heating = HeatingSystem::tryFrom((string) $input->getOption('heating'));
         if (null === $heating) {
             $io->error(sprintf('Invalid --heating "%s".', (string) $input->getOption('heating')));
@@ -96,7 +90,7 @@ final class SimulateDemoCommand extends Command
         $household = new Household(
             solarKwc: (float) $input->getOption('solar'),
             batteryKwh: (float) $input->getOption('battery'),
-            insulation: $insulation,
+            envelope: new EnvelopeState(false, WallInsulation::None, Glazing::Single),
             heatingSystem: $heating,
         );
 
@@ -110,11 +104,13 @@ final class SimulateDemoCommand extends Command
 
         $io->title(sprintf('EcoSim — %d jours depuis %s', $days, $epochOption));
         $io->text(sprintf(
-            'Graine %d · Solaire %.1f kWc · Batterie %.1f kWh · Isolation %s · %s',
+            'Graine %d · Solaire %.1f kWc · Batterie %.1f kWh · Enveloppe %s / %s / %s · %s',
             $config->seed,
             $household->solarKwc,
             $household->batteryKwh,
-            $household->insulation->label(),
+            $household->envelope->roofInsulated ? 'combles isolés' : 'combles d\'origine',
+            $household->envelope->walls->label(),
+            $household->envelope->glazing->label(),
             $household->heatingSystem->label(),
         ));
 

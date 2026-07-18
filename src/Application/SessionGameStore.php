@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Domain\Building\EnvelopeState;
+use App\Domain\Building\Glazing;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
-use App\Domain\Building\InsulationLevel;
+use App\Domain\Building\Ventilation;
+use App\Domain\Building\WallInsulation;
+use App\Domain\Building\WaterHeater;
 use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
 use App\Domain\Scenario\PrimoAccedantScenario;
@@ -40,7 +44,7 @@ final readonly class SessionGameStore implements GameStore
      * format is thrown away and the game restarts, instead of being silently
      * rebuilt into a valid-looking but absurd state by the hydrate fallbacks.
      */
-    private const int FORMAT_VERSION = 10;
+    private const int FORMAT_VERSION = 14;
 
     public function __construct(
         private RequestStack $requestStack,
@@ -106,10 +110,19 @@ final readonly class SessionGameStore implements GameStore
         $household = new Household(
             solarKwc: (float) ($data['solarKwc'] ?? 0.0),
             batteryKwh: (float) ($data['batteryKwh'] ?? 0.0),
-            insulation: InsulationLevel::from((string) ($data['insulation'] ?? InsulationLevel::Original->value)),
+            envelope: new EnvelopeState(
+                roofInsulated: (bool) ($data['roofInsulated'] ?? false),
+                walls: WallInsulation::from((string) ($data['walls'] ?? WallInsulation::None->value)),
+                glazing: Glazing::from((string) ($data['glazing'] ?? Glazing::Single->value)),
+                ventilation: Ventilation::from((string) ($data['ventilation'] ?? Ventilation::None->value)),
+                draughtProofed: (bool) ($data['draughtProofed'] ?? false),
+                thermalCurtains: (bool) ($data['thermalCurtains'] ?? false),
+            ),
             heatingSystem: HeatingSystem::from((string) ($data['heating'] ?? HeatingSystem::FuelOilBoiler->value)),
             boilerBroken: (bool) ($data['boilerBroken'] ?? false),
             heatingSetpointC: (float) ($data['setpointC'] ?? 19.0),
+            lowTempEmitters: (bool) ($data['lowTempEmitters'] ?? false),
+            waterHeater: WaterHeater::from((string) ($data['waterHeater'] ?? WaterHeater::ElectricTank->value)),
         );
 
         $state = new GameState(
@@ -133,6 +146,8 @@ final readonly class SessionGameStore implements GameStore
                 fuelOilCost: Money::fromCents((int) ($data['fuelCostCents'] ?? 0)),
                 surplusRevenue: Money::fromCents((int) ($data['revenueCents'] ?? 0)),
                 days: max(0, (int) ($data['daysLived'] ?? 0)),
+                pelletKg: (float) ($data['totalPellet'] ?? 0.0),
+                pelletCost: Money::fromCents((int) ($data['pelletCostCents'] ?? 0)),
             ),
         );
 
@@ -160,10 +175,17 @@ final readonly class SessionGameStore implements GameStore
             'currentDay' => $game->state->currentDay,
             'solarKwc' => $game->state->household->solarKwc,
             'batteryKwh' => $game->state->household->batteryKwh,
-            'insulation' => $game->state->household->insulation->value,
+            'roofInsulated' => $game->state->household->envelope->roofInsulated,
+            'walls' => $game->state->household->envelope->walls->value,
+            'glazing' => $game->state->household->envelope->glazing->value,
+            'ventilation' => $game->state->household->envelope->ventilation->value,
+            'draughtProofed' => $game->state->household->envelope->draughtProofed,
+            'thermalCurtains' => $game->state->household->envelope->thermalCurtains,
             'heating' => $game->state->household->heatingSystem->value,
             'boilerBroken' => $game->state->household->boilerBroken,
             'setpointC' => $game->state->household->heatingSetpointC,
+            'lowTempEmitters' => $game->state->household->lowTempEmitters,
+            'waterHeater' => $game->state->household->waterHeater->value,
             'batteryLevelKwh' => $game->state->batteryLevelKwh,
             'savingsCents' => $game->state->savings->cents,
             'loanRemainingCents' => $game->state->loan->remaining->cents,
@@ -179,6 +201,8 @@ final readonly class SessionGameStore implements GameStore
             'fuelCostCents' => $game->state->totals->fuelOilCost->cents,
             'revenueCents' => $game->state->totals->surplusRevenue->cents,
             'daysLived' => $game->state->totals->days,
+            'totalPellet' => $game->state->totals->pelletKg,
+            'pelletCostCents' => $game->state->totals->pelletCost->cents,
         ];
     }
 }

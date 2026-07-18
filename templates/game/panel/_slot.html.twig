@@ -12,50 +12,83 @@
     living: '🛋️ Séjour',
 } %}
 {% set worksOfSlot = {
-    roof: ['solar_panels'],
-    walls: ['insulation'],
-    heating: ['boiler_repair', 'heat_pump'],
-    garage: ['home_battery'],
-    living: [],
+    roof: ['solar_kit', 'solar_panels'],
+    walls: ['roof_insulation', 'wall_insulation_interior', 'wall_insulation_exterior', 'glazing', 'ventilation_double_flow'],
+    heating: ['boiler_repair', 'heat_pump', 'pellet_boiler', 'low_temp_emitters'],
+    garage: ['water_heater_thermo', 'home_battery'],
+    living: ['draught_proofing', 'thermal_curtains'],
 } %}
 
 {{ ui.panel_head(titles[selected]) }}
 
 <div class="card">
     {% if selected == 'roof' %}
-        <div class="row"><span class="key">Production aujourd'hui</span><span>{{ game.productionKwh|number_format(1, ',', ' ') }} kWh</span></div>
-        <div class="row"><span class="key">Nébulosité{{ ui.tip(game.help.cloud) }}</span><span>{{ game.cloudPct }} %</span></div>
+        {# Décision-context : l'installation solaire en place (kit plug-and-play
+           vs complète) — la production/nébulosité du jour vivent déjà dans les
+           coins Énergie/Météo, pas de doublon ici. #}
+        <div class="row"><span class="key">Installation actuelle</span><span><strong>{{ game.solarKindLabel is not empty ? game.solarKindLabel : 'Aucune' }}</strong></span></div>
         <div class="row"><span class="key">Exporté aujourd'hui{{ ui.tip(game.help.surplus) }}</span><span>{{ game.gridExportKwh|number_format(1, ',', ' ') }} kWh</span></div>
+        {% if game.solarKindLabel is not empty %}
+            <div class="done-strip"><span class="done-chip">✔ {{ game.solarKindLabel }}</span></div>
+        {% endif %}
     {% elseif selected == 'walls' %}
-        <div class="row"><span class="key">DPE</span><span><strong>{{ game.dpeLetter }}</strong></span></div>
-        <div class="row"><span class="key">Valeur du bien{{ ui.tip(game.help.propertyValue) }}</span><span>{{ game.propertyValueLabel }}</span></div>
-        <div class="row"><span class="key">Confort ressenti{{ ui.tip(game.help.comfort) }}</span><span>{{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
+        <div class="row"><span class="key">DPE actuel</span><span><strong>{{ game.dpeLetter }}</strong> · déperditions dominantes : toiture, murs</span></div>
+        {% set envelopeDone = [] %}
+        {% if game.roofInsulated %}{% set envelopeDone = envelopeDone|merge(['Combles isolés']) %}{% endif %}
+        {% if game.wallInsulationLabel is not empty %}{% set envelopeDone = envelopeDone|merge(['Murs — ' ~ game.wallInsulationLabel]) %}{% endif %}
+        {% if game.glazingLabel is not empty %}{% set envelopeDone = envelopeDone|merge([game.glazingLabel]) %}{% endif %}
+        {% if game.hasHeatRecoveryVentilation %}{% set envelopeDone = envelopeDone|merge(['VMC double flux']) %}{% endif %}
+        {% if envelopeDone is not empty %}
+            <div class="done-strip">{% for d in envelopeDone %}<span class="done-chip">✔ {{ d }}</span>{% endfor %}</div>
+        {% endif %}
     {% elseif selected == 'heating' %}
+        {# Décision-context : le générateur en place (+ son SCOP effectif pour
+           une PAC — les émetteurs basse température le font grimper de ~2,5 à
+           ~4,3, cf. RenovationAdvisor). Le détail jour-à-jour (fioul brûlé,
+           air intérieur…) vit déjà dans les coins Énergie/Confort — pas de
+           doublon ici. #}
         {% if game.boilerBroken %}
-            <div class="row"><span class="key">État</span><span class="neg"><strong>En panne</strong> — appoint électrique forcé</span></div>
+            <div class="row"><span class="key">État</span><span class="neg"><strong>🚨 En panne</strong> — chauffage électrique d'appoint forcé</span></div>
             <div class="row"><span class="key">Élec. de chauffage (jour)</span><span class="neg">{{ game.heatingElectricityKwh|number_format(1, ',', ' ') }} kWh</span></div>
         {% else %}
-            {% if game.fuelOilLitres > 0 %}
-                <div class="row"><span class="key">Fioul brûlé (jour){{ ui.tip(game.help.fuelOil) }}</span><span>{{ game.fuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
-            {% endif %}
-            {% if game.heatingElectricityKwh > 0 %}
-                <div class="row"><span class="key">Élec. de chauffage (jour)</span><span>{{ game.heatingElectricityKwh|number_format(1, ',', ' ') }} kWh</span></div>
-            {% endif %}
+            <div class="row">
+                <span class="key">Générateur actuel</span>
+                <span><strong>{{ game.heatingLabel }}</strong>{% if game.heatPumpScopLabel is not empty %} · SCOP effectif {{ game.heatPumpScopLabel }}{% endif %}</span>
+            </div>
+            {% set heatingDone = [game.heatingLabel] %}
+            {% if game.hasLowTempEmitters %}{% set heatingDone = heatingDone|merge(['Émetteurs basse température']) %}{% endif %}
+            <div class="done-strip">{% for d in heatingDone %}<span class="done-chip">✔ {{ d }}</span>{% endfor %}</div>
         {% endif %}
-        <div class="row"><span class="key">Air intérieur</span><span>{{ game.indoorTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
     {% elseif selected == 'garage' %}
+        {# Décision-context : l'équipement garage en place — batterie (utile
+           seulement si du solaire produit un surplus, cf. slot toit) et
+           chauffe-eau. L'autosuffisance du jour vit déjà dans le coin Énergie,
+           pas de doublon ici. #}
+        <div class="row">
+            <span class="key">Équipement actuel</span>
+            <span><strong>{{ game.batteryCapacityKwh > 0 ? game.batteryCapacityKwh|number_format(0, ',', ' ') ~ ' kWh batterie' : 'Pas de batterie' }}</strong>{% if game.waterHeaterLabel is not empty %} · {{ game.waterHeaterLabel }}{% endif %}</span>
+        </div>
+        {% set garageDone = [] %}
+        {% if game.batteryCapacityKwh > 0 %}{% set garageDone = garageDone|merge(['Batterie ' ~ game.batteryCapacityKwh|number_format(0, ',', ' ') ~ ' kWh']) %}{% endif %}
+        {% if game.waterHeaterLabel is not empty %}{% set garageDone = garageDone|merge([game.waterHeaterLabel]) %}{% endif %}
+        {% if garageDone is not empty %}
+            <div class="done-strip">{% for d in garageDone %}<span class="done-chip">✔ {{ d }}</span>{% endfor %}</div>
+        {% endif %}
         {% if game.batteryCapacityKwh > 0 %}
             <div class="row"><span class="key">Batterie → maison ce soir</span><span>{{ game.batteryDischargedKwh|number_format(1, ',', ' ') }} kWh</span></div>
             <div class="gauge"><span style="width: {{ game.batteryCapacityKwh > 0 ? (100 * game.batteryDischargedKwh / game.batteryCapacityKwh)|round : 0 }}%; background: var(--warn);"></span></div>
-        {% else %}
-            <div class="row"><span class="key">Batterie</span><span>—</span></div>
         {% endif %}
-        <div class="row"><span class="key">Autosuffisance (jour){{ ui.tip(game.help.selfSufficiency) }}</span><span>{{ game.selfSufficiencyPct }} %</span></div>
     {% elseif selected == 'living' %}
         <div class="row"><span class="key">Confort thermique{{ ui.tip(game.help.comfort) }}</span><span>{{ game.comfortScorePct }} %</span></div>
         <div class="gauge"><span style="width: {{ game.comfortScorePct }}%; background: var(--accent);"></span></div>
         <div class="row" style="margin-top:.5rem"><span class="key">Ressenti</span><span>{{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
         <div class="row"><span class="key">Air intérieur</span><span>{{ game.indoorTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
+        {% set livingDone = [] %}
+        {% if game.hasDraughtProofing %}{% set livingDone = livingDone|merge(['Calfeutrage']) %}{% endif %}
+        {% if game.hasThermalCurtains %}{% set livingDone = livingDone|merge(['Rideaux thermiques']) %}{% endif %}
+        {% if livingDone is not empty %}
+            <div class="done-strip">{% for d in livingDone %}<span class="done-chip">✔ {{ d }}</span>{% endfor %}</div>
+        {% endif %}
     {% endif %}
 </div>
 

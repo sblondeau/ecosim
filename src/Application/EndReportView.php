@@ -38,6 +38,8 @@ final readonly class EndReportView
         public string $totalNetEnergyCostLabel,
         /** CO₂ actually emitted over the year lived (fuel burnt + grid drawn). */
         public string $totalCo2EmittedLabel = '0 kg',
+        /** Wood pellets burnt over the year lived, in kilograms. */
+        public float $totalPelletKg = 0.0,
     ) {
     }
 }

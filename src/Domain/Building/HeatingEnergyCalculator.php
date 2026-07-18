@@ -12,11 +12,15 @@ use function round;
  * Converts a useful-heat need into what the heating system consumes.
  *
  * This is where the electrification lesson lives (game-design §12): for the
- * same delivered heat, the heat pump draws need/SCOP (~3.5× less final energy)
- * while the boiler burns need/efficiency (more energy than the heat itself).
- * The equipment/fuel characteristics are energy-conversion facts, so they come
- * from {@see EnergyCalibration} — the building side only says how much heat
- * the house needs.
+ * same delivered heat, the heat pump draws need/SCOP while the boiler burns
+ * need/efficiency (more energy than the heat itself). The heat pump's SCOP
+ * is not a fixed box spec — it depends on the emitters it feeds: old
+ * high-temperature cast-iron radiators degrade it (2.5), low-temperature
+ * emitters (underfloor / BT radiators) let it run near its nominal point
+ * (4.3) — "a heat pump is a system, not a box". The equipment/fuel
+ * characteristics are energy-conversion facts, so they come from
+ * {@see EnergyCalibration} — the building side only says how much heat the
+ * house needs.
  */
 final readonly class HeatingEnergyCalculator
 {
@@ -25,7 +29,7 @@ final readonly class HeatingEnergyCalculator
     ) {
     }
 
-    public function consumptionFor(HeatingSystem $system, float $needKwh): HeatingConsumption
+    public function consumptionFor(HeatingSystem $system, float $needKwh, bool $lowTempEmitters = false): HeatingConsumption
     {
         if ($needKwh <= 0.0) {
             return HeatingConsumption::none();
@@ -44,8 +48,21 @@ final readonly class HeatingEnergyCalculator
             ),
             HeatingSystem::HeatPump => new HeatingConsumption(
                 needKwh: $needKwh,
-                electricityKwh: round($needKwh / $this->calibration->heatPumpScop()->value, 2),
+                electricityKwh: round($needKwh / ($lowTempEmitters
+                    ? $this->calibration->heatPumpScopLowTempEmitters()->value
+                    : $this->calibration->heatPumpScopHighTempEmitters()->value), 2),
                 fuelOilLitres: 0.0,
+            ),
+            HeatingSystem::PelletBoiler => new HeatingConsumption(
+                needKwh: $needKwh,
+                electricityKwh: 0.0,
+                fuelOilLitres: 0.0,
+                pelletKg: round(
+                    $needKwh
+                        / $this->calibration->pelletBoilerEfficiency()->value
+                        / $this->calibration->pelletEnergyKwhPerKg()->value,
+                    2,
+                ),
             ),
         };
     }

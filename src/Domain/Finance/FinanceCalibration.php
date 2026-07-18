@@ -64,6 +64,21 @@ final class FinanceCalibration
     }
 
     /**
+     * Wood pellet price (delivered), per kilogram.
+     */
+    public function pelletPricePerKg(): Coefficient
+    {
+        return new Coefficient(
+            value: 0.34,
+            unit: '€/kg',
+            min: 0.28,
+            max: 0.50,
+            source: 'ADEME / Propellet : prix granulés ~280-500 €/tonne (volatil)',
+            reviewedOn: '2026-07-17',
+        );
+    }
+
+    /**
      * Net monthly income of the scenario household (young couple, modest).
      */
     public function monthlyNetIncome(): Coefficient
@@ -178,29 +193,55 @@ final class FinanceCalibration
         );
     }
 
-    /** Intermediate insulation package (attic + walls), Original -> Retrofitted. */
-    public function insulationRetrofitCost(): Coefficient
+    /** Isolation des combles (~100 m² de toiture). */
+    public function roofInsulationCost(): Coefficient
     {
         return new Coefficient(
-            value: 15000.0,
+            value: 4000.0,
             unit: '€',
-            min: 10000.0,
-            max: 20000.0,
-            source: 'ADEME : bouquet isolation intermédiaire (combles + murs), maison ~100 m²',
-            reviewedOn: '2025-01-01',
+            min: 2500.0,
+            max: 6000.0,
+            source: 'ADEME : isolation combles ~25-60 €/m²',
+            reviewedOn: '2026-07-16',
         );
     }
 
-    /** Full-performance insulation (BBC-réno level), Retrofitted -> Reinforced. */
-    public function insulationReinforceCost(): Coefficient
+    /** Isolation des murs par l'intérieur (ITI). */
+    public function wallInsulationInteriorCost(): Coefficient
     {
         return new Coefficient(
-            value: 25000.0,
+            value: 9000.0,
             unit: '€',
-            min: 18000.0,
-            max: 35000.0,
-            source: 'ADEME : rénovation globale performante (niveau BBC réno), complément maison ~100 m²',
-            reviewedOn: '2025-01-01',
+            min: 6000.0,
+            max: 12000.0,
+            source: 'ADEME : ITI ~50-90 €/m² de mur',
+            reviewedOn: '2026-07-16',
+        );
+    }
+
+    /** Isolation des murs par l'extérieur (ITE). */
+    public function wallInsulationExteriorCost(): Coefficient
+    {
+        return new Coefficient(
+            value: 18000.0,
+            unit: '€',
+            min: 12000.0,
+            max: 25000.0,
+            source: 'ADEME : ITE ~110-200 €/m² de mur (ravalement inclus)',
+            reviewedOn: '2026-07-16',
+        );
+    }
+
+    /** Remplacement des menuiseries (montée d'un cran de vitrage). */
+    public function glazingUpgradeCost(): Coefficient
+    {
+        return new Coefficient(
+            value: 8000.0,
+            unit: '€',
+            min: 5000.0,
+            max: 12000.0,
+            source: 'ADEME : remplacement fenêtres ~500-800 €/fenêtre',
+            reviewedOn: '2026-07-16',
         );
     }
 
@@ -230,6 +271,22 @@ final class FinanceCalibration
         );
     }
 
+    /**
+     * Plug-and-play solar kit (1-2 panels + micro-inverter, no installer) —
+     * the cheap entry point below the full installation (arbre travaux, T5).
+     */
+    public function solarKitInstallCost(): Coefficient
+    {
+        return new Coefficient(
+            value: 800.0,
+            unit: '€',
+            min: 400.0,
+            max: 1200.0,
+            source: 'Marché des kits solaires plug-and-play grand public, prix constaté 2024-2025',
+            reviewedOn: '2026-07-17',
+        );
+    }
+
     /** Home battery (the single 5 kWh catalogue model), installed. */
     public function batteryInstallCost(): Coefficient
     {
@@ -241,6 +298,70 @@ final class FinanceCalibration
             source: 'Marché du stockage résidentiel : batterie ~5 kWh posée, 2024 (~800-1200 €/kWh)',
             reviewedOn: '2025-01-01',
         );
+    }
+
+    /** Low-temperature emitters (underfloor heating / oversized radiators, ~100 m²). */
+    public function lowTempEmittersCost(): Coefficient
+    {
+        return new Coefficient(
+            value: 6500.0,
+            unit: '€',
+            min: 4000.0,
+            max: 9000.0,
+            source: 'ADEME : plancher chauffant / émetteurs basse température (~100 m²)',
+            reviewedOn: '2026-07-17',
+        );
+    }
+
+    /** Automatic wood-pellet boiler, installed, including the silo. */
+    public function pelletBoilerCost(): Coefficient
+    {
+        return new Coefficient(
+            value: 14000.0,
+            unit: '€',
+            min: 10000.0,
+            max: 20000.0,
+            source: 'ADEME : chaudière automatique à granulés + silo',
+            reviewedOn: '2026-07-17',
+        );
+    }
+
+    /** VMC double flux, installed (~100 m²). */
+    public function ventilationDoubleFlowCost(): Coefficient
+    {
+        return new Coefficient(
+            value: 6000.0,
+            unit: '€',
+            min: 4000.0,
+            max: 9000.0,
+            source: 'ADEME : VMC double flux posée, maison individuelle ~100 m²',
+            reviewedOn: '2026-07-17',
+        );
+    }
+
+    /** Thermodynamic water heater (small heat pump), installed, replacing the electric tank. */
+    public function waterHeaterThermoCost(): Coefficient
+    {
+        return new Coefficient(
+            value: 3500.0,
+            unit: '€',
+            min: 2500.0,
+            max: 4500.0,
+            source: 'ADEME : chauffe-eau thermodynamique posé, ~2 500-4 500 €',
+            reviewedOn: '2026-07-17',
+        );
+    }
+
+    /** Draught-proofing: window seals, door sweeps, mastic. */
+    public function draughtProofingCost(): Coefficient
+    {
+        return new Coefficient(value: 80.0, unit: '€', min: 40.0, max: 150.0, source: 'ADEME / produits : joints de fenêtres, boudins de porte, mastic', reviewedOn: '2026-07-17');
+    }
+
+    /** Thermal curtains (lined), a handful of windows. */
+    public function thermalCurtainsCost(): Coefficient
+    {
+        return new Coefficient(value: 120.0, unit: '€', min: 60.0, max: 250.0, source: 'Produits : rideaux thermiques doublés (par fenêtre × quelques ouvertures)', reviewedOn: '2026-07-17');
     }
 
     /** Absolute cap on the renovation prime. */

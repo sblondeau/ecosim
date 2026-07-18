@@ -9,9 +9,13 @@ use function abs;
 use App\Domain\Building\BuildingCalibration;
 use App\Domain\Building\DpeCertifier;
 use App\Domain\Building\DpeClass;
+use App\Domain\Building\EnvelopeState;
+use App\Domain\Building\Glazing;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
-use App\Domain\Building\InsulationLevel;
+use App\Domain\Building\Ventilation;
+use App\Domain\Building\WallInsulation;
+use App\Domain\Building\WaterHeater;
 use App\Domain\Energy\CarbonAccountant;
 use App\Domain\Energy\EnergyCalibration;
 use App\Domain\Finance\FinanceCalibration;
@@ -19,6 +23,7 @@ use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
 use App\Domain\Finance\PropertyValuator;
 use App\Domain\Finance\Renovation;
+use App\Domain\Finance\RenovationAdvisor;
 use App\Domain\Finance\RenovationQuoter;
 use App\Domain\Math\SeasonalCycle;
 use App\Domain\Scenario\PrimoAccedantScenario;
@@ -43,6 +48,7 @@ use function min;
 use function number_format;
 use function range;
 use function sprintf;
+use function ucfirst;
 
 /**
  * Builds the flat {@see GameView} from the domain state (game-design §3).
@@ -71,6 +77,7 @@ final readonly class GameViewFactory
         private EnergyCalibration $energy = new EnergyCalibration(),
         private DpeCertifier $dpeCertifier = new DpeCertifier(),
         private CarbonAccountant $carbon = new CarbonAccountant(),
+        private RenovationAdvisor $advisor = new RenovationAdvisor(),
     ) {
     }
 
@@ -88,7 +95,7 @@ final readonly class GameViewFactory
         $effortRate = $currentAnnual->netEnergyCost->euros() / $annualIncome;
 
         // The two official DPE labels (energy + climate), from the year's real energy.
-        $dpe = $this->dpeCertifier->certify($currentAnnual->electricityKwh, $currentAnnual->fuelOilLitres);
+        $dpe = $this->dpeCertifier->certify($currentAnnual->electricityKwh, $currentAnnual->fuelOilLitres, $currentAnnual->pelletKg);
 
         // Monthly budget split by nature (living / energy / debt) so the Finances
         // panel shows where the money goes. Energy is the reference year ÷ 12 (an
@@ -147,7 +154,31 @@ final readonly class GameViewFactory
             setpointBelowHealthy: $household->heatingSetpointC < $this->building->healthySetpointFloorC()->value,
             setpointDownEffectLabel: $this->setpointEffect($household, $currentAnnual, -1.0),
             setpointUpEffectLabel: $this->setpointEffect($household, $currentAnnual, 1.0),
-            insulationLabel: $household->insulation->label(),
+            insulationLabel: $this->envelopeLabel($household->envelope),
+            roofInsulated: $household->envelope->roofInsulated,
+            wallInsulationLabel: WallInsulation::None === $household->envelope->walls ? '' : $household->envelope->walls->label(),
+            glazingLabel: Glazing::Single === $household->envelope->glazing ? '' : $household->envelope->glazing->label(),
+            glazingMaxed: Glazing::Triple === $household->envelope->glazing,
+            hasDraughtProofing: $household->envelope->draughtProofed,
+            hasThermalCurtains: $household->envelope->thermalCurtains,
+            hasLowTempEmitters: $household->lowTempEmitters,
+            heatPumpScopLabel: HeatingSystem::HeatPump === $household->heatingSystem
+                ? number_format(
+                    $household->lowTempEmitters
+                        ? $this->energy->heatPumpScopLowTempEmitters()->value
+                        : $this->energy->heatPumpScopHighTempEmitters()->value,
+                    1,
+                    ',',
+                    ' ',
+                )
+                : '',
+            hasHeatRecoveryVentilation: Ventilation::DoubleFlow === $household->envelope->ventilation,
+            solarKindLabel: match (true) {
+                $household->solarKwc <= 0.0 => '',
+                $household->solarKwc < $this->energy->defaultSolarPeakPowerKwc()->value => sprintf('Kit solaire · %.1f kWc', $household->solarKwc),
+                default => sprintf('Panneaux solaires · %.0f kWc', $household->solarKwc),
+            },
+            waterHeaterLabel: WaterHeater::Thermodynamic === $household->waterHeater ? $household->waterHeater->label() : '',
             dpeLetter: $dpe->finalClass->label(),
             dpeEnergyLetter: $dpe->energyClass->label(),
             dpeEnergyIntensity: (int) round($dpe->energyIntensity),
@@ -157,6 +188,7 @@ final readonly class GameViewFactory
             dpeClimateBandPct: (int) round($dpe->climateBandFillPct),
             heatingElectricityKwh: $snapshot->heating->electricityKwh,
             fuelOilLitres: $snapshot->heating->fuelOilLitres,
+            pelletKg: $snapshot->heating->pelletKg,
             comfortScorePct: $snapshot->comfort->score,
             indoorTemperatureC: $snapshot->comfort->indoorC,
             feltTemperatureC: $snapshot->comfort->feltC,
@@ -175,7 +207,8 @@ final readonly class GameViewFactory
             totalFuelOilCostLabel: $totals->fuelOilCost->format(),
             totalSurplusRevenueLabel: $totals->surplusRevenue->format(),
             totalNetEnergyCostLabel: $totals->netEnergyCost()->format(),
-            co2EmittedLabel: self::co2Label($this->carbon->emittedKg($totals->fuelOilLitres, $totals->importKwh)),
+            co2EmittedLabel: self::co2Label($this->carbon->emittedKg($totals->fuelOilLitres, $totals->importKwh, $totals->pelletKg)),
+            totalPelletKg: round($totals->pelletKg, 1),
             help: $this->helpTexts(),
             actions: $this->actionsFor($state, $currentAnnual),
             endReport: $this->engine->isFinished($config, $state) ? $this->endReport($state) : null,
@@ -214,9 +247,10 @@ final readonly class GameViewFactory
             loanRemainingLabel: $state->loan->remaining->format(),
             averageComfortPct: $state->totals->averageComfortScore(),
             totalFuelOilLitres: round($state->totals->fuelOilLitres, 1),
+            totalPelletKg: round($state->totals->pelletKg, 1),
             totalSelfSufficiencyPct: (int) round($state->totals->selfSufficiencyRatio() * 100),
             totalNetEnergyCostLabel: $state->totals->netEnergyCost()->format(),
-            totalCo2EmittedLabel: self::co2Label($this->carbon->emittedKg($state->totals->fuelOilLitres, $state->totals->importKwh)),
+            totalCo2EmittedLabel: self::co2Label($this->carbon->emittedKg($state->totals->fuelOilLitres, $state->totals->importKwh, $state->totals->pelletKg)),
         );
     }
 
@@ -340,12 +374,8 @@ final readonly class GameViewFactory
             roofLabel: $household->solarKwc > 0.0
                 ? sprintf('%.0f kWc', $household->solarKwc)
                 : 'Pas de panneaux',
-            insulationTier: match ($household->insulation) {
-                InsulationLevel::Original => 0,
-                InsulationLevel::Retrofitted => 1,
-                InsulationLevel::Reinforced => 2,
-            },
-            insulationLabel: $household->insulation->label(),
+            insulationTier: $this->insulationTier($household->envelope),
+            insulationLabel: $this->envelopeLabel($household->envelope),
             heatingState: match (true) {
                 $household->boilerBroken => 'fioul-broken',
                 HeatingSystem::HeatPump === $household->heatingSystem => 'heat-pump',
@@ -363,6 +393,34 @@ final readonly class GameViewFactory
                 default => 'warm',
             },
         );
+    }
+
+    private function envelopeLabel(EnvelopeState $envelope): string
+    {
+        $done = [];
+        if ($envelope->roofInsulated) {
+            $done[] = 'combles';
+        }
+        if (WallInsulation::None !== $envelope->walls) {
+            $done[] = 'murs';
+        }
+        if (Glazing::Single !== $envelope->glazing) {
+            $done[] = 'vitrage';
+        }
+
+        return [] === $done ? 'D\'origine' : ucfirst(implode(' + ', $done));
+    }
+
+    /** Visual tier (0|1|2) for the scene shell, from the continuous loss factor. */
+    private function insulationTier(EnvelopeState $envelope): int
+    {
+        $factor = $this->building->envelopeLossFactor($envelope);
+
+        return match (true) {
+            $factor > 0.85 => 0,
+            $factor > 0.60 => 1,
+            default => 2,
+        };
     }
 
     private const int SPARKLINE_DAYS = 30;
@@ -444,7 +502,7 @@ final readonly class GameViewFactory
     {
         $annual = $this->estimator->estimate($household);
 
-        return $this->dpeCertifier->certify($annual->electricityKwh, $annual->fuelOilLitres)->finalClass;
+        return $this->dpeCertifier->certify($annual->electricityKwh, $annual->fuelOilLitres, $annual->pelletKg)->finalClass;
     }
 
     /**
@@ -491,6 +549,7 @@ final readonly class GameViewFactory
             $after = $this->estimator->estimate($quote->resultingHousehold);
 
             $net = $quote->netCost();
+            $advice = $this->advisor->adviceFor($work, $state->household);
 
             $actions[$work->value] = new ActionView(
                 work: $work->value,
@@ -503,6 +562,8 @@ final readonly class GameViewFactory
                     && $state->loan->borrowedTotal->plus($net)->cents <= $loanCap->cents),
                 loanMonthlyLabel: $loanEligible ? Loan::none()->borrow($net)->monthlyPayment->format() : '',
                 effectLabels: $this->effectLabels($before, $after),
+                adviceLevel: $advice?->level->value ?? '',
+                adviceMessage: $advice?->message ?? '',
             );
         }
 
@@ -519,8 +580,8 @@ final readonly class GameViewFactory
     {
         $labels = [];
 
-        $dpeBefore = $this->dpeCertifier->certify($before->electricityKwh, $before->fuelOilLitres)->finalClass;
-        $dpeAfter = $this->dpeCertifier->certify($after->electricityKwh, $after->fuelOilLitres)->finalClass;
+        $dpeBefore = $this->dpeCertifier->certify($before->electricityKwh, $before->fuelOilLitres, $before->pelletKg)->finalClass;
+        $dpeAfter = $this->dpeCertifier->certify($after->electricityKwh, $after->fuelOilLitres, $after->pelletKg)->finalClass;
         if ($dpeAfter !== $dpeBefore) {
             $labels[] = sprintf('Étiquette DPE : %s → %s', $dpeBefore->label(), $dpeAfter->label());
 
