@@ -1,7 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 400" width="520" height="400" overflow="visible">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 562 400" width="562" height="400" overflow="visible">
     <!-- La maison en COUPE : murs en tranche (couche d'isolant pilotée par
          .house--* du composant scene:HouseShell), séjour visible (teinte =
-         confort), local technique vide (le renderer y pose le chauffage). Le
+         confort), local technique vide (le renderer y pose le chauffage ET le
+         ballon d'eau chaude : les deux appareils de la chaufferie vivent
+         ensemble, c'est pour ça que la pièce est large et que la maison va
+         jusqu'à toucher le garage — le garage, lui, reste au véhicule et au
+         stockage). Le
          toit, lui, reste un plein classique (pas de coupe) : il ne porte pas
          d'information de jeu propre (l'isolation se lit sur les murs) et une
          surface unique, non ambiguë, est ce qui permet aux panneaux solaires
@@ -22,39 +26,39 @@
     </defs>
 
     <!-- plafond -->
-    <rect x="36" y="140" width="448" height="12" fill="#6b5a45"/>
+    <rect x="36" y="140" width="490" height="12" fill="#6b5a45"/>
 
     <!-- ===== toiture (plein, un seul versant net par pan — même triangle que
          le hit-polygon du slot roof dans _cutaway.html.twig) ===== -->
-    <polygon points="2,142 260,18 518,142" fill="url(#hRoof)"/>
-    <polygon points="16,136 260,26 504,136" fill="url(#hTiles)"/>
+    <polygon points="2,142 282,18 562,142" fill="url(#hRoof)"/>
+    <polygon points="16,136 282,26 546,136" fill="url(#hTiles)"/>
     <!-- neige : deux habillages selon l'isolation des combles (un toit non isolé
          laisse fuir la chaleur → la neige fond ; isolé, elle tient), sous .frost -->
     <g class="roof-snow roof-snow-bare" fill="#f2f6fa">
         <path d="M18 136 q22 -16 46 -28 q-6 16 -14 28 q-16 3 -32 0z"/>
-        <path d="M502 136 q-22 -16 -46 -28 q6 16 14 28 q16 3 32 0z"/>
+        <path d="M544 136 q-22 -16 -46 -28 q6 16 14 28 q16 3 32 0z"/>
     </g>
     <g class="roof-snow roof-snow-insulated" fill="#f2f6fa">
-        <path d="M16 138 q122 -58 244 -112 q122 54 244 112 l-22 0 q-111 -50 -222 -100 q-111 50 -222 100z"/>
+        <path d="M16 138 q133 -56 266 -112 q132 56 264 112 l-22 0 q-121 -50 -242 -100 q-122 50 -244 100z"/>
     </g>
     <!-- cheminée sur le versant droit -->
     <g>
-        <rect x="372" y="48" width="26" height="44" fill="#8a7460"/>
-        <rect x="367" y="40" width="36" height="10" rx="2" fill="#6e5c4c"/>
+        <rect x="404" y="48" width="26" height="44" fill="#8a7460"/>
+        <rect x="399" y="40" width="36" height="10" rx="2" fill="#6e5c4c"/>
         <g class="chimney-smoke" fill="#b9c4ce">
-            <circle class="puff p1" cx="385" cy="30" r="6"/>
-            <circle class="puff p2" cx="395" cy="22" r="4.5"/>
-            <circle class="puff p3" cx="377" cy="18" r="3.5"/>
+            <circle class="puff p1" cx="417" cy="30" r="6"/>
+            <circle class="puff p2" cx="427" cy="22" r="4.5"/>
+            <circle class="puff p3" cx="409" cy="18" r="3.5"/>
         </g>
     </g>
 
     <!-- ===== débord de toit : sous-face (referme le surplomb au-dessus des
-         murs, x 2-26 et 494-518) + gouttière filante sur tout l'égout, sinon
+         murs, x 2-26 et 536-560) + gouttière filante sur tout l'égout, sinon
          le toit semble « flotter » au-dessus de la maison sans s'y raccorder ===== -->
     <rect x="2" y="142" width="24" height="10" fill="#5c4f3d"/>
-    <rect x="494" y="142" width="24" height="10" fill="#5c4f3d"/>
-    <rect x="0" y="139" width="520" height="5" rx="2" fill="#6b7278"/>
-    <rect x="0" y="139" width="520" height="1.5" rx=".75" fill="#8b9298"/>
+    <rect x="536" y="142" width="24" height="10" fill="#5c4f3d"/>
+    <rect x="0" y="139" width="562" height="5" rx="2" fill="#6b7278"/>
+    <rect x="0" y="139" width="562" height="1.5" rx=".75" fill="#8b9298"/>
 
     <!-- ===== murs en tranche (gauche / droite) ===== -->
     <g>
@@ -62,8 +66,8 @@
         <rect x="26" y="152" width="5" height="232" fill="#cbb794"/>
     </g>
     <g>
-        <rect x="474" y="152" width="20" height="232" fill="#b9a582"/>
-        <rect x="489" y="152" width="5" height="232" fill="#a08c69"/>
+        <rect x="516" y="152" width="20" height="232" fill="#b9a582"/>
+        <rect x="531" y="152" width="5" height="232" fill="#a08c69"/>
     </g>
 
     <!-- ===== séjour (la teinte de fond = confort ressenti) ===== -->
@@ -151,7 +155,7 @@
 
     <!-- ===== cloison + local technique (vide : le renderer pose l'équipement) ===== -->
     <rect x="352" y="152" width="12" height="220" fill="#8a7f6d"/>
-    <rect x="364" y="152" width="110" height="220" fill="#232e3a"/>
+    <rect x="364" y="152" width="152" height="220" fill="#232e3a"/>
 
     <!-- ===== couches d'isolation, une par surface (révélées par les classes
          .house--* posées par scene:HouseShell). Dessinées en fin de document
@@ -164,15 +168,15 @@
          dehors, sous le débord de toit) et laisse l'intérieur intact. ===== -->
     <!-- combles : l'isolant déroulé sous le plafond -->
     <g class="roof-ins">
-        <rect x="46" y="152" width="428" height="11" fill="#69b585"/>
-        <rect x="46" y="152" width="428" height="2.5" fill="#8ccca6"/>
+        <rect x="46" y="152" width="470" height="11" fill="#69b585"/>
+        <rect x="46" y="152" width="470" height="2.5" fill="#8ccca6"/>
     </g>
     <!-- murs, isolation par l'INTÉRIEUR (doublage côté séjour / local) -->
     <g class="ins-wall">
         <rect x="46" y="152" width="9" height="232" fill="#69b585"/>
         <rect x="46" y="152" width="2.5" height="232" fill="#8ccca6"/>
-        <rect x="465" y="152" width="9" height="232" fill="#69b585"/>
-        <rect x="471.5" y="152" width="2.5" height="232" fill="#8ccca6"/>
+        <rect x="507" y="152" width="9" height="232" fill="#69b585"/>
+        <rect x="513.5" y="152" width="2.5" height="232" fill="#8ccca6"/>
     </g>
     <!-- murs, isolation par l'EXTÉRIEUR : isolant + enduit de finition, plaqués
          sur la façade, sous l'égout -->
@@ -180,9 +184,9 @@
         <rect x="14" y="152" width="12" height="232" fill="#69b585"/>
         <rect x="8" y="152" width="6" height="232" fill="#c9bda3"/>
         <rect x="8" y="152" width="2" height="232" fill="#ddd2ba"/>
-        <rect x="494" y="152" width="12" height="232" fill="#69b585"/>
-        <rect x="506" y="152" width="6" height="232" fill="#c8bca4"/>
-        <rect x="510" y="152" width="2" height="232" fill="#b3a68e"/>
+        <rect x="536" y="152" width="12" height="232" fill="#69b585"/>
+        <rect x="548" y="152" width="6" height="232" fill="#c8bca4"/>
+        <rect x="552" y="152" width="2" height="232" fill="#b3a68e"/>
     </g>
 
     <!-- VMC double flux : le caisson se loge en haut du local technique (au-
@@ -219,6 +223,6 @@
     </g>
 
     <!-- ===== plancher / dalle ===== -->
-    <rect x="26" y="372" width="468" height="12" fill="#7d6b52"/>
-    <rect x="26" y="372" width="468" height="3" fill="#94815f"/>
+    <rect x="26" y="372" width="510" height="12" fill="#7d6b52"/>
+    <rect x="26" y="372" width="510" height="3" fill="#94815f"/>
 </svg>
