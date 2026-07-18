@@ -180,14 +180,21 @@ final class GameDashboardTest extends KernelTestCase
         self::assertStringContainsString("chauffage électrique d'appoint forcé", $html);
     }
 
-    public function testRoofSlotOffersTheSolarKit(): void
+    public function testGarageSlotOffersTheSolarKit(): void
     {
         $component = $this->createLiveComponent(GameDashboard::class);
 
-        // A brand-new game has no solar at all: the cheap plug-and-play kit is quoted.
-        $html = (string) $component->call('selectSlot', ['slot' => 'roof'])->render();
+        // The plug-and-play kit stands on the ground, not on the roof, so it is
+        // decided alongside the battery — same subject: producing and storing
+        // your own electricity without a roofing job. A brand-new game has no
+        // solar at all, so the cheap kit is quoted.
+        $html = (string) $component->call('selectSlot', ['slot' => 'garage'])->render();
 
         self::assertStringContainsString('Kit solaire', $html);
+
+        $roof = (string) $component->call('selectSlot', ['slot' => 'roof'])->render();
+
+        self::assertStringNotContainsString('Kit solaire', $roof);
     }
 
     public function testHeatingSlotOffersTheThermodynamicWaterHeater(): void

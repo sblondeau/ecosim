@@ -174,21 +174,6 @@
         </g>
     </g>
 
-    {# Kit solaire : posé DANS LE JARDIN, devant la maison — jamais sur le toit
-       (c'est ce qui le définit : on le branche soi-même, sans installateur ni
-       travail en hauteur). Il reste rattaché au slot `roof`, comme
-       l'installation complète : les deux se décident dans le même tiroir, le
-       kit étant la première marche vers le toit. #}
-    {% if scene.solarState == 'kit' %}
-        <g class="slot slot-roof{{ selected == 'roof' ? ' is-selected' }}" tabindex="0" role="button"
-           data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="roof"
-           transform="translate(196 462) scale(.9)">
-            <title>Kit solaire — {{ scene.roofLabel }}</title>
-            <twig:scene:SolarPanels variant="kit" />
-            <rect class="hit" x="0" y="4" width="114" height="66"/>
-        </g>
-    {% endif %}
-
     {# ===== LE GARAGE : slot batterie ===== #}
     <g transform="translate(800 216)">
         <twig:scene:Garage />
@@ -198,7 +183,18 @@
             {% if scene.garageState == 'installed' %}
                 <twig:scene:Battery transform="translate(62 142)" />
             {% endif %}
+            {# Le kit se pose AU SOL devant le garage — jamais sur le toit
+               (c'est ce qui le définit : on le branche soi-même, sans
+               installateur ni travail en hauteur). Il vit avec la batterie
+               parce que c'est le même sujet : produire et stocker son
+               électricité chez soi, hors chantier de toiture. #}
+            {% if scene.solarState == 'kit' %}
+                <twig:scene:SolarPanels variant="kit" transform="translate(62 268) scale(.95)" />
+            {% endif %}
             <rect class="hit" x="2" y="4" width="204" height="252"/>
+            {% if scene.solarState == 'kit' %}
+                <rect class="hit" x="60" y="272" width="96" height="66"/>
+            {% endif %}
         </g>
     </g>
 
