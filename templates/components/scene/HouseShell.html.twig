@@ -5,8 +5,11 @@
    surface only moves that surface's layer: `roofInsulated` reveals the attic
    layer (and lets the roof snow hold instead of melting), `wallInsulation`
    picks the interior doubling vs the exterior render, `glazing` counts the
-   nested panes, `ventilation` and `thermalCurtains` reveal their fixture,
+   nested panes AND recolours the frame (wood/PVC/aluminium), `ventilation`
+   and `thermalCurtains` reveal their fixture, `draughtProofed` reveals the
+   window's red band — only while still single-glazed (new frames are
+   assumed to already seal, cf. docs/specs/2026-07-18-tranche7-fenetre-coherence-plan.md),
    `lowTempEmitters` reveals the underfloor serpentine in the living room.
    Room tint, chimney smoke and frost stay scene-wide. #}
-{% props roofInsulated = false, wallInsulation = 'none', glazing = 'single', ventilation = 'none', thermalCurtains = false, lowTempEmitters = false %}
-<g class="house{{ roofInsulated ? ' house--roof-ins' }} house--walls-{{ wallInsulation }} house--glazing-{{ glazing }} house--vmc-{{ ventilation }}{{ thermalCurtains ? ' house--curtains' }}{{ lowTempEmitters ? ' house--floor-heating' }}"{{ attributes }}>{{ include('game/scene/assets/house-cutaway.svg') }}</g>
+{% props roofInsulated = false, wallInsulation = 'none', glazing = 'single', ventilation = 'none', thermalCurtains = false, draughtProofed = false, lowTempEmitters = false %}
+<g class="house{{ roofInsulated ? ' house--roof-ins' }} house--walls-{{ wallInsulation }} house--glazing-{{ glazing }} house--vmc-{{ ventilation }}{{ thermalCurtains ? ' house--curtains' }}{{ draughtProofed ? ' house--draughtproofed' }}{{ lowTempEmitters ? ' house--floor-heating' }}"{{ attributes }}>{{ include('game/scene/assets/house-cutaway.svg') }}</g>
