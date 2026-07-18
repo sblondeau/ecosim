@@ -10,6 +10,25 @@
    - ambiance scène-wide = classe sur .scene
      (.season-*, .frost, .smoking, .producing) + variable continue --cloud. */
 
+/* Palette d'ÉTAT de la scène : une couleur qui porte du sens (et qui se
+   répète d'une couche à l'autre) passe par une variable, jamais par un
+   littéral dupliqué. L'isolant est le cas d'école — le même vert doit relier
+   les combles, l'ITI et l'ITE pour qu'on lise « c'est la même matière posée à
+   trois endroits », et un seul point de retouche doit suffire à la changer.
+   Les assets la consomment directement (fill="var(--ins-body)") : le SVG est
+   inliné dans le DOM, donc il hérite de ces variables comme n'importe quel
+   élément. Les couleurs purement décoratives d'un asset unique (bois, tuiles,
+   mobilier) restent en dur dans cet asset — elles ne se répètent pas et ne
+   portent aucun état. */
+.scene {
+    --ins-body: #69b585;
+    --ins-highlight: #8ccca6;
+    --render-coat: #c9bda3;
+    --render-coat-lit: #ddd2ba;
+    --render-coat-shade: #c8bca4;
+    --render-coat-edge: #b3a68e;
+}
+
 /* --- l'élément scène (le SVG lui-même) --- */
 /* .game (hud.css) porte déjà le ratio intrinsèque du SVG (1100×560) et se
    contraint au viewport : le SVG remplit donc .stage à 100 %/100 % sans

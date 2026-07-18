@@ -19,8 +19,8 @@
 
 .dpe {
     display: grid;
-    gap: .7rem;
-    margin: .3rem 0 .1rem;
+    gap: var(--space-md);
+    margin: var(--space-xs) 0 var(--space-3xs);
 }
 
 .dpe-scale {
@@ -34,21 +34,21 @@
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    font-size: .72rem;
+    font-size: var(--text-xs);
     color: var(--muted);
-    margin-bottom: .1rem;
+    margin-bottom: var(--space-3xs);
 }
 
 .dpe-big {
     color: var(--ink);
     font-weight: 700;
-    font-size: .9rem;
+    font-size: var(--text-lg);
 }
 
 .dpe-big small {
     color: var(--muted);
     font-weight: 400;
-    font-size: .68rem;
+    font-size: var(--text-2xs);
 }
 
 /* une barre de classe (largeur croissante A→G, gérée en inline dans le composant) */
@@ -56,10 +56,10 @@
     position: relative;
     height: 20px;
     min-width: 34px;
-    border-radius: 0 4px 4px 0;
+    border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
     display: flex;
     align-items: center;
-    padding-left: .45rem;
+    padding-left: var(--space-sm);
     opacity: .48;
 }
 
@@ -70,7 +70,7 @@
 }
 
 .dpe-let {
-    font-size: .74rem;
+    font-size: var(--text-xs);
     font-weight: 700;
     color: #fff;
     text-shadow: 0 1px 2px rgba(0, 0, 0, .55);

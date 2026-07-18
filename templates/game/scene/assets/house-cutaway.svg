@@ -168,25 +168,25 @@
          dehors, sous le débord de toit) et laisse l'intérieur intact. ===== -->
     <!-- combles : l'isolant déroulé sous le plafond -->
     <g class="roof-ins">
-        <rect x="46" y="152" width="470" height="11" fill="#69b585"/>
-        <rect x="46" y="152" width="470" height="2.5" fill="#8ccca6"/>
+        <rect x="46" y="152" width="470" height="11" fill="var(--ins-body)"/>
+        <rect x="46" y="152" width="470" height="2.5" fill="var(--ins-highlight)"/>
     </g>
     <!-- murs, isolation par l'INTÉRIEUR (doublage côté séjour / local) -->
     <g class="ins-wall">
-        <rect x="46" y="152" width="9" height="232" fill="#69b585"/>
-        <rect x="46" y="152" width="2.5" height="232" fill="#8ccca6"/>
-        <rect x="507" y="152" width="9" height="232" fill="#69b585"/>
-        <rect x="513.5" y="152" width="2.5" height="232" fill="#8ccca6"/>
+        <rect x="46" y="152" width="9" height="232" fill="var(--ins-body)"/>
+        <rect x="46" y="152" width="2.5" height="232" fill="var(--ins-highlight)"/>
+        <rect x="507" y="152" width="9" height="232" fill="var(--ins-body)"/>
+        <rect x="513.5" y="152" width="2.5" height="232" fill="var(--ins-highlight)"/>
     </g>
     <!-- murs, isolation par l'EXTÉRIEUR : isolant + enduit de finition, plaqués
          sur la façade, sous l'égout -->
     <g class="wall-ext-ins">
-        <rect x="14" y="152" width="12" height="232" fill="#69b585"/>
-        <rect x="8" y="152" width="6" height="232" fill="#c9bda3"/>
-        <rect x="8" y="152" width="2" height="232" fill="#ddd2ba"/>
-        <rect x="536" y="152" width="12" height="232" fill="#69b585"/>
-        <rect x="548" y="152" width="6" height="232" fill="#c8bca4"/>
-        <rect x="552" y="152" width="2" height="232" fill="#b3a68e"/>
+        <rect x="14" y="152" width="12" height="232" fill="var(--ins-body)"/>
+        <rect x="8" y="152" width="6" height="232" fill="var(--render-coat)"/>
+        <rect x="8" y="152" width="2" height="232" fill="var(--render-coat-lit)"/>
+        <rect x="536" y="152" width="12" height="232" fill="var(--ins-body)"/>
+        <rect x="548" y="152" width="6" height="232" fill="var(--render-coat-shade)"/>
+        <rect x="552" y="152" width="2" height="232" fill="var(--render-coat-edge)"/>
     </g>
 
     <!-- VMC double flux : le caisson se loge en haut du local technique (au-
