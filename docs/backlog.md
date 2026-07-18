@@ -431,17 +431,33 @@ le MVP Phase 0-1 reste verrouillé tant que la phase n'est pas ouverte.
 >   sont honnêtement petites vs les gros travaux. Zone séjour (dernier lire/agir
 >   comblé). 300 tests.
 >
-> **✅ ARBRE RESSERRÉ COMPLET (T1 → T6).** Le premier arbre de travaux
+> - **T7 — visuels de scène par travail** (plan
+>   `2026-07-17-tranche7-visuels-scene-plan.md`, branche `feat/scene-visuals`) :
+>   `HouseSceneView` passe d'un palier d'isolation grossier (0/1/2) à un modèle
+>   **par surface** (combles / murs ITI vs ITE / vitrage / VMC / rideaux), et
+>   chaque travail obtient son rendu — dont le **contraste ITI/ITE** (seule
+>   l'ITE change la façade), la **chaudière granulés + silo**, le **kit solaire
+>   AU SOL** (jamais sur le toit : c'est ce qui définit le plug-and-play) et le
+>   **ballon thermodynamique** dans le garage. La neige de toit est désormais
+>   liée aux **seuls combles**, et la cheminée fume pour **toute combustion**
+>   (le pellet fume aussi). 301 tests.
+>   **Exceptions assumées (aucun visuel)** : **calfeutrage** (des joints ne se
+>   voient pas) et **émetteurs basse température** (hors coupe). Le **ballon
+>   électrique** d'origine reste invisible : c'est l'équipement de départ, le
+>   dessiner prétendrait que le joueur a agi.
+>
+> **✅ ARBRE RESSERRÉ COMPLET (T1 → T7).** Le premier arbre de travaux
 > (game-design / spec `2026-07-15-arbre-travaux-design.md`) est entièrement
-> implémenté.
+> implémenté, et chaque travail se voit sur la scène.
 >
 > **Pistes futures (backlog, hors arbre resserré)** : **carbone gris +
 > hiérarchie des leviers** (voir « Consommation par usage » ci-dessous) ;
 > conso par usage (électroménager/veille) ; **T2 dynamisme** (prix variables,
 > politiques + points d'arrêt) ; réalisme financier dans le temps (délais/dette,
 > voir remarque éco-PTZ) ; type d'isolant (Phase 5) ; VMC simple flux ;
-> **visuels de scène** du pellet et de la VMC (rendus par défaut, assets à
-> faire) ; distinction visuelle `glazingMaxed`.
+> distinction visuelle `glazingMaxed` ; **raffinement des assets de scène** (les
+> SVG posés en T7 sont fonctionnels et lisibles, pas de l'illustration soignée —
+> ils peuvent être remplacés un par un sans toucher au modèle sémantique).
 
 Répond à la mollesse structurelle du gameplay (décisions one-shot, milieu
 d'année vide) en **multipliant les choix de travaux**, avec pour **rôle premier
