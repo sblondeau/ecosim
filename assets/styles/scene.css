@@ -133,6 +133,7 @@
 .scene .ins-wall,
 .scene .wall-ext-ins,
 .scene .glazing-pane,
+.scene .draught-band,
 .scene .vmc,
 .scene .curtains,
 .scene .floor-heating { display: none; }
@@ -145,6 +146,24 @@
 .house--vmc-double-flow .vmc { display: initial; }
 .house--curtains .curtains { display: initial; }
 .house--floor-heating .floor-heating { display: initial; }
+/* huisserie : le vitrage ne se contente pas d'ajouter des lames, il change de
+   cadre — bois d'origine, PVC blanc en double, alu anthracite en triple.
+   `window-frame-border`/`window-muntins` n'ont pas de fill (juste un trait
+   de finition) : on ne touche que leur stroke, sinon ils repeindraient
+   un plein par-dessus le vitrage. */
+.house--glazing-double .window-frame-outer { fill: #e9e7e0; }
+.house--glazing-double .window-frame-inner { fill: #d5d2c8; }
+.house--glazing-double .window-frame-border,
+.house--glazing-double .window-muntins { stroke: #d5d2c8; }
+.house--glazing-triple .window-frame-outer { fill: #3a3d40; }
+.house--glazing-triple .window-frame-inner { fill: #55585c; }
+.house--glazing-triple .window-frame-border,
+.house--glazing-triple .window-muntins { stroke: #55585c; }
+/* calfeutrage : le bandeau ne s'affiche que tant que la fenêtre est encore
+   simple vitrage — dès double/triple, la nouvelle huisserie est réputée
+   déjà étanche (mécaniquement le geste reste indépendant, il couvre aussi
+   les portes ; seul son rendu sur CETTE fenêtre s'éteint). */
+.house--draughtproofed:not(.house--glazing-double):not(.house--glazing-triple) .draught-band { display: initial; }
 
 /* --- confort : la teinte du séjour (scène) ; l'occupant est un fichier SVG
        complet par état (scene:Occupant inclut occupant-<tier>.svg), donc plus

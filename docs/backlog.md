@@ -441,10 +441,12 @@ le MVP Phase 0-1 reste verrouillé tant que la phase n'est pas ouverte.
 >   **ballon thermodynamique** dans le garage. La neige de toit est désormais
 >   liée aux **seuls combles**, et la cheminée fume pour **toute combustion**
 >   (le pellet fume aussi). 301 tests.
->   **Exceptions assumées (aucun visuel)** : **calfeutrage** (des joints ne se
->   voient pas) et **émetteurs basse température** (hors coupe). Le **ballon
->   électrique** d'origine reste invisible : c'est l'équipement de départ, le
->   dessiner prétendrait que le joueur a agi.
+>   **Exceptions assumées (aucun visuel)** : ~~calfeutrage (des joints ne se
+>   voient pas)~~ **levée** — cf. `2026-07-18-tranche7-fenetre-coherence-plan.md`
+>   (bandeau rouge sur la fenêtre, éteint dès double/triple vitrage) — et
+>   **émetteurs basse température** (hors coupe, toujours sans visuel). Le
+>   **ballon électrique** d'origine reste invisible : c'est l'équipement de
+>   départ, le dessiner prétendrait que le joueur a agi.
 >
 > **✅ ARBRE RESSERRÉ COMPLET (T1 → T7).** Le premier arbre de travaux
 > (game-design / spec `2026-07-15-arbre-travaux-design.md`) est entièrement
