@@ -571,8 +571,8 @@ final readonly class GameViewFactory
                     && $state->loan->borrowedTotal->plus($net)->cents <= $loanCap->cents),
                 loanMonthlyLabel: $loanEligible ? Loan::none()->borrow($net)->monthlyPayment->format() : '',
                 effectLabels: $this->effectLabels($before, $after),
-                adviceLevel: $advice?->level->value ?? '',
-                adviceMessage: $advice?->message ?? '',
+                adviceLevel: $advice->level->value,
+                adviceMessage: $advice->message,
             );
         }
 

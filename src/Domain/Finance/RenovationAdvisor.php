@@ -24,7 +24,8 @@ final readonly class RenovationAdvisor
     ) {
     }
 
-    public function adviceFor(Renovation $work, Household $household): ?RenovationAdvice
+    /** Every work carries a word of advice — the match below is exhaustive. */
+    public function adviceFor(Renovation $work, Household $household): RenovationAdvice
     {
         $poorlyInsulated = $this->building->envelopeLossFactor($household->envelope)
             > $this->building->poorlyInsulatedEnvelopeCeiling()->value;
