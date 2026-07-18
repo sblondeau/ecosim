@@ -230,6 +230,6 @@ final class GameDashboardTest extends KernelTestCase
 
         self::assertFalse($component->component()->noticeIsError);
         self::assertStringContainsString('réalisés', $component->component()->notice);
-        self::assertTrue(str_contains($html, 'class="solar"'), 'The panels now render on the roof.');
+        self::assertTrue(str_contains($html, 'class="solar solar--full"'), 'The full roof array now renders — not the ground-mounted kit.');
     }
 }

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 116 74" width="116" height="74" overflow="visible">
+    <!-- Kit solaire plug-and-play : DEUX modules seulement, sur un châssis
+         incliné posé AU SOL (jardin, balcon…), avec sa prise au bout du câble.
+         Tout l'intérêt du kit est là — pas d'installateur, pas de travail en
+         hauteur — donc il ne se pose PAS sur le toit : le contraste avec
+         l'installation complète (scene:SolarPanels, à plat dans le versant)
+         est lui-même la leçon. Le reflet (.glint) s'anime les jours de
+         production, comme sur les panneaux du toit. -->
+    <defs>
+        <linearGradient id="pvKitCell" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#28497a"/><stop offset=".6" stop-color="#1d3557"/><stop offset="1" stop-color="#16294a"/>
+        </linearGradient>
+    </defs>
+
+    <!-- ombre portée au sol -->
+    <ellipse cx="56" cy="68" rx="46" ry="5" fill="#000" opacity=".18"/>
+
+    <!-- châssis : deux pieds + traverse arrière -->
+    <path d="M14 66 L26 40 M96 66 L84 40" stroke="#6f7c88" stroke-width="4" stroke-linecap="round"/>
+    <path d="M20 54 H90" stroke="#6f7c88" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- les 2 modules, en parallélogramme : le plan incliné vu de biais -->
+    <g stroke="#a8c6e8" stroke-width="1.5" fill="url(#pvKitCell)">
+        <polygon points="8,44 30,10 58,10 36,44"/>
+        <polygon points="40,44 62,10 90,10 68,44"/>
+    </g>
+    <g stroke="#7aa0cc" stroke-width=".8" opacity=".7">
+        <path d="M22 44 L44 10 M25 27 L52 27 M54 44 L76 10 M57 27 L84 27"/>
+    </g>
+    <g class="glint" fill="#fff" opacity=".25">
+        <polygon points="12,42 32,12 38,12 18,42"/>
+        <polygon points="44,42 64,12 70,12 50,42"/>
+    </g>
+
+    <!-- le câble et sa PRISE : le geste « je le branche moi-même » -->
+    <path d="M92 42 q14 8 12 20" stroke="#39414a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <rect x="99" y="60" width="11" height="8" rx="2" fill="#39414a"/>
+    <rect x="101.5" y="57" width="2" height="4" rx="1" fill="#8b9298"/>
+    <rect x="105.5" y="57" width="2" height="4" rx="1" fill="#8b9298"/>
+</svg>

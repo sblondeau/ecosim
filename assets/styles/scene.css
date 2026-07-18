@@ -151,6 +151,7 @@
 /* --- chauffage : couches de la chaudière (variante locale) / PAC --- */
 .scene .flame, .scene .smoke, .scene .alarm, .scene .breakdown-sign { display: none; }
 .boiler--fioul .flame { display: initial; animation: sc-flick .5s infinite alternate ease-in-out; transform-origin: 48px 96px; }
+.boiler--pellet .flame { display: initial; animation: sc-flick .5s infinite alternate ease-in-out; transform-origin: 31px 88px; }
 .boiler--fioul-broken .smoke, .boiler--fioul-broken .alarm, .boiler--fioul-broken .breakdown-sign { display: initial; }
 .boiler--fioul-broken .alarm { animation: sc-pulse 1.4s infinite ease-in-out; }
 .boiler--fioul-broken .gauge-needle { stroke: #e05341; }

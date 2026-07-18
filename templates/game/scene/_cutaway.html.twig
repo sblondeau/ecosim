@@ -111,7 +111,7 @@
         <g class="slot slot-roof{{ selected == 'roof' ? ' is-selected' }}" tabindex="0" role="button"
            data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="roof">
             <title>Toit — {{ scene.roofLabel }}</title>
-            {% if scene.solarState != 'empty' %}
+            {% if scene.solarState == 'full' %}
                 <twig:scene:SolarPanels transform="translate(110 103) skewX(-24) scale(.72)" />
             {% endif %}
             <polygon class="hit" points="2,142 260,18 518,142"/>
@@ -160,14 +160,26 @@
                 <path d="M420 292 v40" stroke="#55636f" stroke-width="6" stroke-linecap="round"/>
                 <rect x="386" y="330" width="66" height="40" rx="5" fill="#8fa3b8"/>
             {% else %}
-                {# Pellet boiler: rendered as the running fioul boiler for now
-                   (same "it's burning" cue) — its own visual lands in a later
-                   task (arbre travaux T7, Task 3). #}
-                <twig:scene:Boiler state="{{ scene.heatingState == 'pellet' ? 'fioul' : scene.heatingState }}" transform="translate(376 214)" />
+                <twig:scene:Boiler state="{{ scene.heatingState }}" transform="translate(376 214)" />
             {% endif %}
             <rect class="hit" x="366" y="154" width="106" height="216"/>
         </g>
     </g>
+
+    {# Kit solaire : posé DANS LE JARDIN, devant la maison — jamais sur le toit
+       (c'est ce qui le définit : on le branche soi-même, sans installateur ni
+       travail en hauteur). Il reste rattaché au slot `roof`, comme
+       l'installation complète : les deux se décident dans le même tiroir, le
+       kit étant la première marche vers le toit. #}
+    {% if scene.solarState == 'kit' %}
+        <g class="slot slot-roof{{ selected == 'roof' ? ' is-selected' }}" tabindex="0" role="button"
+           data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="roof"
+           transform="translate(196 462) scale(.9)">
+            <title>Kit solaire — {{ scene.roofLabel }}</title>
+            <twig:scene:SolarPanels variant="kit" />
+            <rect class="hit" x="0" y="4" width="114" height="66"/>
+        </g>
+    {% endif %}
 
     {# ===== LE GARAGE : slot batterie ===== #}
     <g transform="translate(800 216)">
