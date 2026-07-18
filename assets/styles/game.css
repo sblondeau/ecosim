@@ -447,12 +447,6 @@ section>h2.section {
     display: none;
 }
 
-/* Chaudière à granulés : même asset que la chaudière fioul, teinté bois
-   (pas d'actif dédié pour un simple changement de combustible). */
-.quote-icon-wood {
-    filter: sepia(.6) hue-rotate(-12deg) saturate(1.5);
-}
-
 .quote-actions {
     display: flex;
     gap: var(--space-md);
