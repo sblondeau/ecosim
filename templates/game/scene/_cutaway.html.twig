@@ -162,7 +162,10 @@
                 <path d="M420 292 v40" stroke="#55636f" stroke-width="6" stroke-linecap="round"/>
                 <rect x="386" y="330" width="66" height="40" rx="5" fill="#8fa3b8"/>
             {% else %}
-                <twig:scene:Boiler state="{{ scene.heatingState }}" transform="translate(376 214)" />
+                {# Le granulés est plus large que le fioul (il traîne son silo) :
+                   décalé de 6 vers la gauche, son flanc droit s'arrête au nu
+                   intérieur du mur (x=474) au lieu de mordre dedans. #}
+                <twig:scene:Boiler state="{{ scene.heatingState }}" transform="translate({{ scene.heatingState == 'pellet' ? 370 : 376 }} 214)" />
             {% endif %}
             <rect class="hit" x="366" y="154" width="106" height="216"/>
         </g>
