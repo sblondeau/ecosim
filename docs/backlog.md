@@ -739,6 +739,20 @@ volontairement différé :
   `WeatherCalibration::coldestDayOfYear` (source unique de vérité, plus de
   risque de dérive).
 
+- **Coût du rendu du tableau de bord — 91 ms par affichage** (mesuré, juillet
+  2026). `GameViewFactory::build()` prend **90,9 ms**, parce que
+  `AnnualOutcomeEstimator::estimate()` **simule 365 jours** et qu'il est appelé
+  1× pour l'état courant, 2× pour l'aperçu du thermostat, et **1× par travail
+  disponible** (13 aujourd'hui) — soit ~5 000 jours simulés par rendu, rejoués
+  **toutes les 4 secondes** par le `data-poll`, que les tiroirs soient ouverts
+  ou non. Sans conséquence en solo local ; ça sature ~2,5 cœurs à 100 joueurs.
+  Deux leviers, du plus simple au plus structurant : (a) ne coter que les
+  travaux du tiroir **ouvert** ; (b) mémoïser l'estimation par `Household`
+  (l'estimateur est pur et déterministe — même maison, même résultat, et le
+  parc de configurations visitées dans une partie est petit). Le **catalogue de
+  travaux** (`docs/specs/2026-07-18-catalogue-travaux-design.md`) rend (a)
+  trivial mais ne le fait pas : chantiers orthogonaux.
+
 ## Persistance & méta-jeu (étape dédiée, décidée en bloc)
 
 **Décision actée (juillet 2026)** : la persistance Doctrine **attend une étape
