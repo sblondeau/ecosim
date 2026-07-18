@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 400" width="520" height="400" overflow="visible">
     <!-- La maison en COUPE : murs en tranche (couche d'isolant pilotée par
-         .house--ins-N du composant scene:HouseShell), séjour visible (teinte =
+         .house--* du composant scene:HouseShell), séjour visible (teinte =
          confort), local technique vide (le renderer y pose le chauffage). Le
          toit, lui, reste un plein classique (pas de coupe) : il ne porte pas
          d'information de jeu propre (l'isolation se lit sur les murs) et une
@@ -28,16 +28,13 @@
          le hit-polygon du slot roof dans _cutaway.html.twig) ===== -->
     <polygon points="2,142 260,18 518,142" fill="url(#hRoof)"/>
     <polygon points="16,136 260,26 504,136" fill="url(#hTiles)"/>
-    <!-- neige : trois habillages selon l'isolation (déperditions), sous .frost -->
-    <g class="roof-snow roof-snow-0" fill="#f2f6fa">
+    <!-- neige : deux habillages selon l'isolation des combles (un toit non isolé
+         laisse fuir la chaleur → la neige fond ; isolé, elle tient), sous .frost -->
+    <g class="roof-snow roof-snow-bare" fill="#f2f6fa">
         <path d="M18 136 q22 -16 46 -28 q-6 16 -14 28 q-16 3 -32 0z"/>
         <path d="M502 136 q-22 -16 -46 -28 q6 16 14 28 q16 3 32 0z"/>
     </g>
-    <g class="roof-snow roof-snow-1" fill="#f2f6fa">
-        <path d="M18 136 q60 -34 110 -56 q-10 22 -22 40 q-44 12 -88 16z"/>
-        <path d="M502 136 q-60 -34 -110 -56 q10 22 22 40 q44 12 88 16z"/>
-    </g>
-    <g class="roof-snow roof-snow-2" fill="#f2f6fa">
+    <g class="roof-snow roof-snow-insulated" fill="#f2f6fa">
         <path d="M16 138 q122 -58 244 -112 q122 54 244 112 l-22 0 q-111 -50 -222 -100 q-111 50 -222 100z"/>
     </g>
     <!-- cheminée sur le versant droit -->
@@ -63,14 +60,10 @@
     <g>
         <rect x="26" y="152" width="20" height="232" fill="#b9a582"/>
         <rect x="26" y="152" width="5" height="232" fill="#cbb794"/>
-        <rect class="ins-wall ins-wall-1" x="42" y="152" width="6" height="232" fill="#5f9c74"/>
-        <rect class="ins-wall ins-wall-2" x="40" y="152" width="10" height="232" fill="#69b585"/>
     </g>
     <g>
         <rect x="474" y="152" width="20" height="232" fill="#b9a582"/>
         <rect x="489" y="152" width="5" height="232" fill="#a08c69"/>
-        <rect class="ins-wall ins-wall-1" x="472" y="152" width="6" height="232" fill="#5f9c74"/>
-        <rect class="ins-wall ins-wall-2" x="470" y="152" width="10" height="232" fill="#69b585"/>
     </g>
 
     <!-- ===== séjour (la teinte de fond = confort ressenti) ===== -->
@@ -81,6 +74,12 @@
         <rect x="84" y="196" width="92" height="84" rx="3" fill="#8a7458"/>
         <rect x="90" y="202" width="80" height="72" fill="url(#hGlass)"/>
         <path d="M92 204 L128 204 L98 272 L92 272 Z" fill="#ffffff" opacity=".12"/>
+        <!-- vitrages : chaque vitre supplémentaire = une lame de verre de plus,
+             dessinée comme une bordure claire imbriquée dans la feuillure
+             (simple = aucune, double = 1, triple = 2). Le rendement décroissant
+             se lit à l'œil : la 2e lame est plus fine et plus pâle que la 1re. -->
+        <rect class="glazing-pane glazing-pane-2" x="93" y="205" width="74" height="66" fill="none" stroke="#e8f4ff" stroke-width="4" opacity=".8"/>
+        <rect class="glazing-pane glazing-pane-3" x="99" y="211" width="62" height="54" fill="none" stroke="#e8f4ff" stroke-width="2.5" opacity=".55"/>
         <path d="M130 202v72 M90 238h80" stroke="#8a7458" stroke-width="5"/>
         <rect x="90" y="202" width="80" height="72" rx="1" fill="none" stroke="#6b5a45" stroke-width="1.5"/>
         <!-- appui de fenêtre + jardinière -->
@@ -153,6 +152,38 @@
     <!-- ===== cloison + local technique (vide : le renderer pose l'équipement) ===== -->
     <rect x="352" y="152" width="12" height="220" fill="#8a7f6d"/>
     <rect x="364" y="152" width="110" height="220" fill="#232e3a"/>
+
+    <!-- ===== couches d'isolation, une par surface (révélées par les classes
+         .house--* posées par scene:HouseShell). Dessinées en fin de document
+         pour passer AU-DESSUS du séjour et du local technique : ce sont des
+         doublages posés contre les parois, pas des couches enfouies.
+
+         ITI et ITE isolent la même paroi mais du côté opposé, et c'est tout
+         le contraste pédagogique : l'ITI mange le volume habitable et se voit
+         seulement dans la coupe ; l'ITE habille la FAÇADE (visible depuis
+         dehors, sous le débord de toit) et laisse l'intérieur intact. ===== -->
+    <!-- combles : l'isolant déroulé sous le plafond -->
+    <g class="roof-ins">
+        <rect x="46" y="152" width="428" height="11" fill="#69b585"/>
+        <rect x="46" y="152" width="428" height="2.5" fill="#8ccca6"/>
+    </g>
+    <!-- murs, isolation par l'INTÉRIEUR (doublage côté séjour / local) -->
+    <g class="ins-wall">
+        <rect x="46" y="152" width="9" height="232" fill="#69b585"/>
+        <rect x="46" y="152" width="2.5" height="232" fill="#8ccca6"/>
+        <rect x="465" y="152" width="9" height="232" fill="#69b585"/>
+        <rect x="471.5" y="152" width="2.5" height="232" fill="#8ccca6"/>
+    </g>
+    <!-- murs, isolation par l'EXTÉRIEUR : isolant + enduit de finition, plaqués
+         sur la façade, sous l'égout -->
+    <g class="wall-ext-ins">
+        <rect x="14" y="152" width="12" height="232" fill="#69b585"/>
+        <rect x="8" y="152" width="6" height="232" fill="#c9bda3"/>
+        <rect x="8" y="152" width="2" height="232" fill="#ddd2ba"/>
+        <rect x="494" y="152" width="12" height="232" fill="#69b585"/>
+        <rect x="506" y="152" width="6" height="232" fill="#c8bca4"/>
+        <rect x="510" y="152" width="2" height="232" fill="#b3a68e"/>
+    </g>
 
     <!-- ===== plancher / dalle ===== -->
     <rect x="26" y="372" width="468" height="12" fill="#7d6b52"/>

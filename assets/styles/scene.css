@@ -6,7 +6,7 @@
 
    Deux niveaux de pilotage :
    - variante d'asset = classe locale posée par le composant
-     (.occupant--cool, .boiler--fioul, .house--ins-2…) ;
+     (.occupant--cool, .boiler--fioul, .house--walls-exterior…) ;
    - ambiance scène-wide = classe sur .scene
      (.season-*, .frost, .smoking, .producing) + variable continue --cloud. */
 
@@ -99,16 +99,27 @@
 .scene .canopy-snow, .scene .roof-snow-cap { display: none; }
 .scene.frost .canopy-snow, .scene.frost .roof-snow-cap { display: initial; }
 
-/* --- neige de toiture : la fonte raconte l'isolation (palier local à HouseShell) --- */
+/* --- neige de toiture : la fonte raconte l'isolation des COMBLES (et elle
+       seule : c'est par le toit que part la chaleur qui fait fondre la neige,
+       pas par les murs). Variante locale à HouseShell. --- */
 .scene .roof-snow { display: none; }
-.scene.frost .house--ins-0 .roof-snow-0 { display: initial; }
-.scene.frost .house--ins-1 .roof-snow-1 { display: initial; }
-.scene.frost .house--ins-2 .roof-snow-2 { display: initial; }
+.scene.frost .house:not(.house--roof-ins) .roof-snow-bare { display: initial; }
+.scene.frost .house--roof-ins .roof-snow-insulated { display: initial; }
 
-/* --- isolation : la couche visible dans la coupe des murs (variante locale à HouseShell) --- */
-.scene .ins-wall { display: none; }
-.house--ins-1 .ins-wall-1 { display: initial; }
-.house--ins-2 .ins-wall-2 { display: initial; }
+/* --- isolation par surface : chaque couche est masquée par défaut et révélée
+       par la classe de variante posée par HouseShell. ITI et ITE s'excluent
+       (un seul `wallInsulation`), et c'est visible : l'ITE seule habille la
+       façade, l'ITI seule mange le volume intérieur. --- */
+.scene .roof-ins,
+.scene .ins-wall,
+.scene .wall-ext-ins,
+.scene .glazing-pane { display: none; }
+.house--roof-ins .roof-ins { display: initial; }
+.house--walls-interior .ins-wall { display: initial; }
+.house--walls-exterior .wall-ext-ins { display: initial; }
+.house--glazing-double .glazing-pane-2,
+.house--glazing-triple .glazing-pane-2,
+.house--glazing-triple .glazing-pane-3 { display: initial; }
 
 /* --- confort : la teinte du séjour (scène) ; l'occupant est un fichier SVG
        complet par état (scene:Occupant inclut occupant-<tier>.svg), donc plus

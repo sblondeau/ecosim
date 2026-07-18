@@ -90,17 +90,12 @@
 
     {# ===== LA MAISON (coupe) + ses emplacements cliquables ===== #}
     <ellipse cx="500" cy="474" rx="290" ry="16" fill="#4a5866" opacity=".35"/>
-    {# Legacy 3-tier bucket for HouseShell (0|1|2), approximated from the two
-       structural surfaces (roof + walls) — matches the old continuous-factor
-       tier for the household states exercised by the tests/dashboard today.
-       Glazing/ventilation/draught-proofing/curtains don't move this bucket
-       (they didn't move the old tier much either) and don't yet have their
-       own visual — that lands in a later task (arbre travaux T7). #}
-    {% set insulationTier = scene.roofInsulated and scene.wallInsulation != 'none'
-        ? 2
-        : (scene.roofInsulated or scene.wallInsulation != 'none' ? 1 : 0) %}
     <g transform="translate(240 88)">
-        <twig:scene:HouseShell insulation="{{ insulationTier }}" />
+        <twig:scene:HouseShell
+            :roofInsulated="scene.roofInsulated"
+            wallInsulation="{{ scene.wallInsulation }}"
+            glazing="{{ scene.glazing }}"
+        />
 
         {# slot toit : panneaux posés (rendus uniquement si installés). Les
            tuiles (hTiles dans house-cutaway.svg) ne suivent PAS la pente
@@ -126,8 +121,10 @@
         <g class="slot slot-walls{{ selected == 'walls' ? ' is-selected' }}" tabindex="0" role="button"
            data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="walls">
             <title>Isolation — {{ scene.insulationLabel }}</title>
-            <rect class="hit" x="22" y="118" width="28" height="270"/>
-            <rect class="hit" x="470" y="118" width="28" height="270"/>
+            {# large jusqu'au nu extérieur : en ITE le doublage déborde en façade
+               (x 8-26 / 494-512), il doit rester dans la zone cliquable. #}
+            <rect class="hit" x="6" y="118" width="46" height="270"/>
+            <rect class="hit" x="466" y="118" width="48" height="270"/>
             <rect class="hit" x="46" y="120" width="424" height="34"/>
         </g>
 

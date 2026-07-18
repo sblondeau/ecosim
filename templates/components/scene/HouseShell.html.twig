@@ -1,10 +1,10 @@
 {# The cutaway house shell: walls, roof, living room, utility recess. The roof
    itself is a plain solid gable (no cutaway) so solar panels have a single
-   unambiguous surface to sit flush on. The `insulation` prop (0|1|2) drives
-   the visible wall insulation layer locally; roof snow, room tint and
-   chimney smoke follow scene-wide ambience classes. Caller-derived from the
-   per-surface HouseSceneView fields (roofInsulated/wallInsulation) — this
-   component still only knows the legacy 3-tier bucket; per-surface visuals
-   land in a later task (arbre travaux T7). #}
-{% props insulation = 0 %}
-<g class="house house--ins-{{ insulation }}"{{ attributes }}>{{ include('game/scene/assets/house-cutaway.svg') }}</g>
+   unambiguous surface to sit flush on. Each envelope surface gets its own
+   prop → its own local variant class (CVA-manuel), so a work done on ONE
+   surface only moves that surface's layer: `roofInsulated` reveals the attic
+   layer (and lets the roof snow hold instead of melting), `wallInsulation`
+   picks the interior doubling vs the exterior render, `glazing` counts the
+   nested panes. Room tint, chimney smoke and frost stay scene-wide. #}
+{% props roofInsulated = false, wallInsulation = 'none', glazing = 'single' %}
+<g class="house{{ roofInsulated ? ' house--roof-ins' }} house--walls-{{ wallInsulation }} house--glazing-{{ glazing }}"{{ attributes }}>{{ include('game/scene/assets/house-cutaway.svg') }}</g>
