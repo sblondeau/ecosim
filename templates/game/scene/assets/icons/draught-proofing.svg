@@ -1,0 +1,10 @@
+<!-- Calfeutrage : une fenêtre dont le cadre porte un joint (liseré),
+     et les flèches d'air extérieur stoppées à son contact. -->
+<svg viewBox="0 0 80 80" overflow="visible">
+    <rect x="16" y="10" width="48" height="56" rx="3" fill="#7d8ea0"/>
+    <rect x="16" y="10" width="48" height="56" rx="3" fill="none" stroke="#c9a24b" stroke-width="3" stroke-dasharray="4 3"/>
+    <rect x="22" y="16" width="36" height="44" rx="2" fill="#bfe0ee" opacity=".85"/>
+    <path d="M40 16v44M22 38h36" stroke="#7d8ea0" stroke-width="3"/>
+    <path d="M4 24h9M4 38h9M4 52h9" stroke="#e05341" stroke-width="3" stroke-linecap="round"/>
+    <path d="M13 24l-4-4m4 4l-4 4M13 38l-4-4m4 4l-4 4M13 52l-4-4m4 4l-4 4" stroke="#e05341" stroke-width="2" stroke-linecap="round" opacity=".6"/>
+</svg>

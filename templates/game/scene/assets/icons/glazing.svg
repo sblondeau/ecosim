@@ -1,0 +1,6 @@
+<svg viewBox="0 0 80 80" overflow="visible">
+    <rect x="12" y="10" width="56" height="60" rx="4" fill="#7d8ea0"/>
+    <rect x="18" y="16" width="44" height="48" rx="2" fill="#bfe0ee" opacity=".85"/>
+    <path d="M40 16v48M18 40h44" stroke="#7d8ea0" stroke-width="4"/>
+    <path d="M24 22l12 12" stroke="#fff" stroke-width="2" opacity=".6"/>
+</svg>

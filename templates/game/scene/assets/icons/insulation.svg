@@ -1,0 +1,6 @@
+<svg viewBox="0 0 80 80" overflow="visible">
+    <rect x="8" y="8" width="64" height="64" rx="6" fill="#8a7458"/>
+    <rect x="14" y="14" width="52" height="52" rx="3" fill="#69b585"/>
+    <path d="M14 24h52M14 34h52M14 44h52M14 54h52" stroke="#5f9c74" stroke-width="3" opacity=".6"/>
+    <path d="M22 14v52M32 14v52M42 14v52M52 14v52M62 14v52" stroke="#5f9c74" stroke-width="2" opacity=".35"/>
+</svg>

@@ -1,0 +1,7 @@
+<svg viewBox="0 0 80 80" overflow="visible">
+    <rect x="6" y="50" width="68" height="22" rx="3" fill="#8a7458"/>
+    <path d="M12 60 h8 v-10 h8 v10 h8 v-10 h8 v10 h8 v-10 h8 v10 h8"
+          fill="none" stroke="#e05341" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M12 60 h8 v-10 h8 v10 h8 v-10 h8 v10 h8 v-10 h8 v10 h8"
+          fill="none" stroke="#f6b199" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/>
+</svg>

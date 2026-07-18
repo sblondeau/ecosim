@@ -1,0 +1,8 @@
+<!-- VMC double flux : boîtier échangeur + flux d'air entrant/sortant. -->
+<svg viewBox="0 0 80 80" overflow="visible">
+    <rect x="20" y="26" width="40" height="28" rx="4" fill="#8a7458"/>
+    <circle cx="40" cy="40" r="9" fill="none" stroke="#e7e2d8" stroke-width="3"/>
+    <path d="M40 33v14M33 40h14" stroke="#e7e2d8" stroke-width="2"/>
+    <path d="M10 20 q10 6 10 20 t-10 20" fill="none" stroke="#69b585" stroke-width="3" stroke-linecap="round"/>
+    <path d="M70 20 q-10 6 -10 20 t10 20" fill="none" stroke="#e05341" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+</svg>
