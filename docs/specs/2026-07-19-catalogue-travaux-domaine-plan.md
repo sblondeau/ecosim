@@ -88,6 +88,81 @@ Copiées du `CLAUDE.md`, elles s'appliquent implicitement à chaque tâche.
 
 ---
 
+## Tâche 0 : extraire les 6 icônes inline
+
+`iconAsset()` doit retourner un chemin qui désigne un vrai fichier dès la tâche
+3. Six icônes de `QuoteCard` sont aujourd'hui du SVG inline dans le Twig : on
+les sort en fichiers d'abord, sans rien changer au rendu.
+
+**Fichiers :**
+- Créer : `templates/game/scene/assets/icons/insulation.svg`, `glazing.svg`,
+  `ventilation-double-flow.svg`, `low-temp-emitters.svg`,
+  `draught-proofing.svg`, `thermal-curtains.svg`
+- Modifier : `templates/components/QuoteCard.html.twig`
+
+**Interfaces :**
+- Produit : les 6 chemins d'assets que `RenovationDefinition::iconAsset()`
+  retournera aux tâches 3 à 5.
+
+- [ ] **Étape 1 : déplacer chaque bloc SVG inline dans son fichier**
+
+Pour chacune des 6 icônes, couper le `<svg>…</svg>` de
+`templates/components/QuoteCard.html.twig` et le coller tel quel dans le fichier
+correspondant. **Ne rien redessiner** : aucun attribut, aucune coordonnée,
+aucune couleur ne change. Conserver les commentaires Twig explicatifs
+(`{# VMC double flux : boîtier échangeur… #}`) en les convertissant en
+commentaires SVG (`<!-- … -->`) en tête du fichier.
+
+Correspondance : le bloc `roof_insulation, wall_insulation_interior,
+wall_insulation_exterior` (le swatch d'isolation, partagé par les trois travaux)
+→ `icons/insulation.svg` ; `glazing` → `icons/glazing.svg` ;
+`ventilation_double_flow` → `icons/ventilation-double-flow.svg` ;
+`low_temp_emitters` → `icons/low-temp-emitters.svg` ; `draught_proofing` →
+`icons/draught-proofing.svg` ; `thermal_curtains` → `icons/thermal-curtains.svg`.
+
+- [ ] **Étape 2 : remplacer chaque bloc par son include**
+
+Dans `QuoteCard.html.twig`, chaque branche devient un `include`, sur le modèle
+des branches qui en ont déjà un :
+
+```twig
+            {% elseif action.work == 'glazing' %}
+                {{ include('game/scene/assets/icons/glazing.svg') }}
+```
+
+Le `solar_kit` est un cas à part : il a **déjà** un asset de scène
+(`game/scene/assets/solar-kit.svg`) alors que `QuoteCard` en dessinait un autre
+inline. Supprimer le SVG inline et pointer sur l'asset de scène — c'est la règle
+« un seul dessin par équipement », et ça retire un doublon existant.
+
+- [ ] **Étape 3 : vérifier que le rendu n'a pas bougé**
+
+Lancer : `make twig && vendor/bin/phpunit tests/Integration/`
+Attendu : PASS.
+
+Puis vérifier visuellement : ouvrir le jeu, ouvrir les tiroirs Isolation,
+Chauffage, Séjour et Garage, et confirmer que **les 7 icônes concernées
+s'affichent** (les 6 extraites + le kit solaire, qui change de dessin
+volontairement — il prend celui de la scène).
+
+- [ ] **Étape 4 : commit**
+
+```bash
+git add templates/game/scene/assets/icons/ templates/components/QuoteCard.html.twig
+git commit -m "refactor(ui): extract the drawer's inline icons into assets
+
+Six icons lived as inline SVG in QuoteCard, so nothing could reference
+them by path. Moves them to files, untouched, and points the template at
+them — the shape the catalogue's iconAsset() needs.
+
+The solar kit drops its bespoke inline drawing for the scene asset it
+already had: one drawing per equipment.
+
+Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
+```
+
+---
+
 ## Tâche 1 : les fondations
 
 **Fichiers :**
@@ -190,11 +265,14 @@ final class RenovationCatalogTest extends TestCase
         self::assertSame(['first', 'second'], $slugs);
     }
 
-    public function testDefaultCatalogueExposesEveryWorkExactlyOnce(): void
+    /**
+     * The default catalogue is empty until task 3 fills it; all this can
+     * assert today is that it is constructible. The real assertion — fifteen
+     * works, no duplicate — arrives in task 5, when it can be true.
+     */
+    public function testTheDefaultCatalogueIsConstructible(): void
     {
-        $catalog = new RenovationCatalog();
-
-        self::assertNotEmpty($catalog->all());
+        self::assertSame([], (new RenovationCatalog())->all());
     }
 }
 
@@ -490,31 +568,18 @@ final readonly class RenovationCatalog
 }
 ```
 
-- [ ] **Étape 7 : neutraliser temporairement l'assertion du catalogue par défaut**
-
-`defaultWorks()` est vide jusqu'à la tâche 3, donc
-`testDefaultCatalogueExposesEveryWorkExactlyOnce` échouerait. Marquer ce seul
-test comme incomplet, avec la raison :
-
-```php
-    public function testDefaultCatalogueExposesEveryWorkExactlyOnce(): void
-    {
-        self::markTestIncomplete('The default catalogue fills up in tasks 3 to 5.');
-    }
-```
-
-- [ ] **Étape 8 : lancer les tests**
+- [ ] **Étape 7 : lancer les tests**
 
 Lancer : `vendor/bin/phpunit tests/Unit/Domain/Finance/RenovationCatalogTest.php`
-Attendu : PASS (5 tests, 1 incomplet).
+Attendu : PASS (6 tests).
 
-- [ ] **Étape 9 : gate qualité complet**
+- [ ] **Étape 8 : gate qualité complet**
 
 Lancer : `make qa`
 Attendu : cs, stan, twig, test tous verts. **301 tests toujours au vert** — rien
 d'existant ne doit bouger.
 
-- [ ] **Étape 10 : commit**
+- [ ] **Étape 9 : commit**
 
 ```bash
 git add src/Domain/Finance/SceneSlot.php src/Domain/Finance/RenovationOffer.php \
@@ -791,11 +856,16 @@ quoter (et sa méthode privée) puis dans l'advisor.
   textes pédagogiques relus, et le plan ne change aucun libellé joueur.
 - `isEnergyPerformanceWork()` retourne ce que `Renovation::isSubsidised()`
   retournait pour ce travail.
-- `iconAsset()` retourne le chemin final de l'asset. **Six de ces fichiers
-  n'existent pas encore** (voir tableau ci-dessous) : ils sont extraits du SVG
-  inline de `QuoteCard` au palier 6, dans le plan suivant. Rien ne consomme
-  `iconAsset()` avant. Ne pas écrire de test qui vérifie l'existence du
-  fichier dans ce plan-ci.
+- `iconAsset()` retourne le chemin de l'asset, relatif à `templates/`. **Tous
+  ces fichiers existent** depuis la tâche 0 ; le test de chaque travail doit
+  vérifier que le fichier pointé existe réellement :
+
+```php
+    public function testIconAssetPointsAtARealFile(): void
+    {
+        self::assertFileExists(__DIR__.'/../../../../../templates/'.(new HeatPumpWork())->iconAsset());
+    }
+```
 
 **Table de référence — les 15 travaux.** Elle est la source unique pour les
 tâches 3 à 5 ; ne pas la deviner travail par travail.
@@ -805,20 +875,20 @@ tâches 3 à 5 ; ne pas la deviner travail par travail.
 | `boiler_repair` | `BoilerRepairWork` | Heating | `false` | `null` | `boiler-fioul.svg` |
 | `heat_pump` | `HeatPumpWork` | Heating | `true` | `'heating-heat-pump'` | `heat-pump.svg` |
 | `pellet_boiler` | `PelletBoilerWork` | Heating | `true` | `'heating-pellet'` | `boiler-pellet.svg` |
-| `low_temp_emitters` | `LowTempEmittersWork` | Heating | `true` | `'floor-heating'` | `icons/low-temp-emitters.svg` ✳ |
+| `low_temp_emitters` | `LowTempEmittersWork` | Heating | `true` | `'floor-heating'` | `icons/low-temp-emitters.svg` |
 | `water_heater_thermo` | `WaterHeaterThermoWork` | Heating | `true` | `'water-heater-thermo'` | `water-heater-thermo.svg` |
-| `roof_insulation` | `RoofInsulationWork` | Walls | `true` | `'roof-ins'` | `icons/insulation.svg` ✳ |
-| `wall_insulation_interior` | `WallInsulationInteriorWork` | Walls | `true` | `'walls-interior'` | `icons/insulation.svg` ✳ |
-| `wall_insulation_exterior` | `WallInsulationExteriorWork` | Walls | `true` | `'walls-exterior'` | `icons/insulation.svg` ✳ |
-| `glazing` | `GlazingWork` | Walls | `true` | `'glazing-double'` / `'glazing-triple'` | `icons/glazing.svg` ✳ |
-| `ventilation_double_flow` | `VentilationDoubleFlowWork` | Walls | `true` | `'vmc-double-flow'` | `icons/ventilation-double-flow.svg` ✳ |
+| `roof_insulation` | `RoofInsulationWork` | Walls | `true` | `'roof-ins'` | `icons/insulation.svg` |
+| `wall_insulation_interior` | `WallInsulationInteriorWork` | Walls | `true` | `'walls-interior'` | `icons/insulation.svg` |
+| `wall_insulation_exterior` | `WallInsulationExteriorWork` | Walls | `true` | `'walls-exterior'` | `icons/insulation.svg` |
+| `glazing` | `GlazingWork` | Walls | `true` | `'glazing-double'` / `'glazing-triple'` | `icons/glazing.svg` |
+| `ventilation_double_flow` | `VentilationDoubleFlowWork` | Walls | `true` | `'vmc-double-flow'` | `icons/ventilation-double-flow.svg` |
 | `solar_panels` | `SolarPanelsWork` | Roof | `false` | `'solar-full'` | `solar-panels.svg` |
 | `solar_kit` | `SolarKitWork` | Garage | `false` | `'solar-kit'` | `solar-kit.svg` |
 | `home_battery` | `HomeBatteryWork` | Garage | `false` | `'battery'` | `battery.svg` |
-| `draught_proofing` | `DraughtProofingWork` | Living | `false` | `null` | `icons/draught-proofing.svg` ✳ |
-| `thermal_curtains` | `ThermalCurtainsWork` | Living | `false` | `'curtains'` | `icons/thermal-curtains.svg` ✳ |
+| `draught_proofing` | `DraughtProofingWork` | Living | `false` | `null` | `icons/draught-proofing.svg` |
+| `thermal_curtains` | `ThermalCurtainsWork` | Living | `false` | `'curtains'` | `icons/thermal-curtains.svg` |
 
-Chemins relatifs à `templates/game/scene/assets/`. ✳ = à extraire au palier 6.
+Chemins relatifs à `templates/game/scene/assets/`. Les six `icons/*.svg` sont créés en tâche 0.
 
 **Deux `null` volontaires dans `sceneLayerFor`**, à ne pas « corriger » :
 - `boiler_repair` répare la chaudière fioul — il restaure l'état de départ, il
@@ -1247,9 +1317,10 @@ subtiles, chacune avec sa raison ; les reprendre avec leur commentaire :
 À la fin de cette tâche, `defaultWorks()` contient les 15 travaux, et le `match`
 de `RenovationQuoter` comme celui de `RenovationAdvisor` sont **vides**.
 
-- [ ] **Rétablir le test neutralisé de la tâche 1**
+- [ ] **Renforcer le test du catalogue par défaut**
 
-Remplacer le `markTestIncomplete` par l'assertion réelle :
+Le catalogue étant désormais plein, remplacer
+`testTheDefaultCatalogueIsConstructible` par l'assertion réelle :
 
 ```php
     public function testDefaultCatalogueExposesEveryWorkExactlyOnce(): void
