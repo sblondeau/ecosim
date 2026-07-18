@@ -113,13 +113,17 @@
 .scene .roof-ins,
 .scene .ins-wall,
 .scene .wall-ext-ins,
-.scene .glazing-pane { display: none; }
+.scene .glazing-pane,
+.scene .vmc,
+.scene .curtains { display: none; }
 .house--roof-ins .roof-ins { display: initial; }
 .house--walls-interior .ins-wall { display: initial; }
 .house--walls-exterior .wall-ext-ins { display: initial; }
 .house--glazing-double .glazing-pane-2,
 .house--glazing-triple .glazing-pane-2,
 .house--glazing-triple .glazing-pane-3 { display: initial; }
+.house--vmc-double-flow .vmc { display: initial; }
+.house--curtains .curtains { display: initial; }
 
 /* --- confort : la teinte du séjour (scène) ; l'occupant est un fichier SVG
        complet par état (scene:Occupant inclut occupant-<tier>.svg), donc plus
@@ -156,6 +160,7 @@
 .boiler--fioul-broken .alarm { animation: sc-pulse 1.4s infinite ease-in-out; }
 .boiler--fioul-broken .gauge-needle { stroke: #e05341; }
 .heat-pump .fan { animation: sc-spin 2.2s infinite linear; transform-origin: 38px 26px; }
+.water-heater .fan { animation: sc-spin 3.4s infinite linear; transform-origin: 15px 19px; }
 
 /* --- cheminée : fume tant que du fioul brûle (scène) --- */
 .scene .chimney-smoke { display: none; }

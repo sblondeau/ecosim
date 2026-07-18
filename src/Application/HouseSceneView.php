@@ -59,6 +59,12 @@ final readonly class HouseSceneView
         /** garage: empty|installed. */
         public string $garageState,
         public string $garageLabel,
+        /**
+         * The tank was upgraded to a thermodynamic one. A bool, not a state:
+         * the plain electric tank is the starting equipment, so it gets no
+         * visual — drawing it would claim the player did something.
+         */
+        public bool $waterHeaterThermo,
         /** Indoor feel bucket: cold|cool|warm — drives the living-room tint. */
         public string $comfortState,
     ) {

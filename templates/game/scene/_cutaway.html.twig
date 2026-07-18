@@ -95,6 +95,8 @@
             :roofInsulated="scene.roofInsulated"
             wallInsulation="{{ scene.wallInsulation }}"
             glazing="{{ scene.glazing }}"
+            ventilation="{{ scene.ventilation }}"
+            :thermalCurtains="scene.thermalCurtains"
         />
 
         {# slot toit : panneaux posés (rendus uniquement si installés). Les
@@ -187,8 +189,14 @@
         <g class="slot slot-garage{{ selected == 'garage' ? ' is-selected' }}" tabindex="0" role="button"
            data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="garage">
             <title>Garage — {{ scene.garageLabel }}</title>
+            {# La batterie se serre à gauche dès que le ballon thermodynamique
+               partage le garage avec elle — les deux tiennent côte à côte dans
+               l'ouverture, aucun ne recouvre l'autre. #}
             {% if scene.garageState == 'installed' %}
-                <twig:scene:Battery transform="translate(62 142)" />
+                <twig:scene:Battery transform="translate({{ scene.waterHeaterThermo ? 44 : 62 }} 142)" />
+            {% endif %}
+            {% if scene.waterHeaterThermo %}
+                <twig:scene:WaterHeater transform="translate(134 146)" />
             {% endif %}
             <rect class="hit" x="2" y="4" width="204" height="252"/>
         </g>

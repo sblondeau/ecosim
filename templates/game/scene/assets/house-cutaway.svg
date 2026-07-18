@@ -185,6 +185,39 @@
         <rect x="510" y="152" width="2" height="232" fill="#b3a68e"/>
     </g>
 
+    <!-- VMC double flux : le caisson se loge en haut du local technique (au-
+         dessus de la chaudière), et sa gaine traverse la cloison pour venir
+         souffler dans le séjour — c'est ce trajet qui dit ce qu'une VMC fait :
+         elle déplace de l'air d'une pièce à l'autre, elle ne chauffe rien. -->
+    <g class="vmc">
+        <path d="M372 182 H322" stroke="#7f8b96" stroke-width="9" stroke-linecap="round"/>
+        <path d="M372 182 H322" stroke="#9aa6b1" stroke-width="3" stroke-linecap="round" opacity=".5"/>
+        <rect x="370" y="166" width="56" height="34" rx="5" fill="#8f9ba5"/>
+        <rect x="370" y="166" width="56" height="7" rx="3.5" fill="#c3ccd4"/>
+        <g stroke="#6c7883" stroke-width="2">
+            <path d="M378 180h40 M378 187h40 M378 194h40"/>
+        </g>
+        <circle cx="431" cy="196" r="3" fill="#7fd49a"/>
+        <!-- bouche de soufflage côté séjour -->
+        <rect x="300" y="172" width="24" height="20" rx="3" fill="#8f9ba5"/>
+        <g stroke="#6c7883" stroke-width="1.8">
+            <path d="M304 178h16 M304 183h16 M304 188h16"/>
+        </g>
+    </g>
+
+    <!-- Rideaux thermiques : repliés de part et d'autre de la fenêtre, sur leur
+         tringle. Petit geste, petit effet — ils habillent la baie sans jamais
+         prétendre remplacer un vitrage. -->
+    <g class="curtains">
+        <rect x="62" y="186" width="136" height="5" rx="2.5" fill="#7d6b52"/>
+        <circle cx="64" cy="188.5" r="4" fill="#94815f"/>
+        <circle cx="196" cy="188.5" r="4" fill="#94815f"/>
+        <path d="M66 190 h20 q-5 44 0 96 h-20 q5 -48 0 -96z" fill="#7b5a68"/>
+        <path d="M74 190 q-4 48 0 96" stroke="#95707f" stroke-width="3" fill="none" opacity=".7"/>
+        <path d="M174 190 h20 q-5 44 0 96 h-20 q5 -48 0 -96z" fill="#7b5a68"/>
+        <path d="M186 190 q-4 48 0 96" stroke="#95707f" stroke-width="3" fill="none" opacity=".7"/>
+    </g>
+
     <!-- ===== plancher / dalle ===== -->
     <rect x="26" y="372" width="468" height="12" fill="#7d6b52"/>
     <rect x="26" y="372" width="468" height="3" fill="#94815f"/>

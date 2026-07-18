@@ -12,6 +12,7 @@ use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
 use App\Domain\Building\Ventilation;
 use App\Domain\Building\WallInsulation;
+use App\Domain\Building\WaterHeater;
 use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
 use App\Domain\Simulation\GameConfig;
@@ -265,10 +266,11 @@ final class GameViewFactoryTest extends TestCase
         self::assertFalse($s->thermalCurtains);
         self::assertSame('fioul', $s->heatingState);
         self::assertSame('empty', $s->solarState);
+        self::assertFalse($s->waterHeaterThermo, 'The plain electric tank is the starting equipment.');
 
         // Roof + walls (ITE) + double glazing + VMC double flux + curtains +
         // pellet boiler + a small solar kit (below the 3 kWc full install).
-        $renovated = new Household(1.5, 0.0, self::perSurfaceRenovatedEnvelope(), HeatingSystem::PelletBoiler);
+        $renovated = new Household(1.5, 0.0, self::perSurfaceRenovatedEnvelope(), HeatingSystem::PelletBoiler, waterHeater: WaterHeater::Thermodynamic);
         $s = $factory->build($config, GameState::start($renovated, Money::fromEuros(4000.0)))->scene;
 
         self::assertTrue($s->roofInsulated);
@@ -278,6 +280,8 @@ final class GameViewFactoryTest extends TestCase
         self::assertSame('pellet', $s->heatingState);
         self::assertSame('kit', $s->solarState);
         self::assertTrue($s->thermalCurtains);
+        self::assertTrue($s->waterHeaterThermo);
+        self::assertTrue($s->chimneySmoking, 'Burning wood pellets smokes the flue just as fuel oil did.');
     }
 
     public function testGroundSnowAccumulatesAndMeltsGradually(): void

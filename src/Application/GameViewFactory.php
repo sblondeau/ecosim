@@ -369,7 +369,10 @@ final readonly class GameViewFactory
             frost: $snapshot->weather->temperatureC <= 0.0,
             snowDepthPct: $snowDepthPct,
             producing: $snapshot->balance->productionKwh > 0.0,
-            chimneySmoking: $snapshot->heating->fuelOilLitres > 0.0,
+            // Any COMBUSTION smokes, whatever the fuel: switching fuel oil for
+            // wood pellets does not empty the flue. Only the heat pump (no
+            // combustion at all) leaves the chimney cold.
+            chimneySmoking: $snapshot->heating->fuelOilLitres > 0.0 || $snapshot->heating->pelletKg > 0.0,
             solarState: match (true) {
                 $household->solarKwc <= 0.0 => 'empty',
                 $household->solarKwc < $this->energy->defaultSolarPeakPowerKwc()->value => 'kit',
@@ -403,6 +406,7 @@ final readonly class GameViewFactory
             garageLabel: $household->batteryKwh > 0.0
                 ? sprintf('%.0f kWh', $household->batteryKwh)
                 : 'Pas de batterie',
+            waterHeaterThermo: WaterHeater::Thermodynamic === $household->waterHeater,
             comfortState: match (true) {
                 $snapshot->comfort->feltC < self::FELT_COLD_BELOW => 'cold',
                 $snapshot->comfort->feltC < self::FELT_COOL_BELOW => 'cool',
