@@ -369,16 +369,37 @@ final readonly class GameViewFactory
             frost: $snapshot->weather->temperatureC <= 0.0,
             snowDepthPct: $snowDepthPct,
             producing: $snapshot->balance->productionKwh > 0.0,
-            chimneySmoking: $snapshot->heating->fuelOilLitres > 0.0,
-            roofState: $household->solarKwc > 0.0 ? 'installed' : 'empty',
+            // Any COMBUSTION smokes, whatever the fuel: switching fuel oil for
+            // wood pellets does not empty the flue. Only the heat pump (no
+            // combustion at all) leaves the chimney cold.
+            chimneySmoking: $snapshot->heating->fuelOilLitres > 0.0 || $snapshot->heating->pelletKg > 0.0,
+            solarState: match (true) {
+                $household->solarKwc <= 0.0 => 'empty',
+                $household->solarKwc < $this->energy->defaultSolarPeakPowerKwc()->value => 'kit',
+                default => 'full',
+            },
             roofLabel: $household->solarKwc > 0.0
                 ? sprintf('%.0f kWc', $household->solarKwc)
                 : 'Pas de panneaux',
-            insulationTier: $this->insulationTier($household->envelope),
+            roofInsulated: $household->envelope->roofInsulated,
+            wallInsulation: match ($household->envelope->walls) {
+                WallInsulation::None => 'none',
+                WallInsulation::Interior => 'interior',
+                WallInsulation::Exterior => 'exterior',
+            },
+            glazing: match ($household->envelope->glazing) {
+                Glazing::Single => 'single',
+                Glazing::Double => 'double',
+                Glazing::Triple => 'triple',
+            },
+            ventilation: Ventilation::DoubleFlow === $household->envelope->ventilation ? 'double-flow' : 'none',
+            thermalCurtains: $household->envelope->thermalCurtains,
+            lowTempEmitters: $household->lowTempEmitters,
             insulationLabel: $this->envelopeLabel($household->envelope),
             heatingState: match (true) {
                 $household->boilerBroken => 'fioul-broken',
                 HeatingSystem::HeatPump === $household->heatingSystem => 'heat-pump',
+                HeatingSystem::PelletBoiler === $household->heatingSystem => 'pellet',
                 default => 'fioul',
             },
             heatingLabel: $household->heatingSystem->label(),
@@ -386,6 +407,7 @@ final readonly class GameViewFactory
             garageLabel: $household->batteryKwh > 0.0
                 ? sprintf('%.0f kWh', $household->batteryKwh)
                 : 'Pas de batterie',
+            waterHeaterThermo: WaterHeater::Thermodynamic === $household->waterHeater,
             comfortState: match (true) {
                 $snapshot->comfort->feltC < self::FELT_COLD_BELOW => 'cold',
                 $snapshot->comfort->feltC < self::FELT_COOL_BELOW => 'cool',
@@ -409,18 +431,6 @@ final readonly class GameViewFactory
         }
 
         return [] === $done ? 'D\'origine' : ucfirst(implode(' + ', $done));
-    }
-
-    /** Visual tier (0|1|2) for the scene shell, from the continuous loss factor. */
-    private function insulationTier(EnvelopeState $envelope): int
-    {
-        $factor = $this->building->envelopeLossFactor($envelope);
-
-        return match (true) {
-            $factor > 0.85 => 0,
-            $factor > 0.60 => 1,
-            default => 2,
-        };
     }
 
     private const int SPARKLINE_DAYS = 30;
@@ -562,8 +572,8 @@ final readonly class GameViewFactory
                     && $state->loan->borrowedTotal->plus($net)->cents <= $loanCap->cents),
                 loanMonthlyLabel: $loanEligible ? Loan::none()->borrow($net)->monthlyPayment->format() : '',
                 effectLabels: $this->effectLabels($before, $after),
-                adviceLevel: $advice?->level->value ?? '',
-                adviceMessage: $advice?->message ?? '',
+                adviceLevel: $advice->level->value,
+                adviceMessage: $advice->message,
             );
         }
 

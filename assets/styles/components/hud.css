@@ -24,7 +24,7 @@
     height: 100%;
     position: relative;
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: var(--radius-xl);
     overflow: hidden;
     background: var(--card);
 }
@@ -36,9 +36,9 @@
     left: 50%;
     transform: translateX(-50%);
     z-index: 3;
-    padding: .3rem .75rem;
-    font-size: .8rem;
-    border-radius: 20px;
+    padding: var(--space-xs) var(--space-lg);
+    font-size: var(--text-sm);
+    border-radius: var(--radius-2xl);
     background: var(--surface-glass);
     backdrop-filter: blur(4px);
     border: 1px solid var(--line);
@@ -56,9 +56,9 @@
     width: 1.9rem;
     height: 1.9rem;
     padding: 0;
-    font-size: 1rem;
+    font-size: var(--text-base);
     line-height: 1;
-    border-radius: 50%;
+    border-radius: var(--radius-circle);
     background: transparent;
     border: 1px solid var(--line);
     color: var(--muted);
@@ -80,19 +80,19 @@
     max-width: min(72%, 640px);
     margin: 0;
     text-align: center;
-    font-size: .82rem;
+    font-size: var(--text-sm);
 }
 
 /* cartes HUD aux quatre coins = les quatre axes (cliquables) */
 .hud {
     position: absolute;
     z-index: 2;
-    padding: .6rem .75rem;
+    padding: var(--space-md) var(--space-lg);
     background: var(--surface-glass);
     backdrop-filter: blur(4px);
     border: 1px solid var(--line);
-    border-radius: 12px;
-    font-size: .82rem;
+    border-radius: var(--radius-lg);
+    font-size: var(--text-sm);
     max-width: 42%;
     min-width: 132px;
 }
@@ -129,30 +129,30 @@
 }
 
 .hud .big {
-    font-size: 1.35rem;
+    font-size: var(--text-2xl);
 }
 
 .hud-title {
-    font-size: .68rem;
+    font-size: var(--text-2xs);
     text-transform: uppercase;
     letter-spacing: .8px;
     color: var(--muted);
-    margin-bottom: .1rem;
+    margin-bottom: var(--space-3xs);
 }
 
 /* Petite légende sous une grosse valeur, quand celle-ci n'est pas auto-parlante
    (« 6,5 t » a besoin de « CO₂ émis » ; l'épargne en € n'en a pas besoin). */
 .hud-cap {
-    font-size: .7rem;
+    font-size: var(--text-2xs);
     color: var(--muted);
-    margin: -.15rem 0 .15rem;
+    margin: calc(-1 * var(--space-3xs)) 0 var(--space-3xs);
 }
 
 .hud-line {
     display: flex;
     justify-content: space-between;
-    gap: .8rem;
-    padding: .1rem 0;
+    gap: var(--space-lg);
+    padding: var(--space-3xs) 0;
 }
 
 .hud-line .key {
@@ -165,15 +165,15 @@
    climat (palette violette). Le détail chiffré vit dans le panneau Patrimoine. */
 .dpe-chips {
     display: flex;
-    gap: .35rem;
+    gap: var(--space-xs);
     flex-wrap: wrap;
-    margin-top: .25rem;
+    margin-top: var(--space-2xs);
 }
 
 .dpe-chip {
     display: inline-block;
-    padding: .15rem .55rem;
-    border-radius: 6px;
+    padding: var(--space-3xs) var(--space-sm);
+    border-radius: var(--radius-sm);
     font-weight: 700;
     color: #fff;
     text-shadow: 0 1px 2px rgba(0, 0, 0, .5);
@@ -188,26 +188,26 @@
     z-index: 2;
     display: flex;
     align-items: center;
-    gap: .8rem;
+    gap: var(--space-lg);
     flex-wrap: wrap;
     justify-content: center;
-    padding: .45rem .7rem;
+    padding: var(--space-sm) var(--space-md);
     background: var(--surface-glass);
     backdrop-filter: blur(4px);
     border: 1px solid var(--line);
-    border-radius: 12px;
+    border-radius: var(--radius-lg);
     max-width: calc(100% - 1.4rem);
 }
 
 .controlbar .cb-date {
     display: flex;
     flex-direction: column;
-    gap: .3rem;
+    gap: var(--space-xs);
     min-width: 132px;
 }
 
 .controlbar .cb-when {
-    font-size: .8rem;
+    font-size: var(--text-sm);
     color: var(--muted);
     white-space: nowrap;
 }
@@ -219,7 +219,7 @@
    date + cette barre disent déjà la même chose). */
 .controlbar .cb-progress {
     height: 6px;
-    border-radius: 3px;
+    border-radius: var(--radius-xs);
     background: var(--bar-bg);
     overflow: hidden;
 }
@@ -232,7 +232,7 @@
 
 .controlbar .speed {
     display: flex;
-    gap: .3rem;
+    gap: var(--space-xs);
 }
 
 /* Petit écran EN LARGEUR (mobile portrait) ou EN HAUTEUR (mobile paysage,
@@ -260,7 +260,7 @@
         position: static;
         transform: none;
         max-width: none;
-        margin: .3rem 0;
+        margin: var(--space-xs) 0;
         backdrop-filter: none;
     }
 }

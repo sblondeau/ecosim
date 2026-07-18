@@ -15,9 +15,7 @@
             {% elseif action.work == 'boiler_repair' %}
                 {{ include('game/scene/assets/boiler-fioul.svg') }}
             {% elseif action.work == 'pellet_boiler' %}
-                {# Même chaudière, teinte bois (filtre CSS) : pas d'asset dédié pour un
-                   simple changement de combustible (fioul → granulés). #}
-                <div class="quote-icon-wood">{{ include('game/scene/assets/boiler-fioul.svg') }}</div>
+                {{ include('game/scene/assets/boiler-pellet.svg') }}
             {% elseif action.work == 'low_temp_emitters' %}
                 <svg viewBox="0 0 80 80" overflow="visible">
                     <rect x="6" y="50" width="68" height="22" rx="3" fill="#8a7458"/>
@@ -81,13 +79,7 @@
                     <path d="M66 16 q-6 22 2 46 h-14 q8 -24 2 -46 z" fill="#c94f4f"/>
                 </svg>
             {% elseif action.work == 'water_heater_thermo' %}
-                {# Ballon thermodynamique : cuve + ondes de chaleur pompées (petite PAC). #}
-                <svg viewBox="0 0 80 80" overflow="visible">
-                    <rect x="26" y="14" width="28" height="52" rx="12" fill="#7d8ea0"/>
-                    <rect x="30" y="18" width="20" height="44" rx="9" fill="#bfe0ee" opacity=".5"/>
-                    <path d="M18 34 q6 -6 12 0 t12 0" fill="none" stroke="#e05341" stroke-width="2.5" stroke-linecap="round"/>
-                    <path d="M18 46 q6 -6 12 0 t12 0" fill="none" stroke="#e05341" stroke-width="2.5" stroke-linecap="round" opacity=".7"/>
-                </svg>
+                {{ include('game/scene/assets/water-heater-thermo.svg') }}
             {% endif %}
         </div>
         <h2>{{ action.title }}</h2>

@@ -1,7 +1,12 @@
 {# The cutaway house shell: walls, roof, living room, utility recess. The roof
    itself is a plain solid gable (no cutaway) so solar panels have a single
-   unambiguous surface to sit flush on. The `insulation` prop (0|1|2) drives
-   the visible wall insulation layer locally; roof snow, room tint and
-   chimney smoke follow scene-wide ambience classes. #}
-{% props insulation = 0 %}
-<g class="house house--ins-{{ insulation }}"{{ attributes }}>{{ include('game/scene/assets/house-cutaway.svg') }}</g>
+   unambiguous surface to sit flush on. Each renovable surface gets its own
+   prop → its own local variant class (CVA-manuel), so a work done on ONE
+   surface only moves that surface's layer: `roofInsulated` reveals the attic
+   layer (and lets the roof snow hold instead of melting), `wallInsulation`
+   picks the interior doubling vs the exterior render, `glazing` counts the
+   nested panes, `ventilation` and `thermalCurtains` reveal their fixture,
+   `lowTempEmitters` reveals the underfloor serpentine in the living room.
+   Room tint, chimney smoke and frost stay scene-wide. #}
+{% props roofInsulated = false, wallInsulation = 'none', glazing = 'single', ventilation = 'none', thermalCurtains = false, lowTempEmitters = false %}
+<g class="house{{ roofInsulated ? ' house--roof-ins' }} house--walls-{{ wallInsulation }} house--glazing-{{ glazing }} house--vmc-{{ ventilation }}{{ thermalCurtains ? ' house--curtains' }}{{ lowTempEmitters ? ' house--floor-heating' }}"{{ attributes }}>{{ include('game/scene/assets/house-cutaway.svg') }}</g>

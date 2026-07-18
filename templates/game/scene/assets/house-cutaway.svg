@@ -1,7 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 400" width="520" height="400" overflow="visible">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 562 400" width="562" height="400" overflow="visible">
     <!-- La maison en COUPE : murs en tranche (couche d'isolant pilotée par
-         .house--ins-N du composant scene:HouseShell), séjour visible (teinte =
-         confort), local technique vide (le renderer y pose le chauffage). Le
+         .house--* du composant scene:HouseShell), séjour visible (teinte =
+         confort), local technique vide (le renderer y pose le chauffage ET le
+         ballon d'eau chaude : les deux appareils de la chaufferie vivent
+         ensemble, c'est pour ça que la pièce est large et que la maison va
+         jusqu'à toucher le garage — le garage, lui, reste au véhicule et au
+         stockage). Le
          toit, lui, reste un plein classique (pas de coupe) : il ne porte pas
          d'information de jeu propre (l'isolation se lit sur les murs) et une
          surface unique, non ambiguë, est ce qui permet aux panneaux solaires
@@ -22,55 +26,48 @@
     </defs>
 
     <!-- plafond -->
-    <rect x="36" y="140" width="448" height="12" fill="#6b5a45"/>
+    <rect x="36" y="140" width="490" height="12" fill="#6b5a45"/>
 
     <!-- ===== toiture (plein, un seul versant net par pan — même triangle que
          le hit-polygon du slot roof dans _cutaway.html.twig) ===== -->
-    <polygon points="2,142 260,18 518,142" fill="url(#hRoof)"/>
-    <polygon points="16,136 260,26 504,136" fill="url(#hTiles)"/>
-    <!-- neige : trois habillages selon l'isolation (déperditions), sous .frost -->
-    <g class="roof-snow roof-snow-0" fill="#f2f6fa">
+    <polygon points="2,142 282,18 562,142" fill="url(#hRoof)"/>
+    <polygon points="16,136 282,26 546,136" fill="url(#hTiles)"/>
+    <!-- neige : deux habillages selon l'isolation des combles (un toit non isolé
+         laisse fuir la chaleur → la neige fond ; isolé, elle tient), sous .frost -->
+    <g class="roof-snow roof-snow-bare" fill="#f2f6fa">
         <path d="M18 136 q22 -16 46 -28 q-6 16 -14 28 q-16 3 -32 0z"/>
-        <path d="M502 136 q-22 -16 -46 -28 q6 16 14 28 q16 3 32 0z"/>
+        <path d="M544 136 q-22 -16 -46 -28 q6 16 14 28 q16 3 32 0z"/>
     </g>
-    <g class="roof-snow roof-snow-1" fill="#f2f6fa">
-        <path d="M18 136 q60 -34 110 -56 q-10 22 -22 40 q-44 12 -88 16z"/>
-        <path d="M502 136 q-60 -34 -110 -56 q10 22 22 40 q44 12 88 16z"/>
-    </g>
-    <g class="roof-snow roof-snow-2" fill="#f2f6fa">
-        <path d="M16 138 q122 -58 244 -112 q122 54 244 112 l-22 0 q-111 -50 -222 -100 q-111 50 -222 100z"/>
+    <g class="roof-snow roof-snow-insulated" fill="#f2f6fa">
+        <path d="M16 138 q133 -56 266 -112 q132 56 264 112 l-22 0 q-121 -50 -242 -100 q-122 50 -244 100z"/>
     </g>
     <!-- cheminée sur le versant droit -->
     <g>
-        <rect x="372" y="48" width="26" height="44" fill="#8a7460"/>
-        <rect x="367" y="40" width="36" height="10" rx="2" fill="#6e5c4c"/>
+        <rect x="404" y="48" width="26" height="44" fill="#8a7460"/>
+        <rect x="399" y="40" width="36" height="10" rx="2" fill="#6e5c4c"/>
         <g class="chimney-smoke" fill="#b9c4ce">
-            <circle class="puff p1" cx="385" cy="30" r="6"/>
-            <circle class="puff p2" cx="395" cy="22" r="4.5"/>
-            <circle class="puff p3" cx="377" cy="18" r="3.5"/>
+            <circle class="puff p1" cx="417" cy="30" r="6"/>
+            <circle class="puff p2" cx="427" cy="22" r="4.5"/>
+            <circle class="puff p3" cx="409" cy="18" r="3.5"/>
         </g>
     </g>
 
     <!-- ===== débord de toit : sous-face (referme le surplomb au-dessus des
-         murs, x 2-26 et 494-518) + gouttière filante sur tout l'égout, sinon
+         murs, x 2-26 et 536-560) + gouttière filante sur tout l'égout, sinon
          le toit semble « flotter » au-dessus de la maison sans s'y raccorder ===== -->
     <rect x="2" y="142" width="24" height="10" fill="#5c4f3d"/>
-    <rect x="494" y="142" width="24" height="10" fill="#5c4f3d"/>
-    <rect x="0" y="139" width="520" height="5" rx="2" fill="#6b7278"/>
-    <rect x="0" y="139" width="520" height="1.5" rx=".75" fill="#8b9298"/>
+    <rect x="536" y="142" width="24" height="10" fill="#5c4f3d"/>
+    <rect x="0" y="139" width="562" height="5" rx="2" fill="#6b7278"/>
+    <rect x="0" y="139" width="562" height="1.5" rx=".75" fill="#8b9298"/>
 
     <!-- ===== murs en tranche (gauche / droite) ===== -->
     <g>
         <rect x="26" y="152" width="20" height="232" fill="#b9a582"/>
         <rect x="26" y="152" width="5" height="232" fill="#cbb794"/>
-        <rect class="ins-wall ins-wall-1" x="42" y="152" width="6" height="232" fill="#5f9c74"/>
-        <rect class="ins-wall ins-wall-2" x="40" y="152" width="10" height="232" fill="#69b585"/>
     </g>
     <g>
-        <rect x="474" y="152" width="20" height="232" fill="#b9a582"/>
-        <rect x="489" y="152" width="5" height="232" fill="#a08c69"/>
-        <rect class="ins-wall ins-wall-1" x="472" y="152" width="6" height="232" fill="#5f9c74"/>
-        <rect class="ins-wall ins-wall-2" x="470" y="152" width="10" height="232" fill="#69b585"/>
+        <rect x="516" y="152" width="20" height="232" fill="#b9a582"/>
+        <rect x="531" y="152" width="5" height="232" fill="#a08c69"/>
     </g>
 
     <!-- ===== séjour (la teinte de fond = confort ressenti) ===== -->
@@ -81,6 +78,12 @@
         <rect x="84" y="196" width="92" height="84" rx="3" fill="#8a7458"/>
         <rect x="90" y="202" width="80" height="72" fill="url(#hGlass)"/>
         <path d="M92 204 L128 204 L98 272 L92 272 Z" fill="#ffffff" opacity=".12"/>
+        <!-- vitrages : chaque vitre supplémentaire = une lame de verre de plus,
+             dessinée comme une bordure claire imbriquée dans la feuillure
+             (simple = aucune, double = 1, triple = 2). Le rendement décroissant
+             se lit à l'œil : la 2e lame est plus fine et plus pâle que la 1re. -->
+        <rect class="glazing-pane glazing-pane-2" x="93" y="205" width="74" height="66" fill="none" stroke="#e8f4ff" stroke-width="4" opacity=".8"/>
+        <rect class="glazing-pane glazing-pane-3" x="99" y="211" width="62" height="54" fill="none" stroke="#e8f4ff" stroke-width="2.5" opacity=".55"/>
         <path d="M130 202v72 M90 238h80" stroke="#8a7458" stroke-width="5"/>
         <rect x="90" y="202" width="80" height="72" rx="1" fill="none" stroke="#6b5a45" stroke-width="1.5"/>
         <!-- appui de fenêtre + jardinière -->
@@ -152,9 +155,86 @@
 
     <!-- ===== cloison + local technique (vide : le renderer pose l'équipement) ===== -->
     <rect x="352" y="152" width="12" height="220" fill="#8a7f6d"/>
-    <rect x="364" y="152" width="110" height="220" fill="#232e3a"/>
+    <rect x="364" y="152" width="152" height="220" fill="#232e3a"/>
+
+    <!-- ===== couches d'isolation, une par surface (révélées par les classes
+         .house--* posées par scene:HouseShell). Dessinées en fin de document
+         pour passer AU-DESSUS du séjour et du local technique : ce sont des
+         doublages posés contre les parois, pas des couches enfouies.
+
+         ITI et ITE isolent la même paroi mais du côté opposé, et c'est tout
+         le contraste pédagogique : l'ITI mange le volume habitable et se voit
+         seulement dans la coupe ; l'ITE habille la FAÇADE (visible depuis
+         dehors, sous le débord de toit) et laisse l'intérieur intact. ===== -->
+    <!-- combles : l'isolant déroulé sous le plafond -->
+    <g class="roof-ins">
+        <rect x="46" y="152" width="470" height="11" fill="var(--ins-body)"/>
+        <rect x="46" y="152" width="470" height="2.5" fill="var(--ins-highlight)"/>
+    </g>
+    <!-- murs, isolation par l'INTÉRIEUR (doublage côté séjour / local) -->
+    <g class="ins-wall">
+        <rect x="46" y="152" width="9" height="232" fill="var(--ins-body)"/>
+        <rect x="46" y="152" width="2.5" height="232" fill="var(--ins-highlight)"/>
+        <rect x="507" y="152" width="9" height="232" fill="var(--ins-body)"/>
+        <rect x="513.5" y="152" width="2.5" height="232" fill="var(--ins-highlight)"/>
+    </g>
+    <!-- murs, isolation par l'EXTÉRIEUR : isolant + enduit de finition, plaqués
+         sur la façade, sous l'égout -->
+    <g class="wall-ext-ins">
+        <rect x="14" y="152" width="12" height="232" fill="var(--ins-body)"/>
+        <rect x="8" y="152" width="6" height="232" fill="var(--render-coat)"/>
+        <rect x="8" y="152" width="2" height="232" fill="var(--render-coat-lit)"/>
+        <rect x="536" y="152" width="12" height="232" fill="var(--ins-body)"/>
+        <rect x="548" y="152" width="6" height="232" fill="var(--render-coat-shade)"/>
+        <rect x="552" y="152" width="2" height="232" fill="var(--render-coat-edge)"/>
+    </g>
+
+    <!-- VMC double flux : le caisson se loge en haut du local technique (au-
+         dessus de la chaudière), et sa gaine traverse la cloison pour venir
+         souffler dans le séjour — c'est ce trajet qui dit ce qu'une VMC fait :
+         elle déplace de l'air d'une pièce à l'autre, elle ne chauffe rien. -->
+    <g class="vmc">
+        <path d="M372 182 H322" stroke="#7f8b96" stroke-width="9" stroke-linecap="round"/>
+        <path d="M372 182 H322" stroke="#9aa6b1" stroke-width="3" stroke-linecap="round" opacity=".5"/>
+        <rect x="370" y="166" width="56" height="34" rx="5" fill="#8f9ba5"/>
+        <rect x="370" y="166" width="56" height="7" rx="3.5" fill="#c3ccd4"/>
+        <g stroke="#6c7883" stroke-width="2">
+            <path d="M378 180h40 M378 187h40 M378 194h40"/>
+        </g>
+        <circle cx="431" cy="196" r="3" fill="#7fd49a"/>
+        <!-- bouche de soufflage côté séjour -->
+        <rect x="300" y="172" width="24" height="20" rx="3" fill="#8f9ba5"/>
+        <g stroke="#6c7883" stroke-width="1.8">
+            <path d="M304 178h16 M304 183h16 M304 188h16"/>
+        </g>
+    </g>
+
+    <!-- Rideaux thermiques : repliés de part et d'autre de la fenêtre, sur leur
+         tringle. Petit geste, petit effet — ils habillent la baie sans jamais
+         prétendre remplacer un vitrage. -->
+    <g class="curtains">
+        <rect x="62" y="186" width="136" height="5" rx="2.5" fill="#7d6b52"/>
+        <circle cx="64" cy="188.5" r="4" fill="#94815f"/>
+        <circle cx="196" cy="188.5" r="4" fill="#94815f"/>
+        <path d="M66 190 h20 q-5 44 0 96 h-20 q5 -48 0 -96z" fill="#7b5a68"/>
+        <path d="M74 190 q-4 48 0 96" stroke="#95707f" stroke-width="3" fill="none" opacity=".7"/>
+        <path d="M174 190 h20 q-5 44 0 96 h-20 q5 -48 0 -96z" fill="#7b5a68"/>
+        <path d="M186 190 q-4 48 0 96" stroke="#95707f" stroke-width="3" fill="none" opacity=".7"/>
+    </g>
 
     <!-- ===== plancher / dalle ===== -->
-    <rect x="26" y="372" width="468" height="12" fill="#7d6b52"/>
-    <rect x="26" y="372" width="468" height="3" fill="#94815f"/>
+    <rect x="26" y="372" width="510" height="12" fill="#7d6b52"/>
+    <rect x="26" y="372" width="510" height="3" fill="#94815f"/>
+
+    <!-- Émetteurs basse température : le serpentin noyé dans la dalle du
+         séjour uniquement (le local technique n'est pas une pièce chauffée
+         par le sol) — un geste discret dans l'épaisseur de la dalle, jamais
+         l'installation elle-même (posée avant la chape, invisible une fois
+         le sol fini). -->
+    <g class="floor-heating">
+        <path d="M60 381 h20 v-7 h20 v7 h20 v-7 h20 v7 h20 v-7 h20 v7 h20 v-7 h20 v7 h20 v-7 h20 v7 h20 v-7 h20 v7 h10"
+              fill="none" stroke="#c94636" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M60 381 h20 v-7 h20 v7 h20 v-7 h20 v7 h20 v-7 h20 v7 h20 v-7 h20 v7 h20 v-7 h20 v7 h20 v-7 h20 v7 h10"
+              fill="none" stroke="#f0a99a" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/>
+    </g>
 </svg>

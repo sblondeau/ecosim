@@ -1,4 +1,7 @@
-{# The fuel-oil boiler. The `state` prop (fioul | fioul-broken) drives a local
-   variant class: running shows the flame, broken shows smoke + alarm + sign. #}
+{# The boiler in the utility recess. `state` (fioul | fioul-broken | pellet)
+   picks BOTH the asset and the local variant class: fioul and fioul-broken
+   share one asset whose layers the class toggles (flame vs smoke/alarm/sign),
+   while pellet is a silhouette of its own (body + silo) — a different fuel
+   shouldn't look like the same machine repainted. #}
 {% props state = 'fioul' %}
-<g class="boiler boiler--{{ state }}"{{ attributes }}>{{ include('game/scene/assets/boiler-fioul.svg') }}</g>
+<g class="boiler boiler--{{ state }}"{{ attributes }}>{{ include(state == 'pellet' ? 'game/scene/assets/boiler-pellet.svg' : 'game/scene/assets/boiler-fioul.svg') }}</g>

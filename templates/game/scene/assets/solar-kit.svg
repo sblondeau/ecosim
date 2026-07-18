@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 78" width="100" height="78" overflow="visible">
+    <!-- Kit solaire plug-and-play : DEUX modules seulement, sur un châssis
+         incliné posé AU SOL (jardin, terrasse…), avec sa prise au bout du
+         câble. Tout l'intérêt du kit est là — pas d'installateur, pas de
+         travail en hauteur — donc il ne se pose PAS sur le toit : le contraste
+         avec l'installation complète (scene:SolarPanels, à plat dans le
+         versant) est lui-même la leçon. Le reflet (.glint) s'anime les jours de
+         production, comme sur les panneaux du toit.
+
+         Les modules sont des PARALLÉLOGRAMMES (plan incliné vu de biais) : leur
+         arête basse ne va que de x=8 à x=68, alors que l'arête haute va de
+         x=30 à x=90. Tout ce qui doit toucher la plaque — pieds, traverse,
+         câble — doit donc viser l'arête BASSE, pas la largeur totale, sinon ça
+         flotte à côté ; et les lignes de cellules doivent être bornées par les
+         arêtes obliques, pas par une largeur constante, sinon elles dépassent. -->
+    <defs>
+        <linearGradient id="pvKitCell" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#28497a"/><stop offset=".6" stop-color="#1d3557"/><stop offset="1" stop-color="#16294a"/>
+        </linearGradient>
+    </defs>
+
+    <!-- ombre portée au sol, centrée sous le châssis -->
+    <ellipse cx="40" cy="68" rx="32" ry="4.5" fill="#000" opacity=".18"/>
+
+    <!-- châssis : deux pieds + traverse, entièrement SOUS l'arête basse -->
+    <path d="M20 64 L26 45 M56 64 L50 45" stroke="#6f7c88" stroke-width="4" stroke-linecap="round"/>
+    <path d="M25 55 H51" stroke="#6f7c88" stroke-width="3" stroke-linecap="round"/>
+    <path d="M15 65 H25 M51 65 H61" stroke="#5d6a75" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- les 2 modules -->
+    <g stroke="#a8c6e8" stroke-width="1.5" fill="url(#pvKitCell)">
+        <polygon points="8,44 30,10 58,10 36,44"/>
+        <polygon points="40,44 62,10 90,10 68,44"/>
+    </g>
+    <!-- lignes de cellules : les horizontales s'arrêtent pile sur les arêtes
+         obliques du module (x calculé à y=27), les verticales suivent la pente -->
+    <g stroke="#7aa0cc" stroke-width=".8" opacity=".7">
+        <path d="M22 44 L44 10 M19 27 L47 27 M54 44 L76 10 M51 27 L79 27"/>
+    </g>
+    <g class="glint" fill="#fff" opacity=".25">
+        <polygon points="12,42 32,12 38,12 18,42"/>
+        <polygon points="44,42 64,12 70,12 50,42"/>
+    </g>
+
+    <!-- le câble et sa PRISE : le geste « je le branche moi-même ». Il part du
+         coin bas-droit de la plaque (69,43), pas du vide à côté. -->
+    <path d="M69 43 q15 8 13 20" stroke="#39414a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <rect x="76" y="62" width="11" height="8" rx="2" fill="#39414a"/>
+    <rect x="78.5" y="59" width="2" height="4" rx="1" fill="#8b9298"/>
+    <rect x="82.5" y="59" width="2" height="4" rx="1" fill="#8b9298"/>
+</svg>

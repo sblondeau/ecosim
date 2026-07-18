@@ -1,2 +1,7 @@
-{# Rooftop PV modules; the glint animates on producing days (scene.css). #}
-<g class="solar"{{ attributes }}>{{ include('game/scene/assets/solar-panels.svg') }}</g>
+{# PV modules. `variant` picks the asset AND dictates where the caller places it:
+   `full` = the roof array, laid flush in the slope ; `kit` = the two-module
+   plug-and-play frame, which stands on the GROUND (garden/balcony) — no
+   installer, no working at height, that is the whole point of a kit.
+   The glint animates on producing days (scene.css) in both variants. #}
+{% props variant = 'full' %}
+<g class="solar solar--{{ variant }}"{{ attributes }}>{{ include(variant == 'kit' ? 'game/scene/assets/solar-kit.svg' : 'game/scene/assets/solar-panels.svg') }}</g>

@@ -38,18 +38,40 @@ final readonly class HouseSceneView
         /** The boiler burnt fuel today (chimney smoke tracks combustion). */
         public bool $chimneySmoking,
         // Slots
-        /** roof: empty|installed. */
-        public string $roofState,
+        /** solar (roof PV): empty|kit|full — no panels, a small kit, or the full install. */
+        public string $solarState,
         public string $roofLabel,
-        /** walls/attic insulation: 0 (original), 1 (retrofitted), 2 (reinforced). */
-        public int $insulationTier,
+        // Envelope, one field per renovable surface (arbre travaux T1/T5/T6) —
+        // per-surface so each can get its own visual, unlike the old single
+        // coarse tier this replaces.
+        public bool $roofInsulated,
+        /** walls: none|interior|exterior. */
+        public string $wallInsulation,
+        /** glazing: single|double|triple. */
+        public string $glazing,
+        /** ventilation: none|double-flow. */
+        public string $ventilation,
+        public bool $thermalCurtains,
+        /**
+         * Underfloor low-temperature emitters (arbre travaux). Reverses the
+         * tranche 7 "hors coupe" exception: drawn as a discreet serpentine
+         * under the living-room floor rather than skipped, since the slab
+         * itself is already in frame there.
+         */
+        public bool $lowTempEmitters,
         public string $insulationLabel,
-        /** heating: fioul|fioul-broken|heat-pump. */
+        /** heating: fioul|fioul-broken|heat-pump|pellet. */
         public string $heatingState,
         public string $heatingLabel,
         /** garage: empty|installed. */
         public string $garageState,
         public string $garageLabel,
+        /**
+         * The tank was upgraded to a thermodynamic one. A bool, not a state:
+         * the plain electric tank is the starting equipment, so it gets no
+         * visual — drawing it would claim the player did something.
+         */
+        public bool $waterHeaterThermo,
         /** Indoor feel bucket: cold|cool|warm — drives the living-room tint. */
         public string $comfortState,
     ) {

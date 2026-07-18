@@ -180,24 +180,37 @@ final class GameDashboardTest extends KernelTestCase
         self::assertStringContainsString("chauffage électrique d'appoint forcé", $html);
     }
 
-    public function testRoofSlotOffersTheSolarKit(): void
+    public function testGarageSlotOffersTheSolarKit(): void
     {
         $component = $this->createLiveComponent(GameDashboard::class);
 
-        // A brand-new game has no solar at all: the cheap plug-and-play kit is quoted.
-        $html = (string) $component->call('selectSlot', ['slot' => 'roof'])->render();
-
-        self::assertStringContainsString('Kit solaire', $html);
-    }
-
-    public function testGarageSlotOffersTheThermodynamicWaterHeater(): void
-    {
-        $component = $this->createLiveComponent(GameDashboard::class);
-
-        // A brand-new game starts on the baseline electric tank: the upgrade is quoted.
+        // The plug-and-play kit stands on the ground, not on the roof, so it is
+        // decided alongside the battery — same subject: producing and storing
+        // your own electricity without a roofing job. A brand-new game has no
+        // solar at all, so the cheap kit is quoted.
         $html = (string) $component->call('selectSlot', ['slot' => 'garage'])->render();
 
+        self::assertStringContainsString('Kit solaire', $html);
+
+        $roof = (string) $component->call('selectSlot', ['slot' => 'roof'])->render();
+
+        self::assertStringNotContainsString('Kit solaire', $roof);
+    }
+
+    public function testHeatingSlotOffersTheThermodynamicWaterHeater(): void
+    {
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        // The tank lives with the boiler, not in the garage: same plant room,
+        // same pipework. A brand-new game starts on the baseline electric tank,
+        // so the upgrade is quoted.
+        $html = (string) $component->call('selectSlot', ['slot' => 'heating'])->render();
+
         self::assertStringContainsString('Chauffe-eau thermodynamique', $html);
+
+        $garage = (string) $component->call('selectSlot', ['slot' => 'garage'])->render();
+
+        self::assertStringNotContainsString('Chauffe-eau thermodynamique', $garage);
     }
 
     public function testLivingSlotOffersTheDraughtProofingAndThermalCurtainsGestures(): void
@@ -230,6 +243,6 @@ final class GameDashboardTest extends KernelTestCase
 
         self::assertFalse($component->component()->noticeIsError);
         self::assertStringContainsString('réalisés', $component->component()->notice);
-        self::assertTrue(str_contains($html, 'class="solar"'), 'The panels now render on the roof.');
+        self::assertTrue(str_contains($html, 'class="solar solar--full"'), 'The full roof array now renders — not the ground-mounted kit.');
     }
 }

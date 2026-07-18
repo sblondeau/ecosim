@@ -89,9 +89,16 @@
     <twig:scene:Tree transform="translate(50 216)" />
 
     {# ===== LA MAISON (coupe) + ses emplacements cliquables ===== #}
-    <ellipse cx="500" cy="474" rx="290" ry="16" fill="#4a5866" opacity=".35"/>
+    <ellipse cx="521" cy="474" rx="285" ry="16" fill="#4a5866" opacity=".35"/>
     <g transform="translate(240 88)">
-        <twig:scene:HouseShell insulation="{{ scene.insulationTier }}" />
+        <twig:scene:HouseShell
+            :roofInsulated="scene.roofInsulated"
+            wallInsulation="{{ scene.wallInsulation }}"
+            glazing="{{ scene.glazing }}"
+            ventilation="{{ scene.ventilation }}"
+            :thermalCurtains="scene.thermalCurtains"
+            :lowTempEmitters="scene.lowTempEmitters"
+        />
 
         {# slot toit : panneaux posés (rendus uniquement si installés). Les
            tuiles (hTiles dans house-cutaway.svg) ne suivent PAS la pente
@@ -107,19 +114,21 @@
         <g class="slot slot-roof{{ selected == 'roof' ? ' is-selected' }}" tabindex="0" role="button"
            data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="roof">
             <title>Toit — {{ scene.roofLabel }}</title>
-            {% if scene.roofState == 'installed' %}
+            {% if scene.solarState == 'full' %}
                 <twig:scene:SolarPanels transform="translate(110 103) skewX(-24) scale(.72)" />
             {% endif %}
-            <polygon class="hit" points="2,142 260,18 518,142"/>
+            <polygon class="hit" points="2,142 282,18 562,142"/>
         </g>
 
         {# slot isolation : les tranches de murs #}
         <g class="slot slot-walls{{ selected == 'walls' ? ' is-selected' }}" tabindex="0" role="button"
            data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="walls">
             <title>Isolation — {{ scene.insulationLabel }}</title>
-            <rect class="hit" x="22" y="118" width="28" height="270"/>
-            <rect class="hit" x="470" y="118" width="28" height="270"/>
-            <rect class="hit" x="46" y="120" width="424" height="34"/>
+            {# large jusqu'au nu extérieur : en ITE le doublage déborde en façade
+               (x 8-26 / 494-512), il doit rester dans la zone cliquable. #}
+            <rect class="hit" x="6" y="118" width="46" height="270"/>
+            <rect class="hit" x="508" y="118" width="48" height="270"/>
+            <rect class="hit" x="46" y="120" width="466" height="34"/>
         </g>
 
         {# slot séjour : l'occupant incarne le confort ressenti (clic = détails) #}
@@ -154,9 +163,15 @@
                 <path d="M420 292 v40" stroke="#55636f" stroke-width="6" stroke-linecap="round"/>
                 <rect x="386" y="330" width="66" height="40" rx="5" fill="#8fa3b8"/>
             {% else %}
-                <twig:scene:Boiler state="{{ scene.heatingState }}" transform="translate(376 214)" />
+                <twig:scene:Boiler state="{{ scene.heatingState }}" transform="translate(366 214)" />
             {% endif %}
-            <rect class="hit" x="366" y="154" width="106" height="216"/>
+            {# Le ballon d'eau chaude appartient à la CHAUFFERIE, pas au garage :
+               c'est l'appareil frère de la chaudière (même local, mêmes
+               canalisations). Le garage reste au stockage — et à la voiture. #}
+            {% if scene.waterHeaterThermo %}
+                <twig:scene:WaterHeater transform="translate(470 258)" />
+            {% endif %}
+            <rect class="hit" x="366" y="154" width="148" height="216"/>
         </g>
     </g>
 
@@ -169,7 +184,18 @@
             {% if scene.garageState == 'installed' %}
                 <twig:scene:Battery transform="translate(62 142)" />
             {% endif %}
+            {# Le kit se pose AU SOL devant le garage — jamais sur le toit
+               (c'est ce qui le définit : on le branche soi-même, sans
+               installateur ni travail en hauteur). Il vit avec la batterie
+               parce que c'est le même sujet : produire et stocker son
+               électricité chez soi, hors chantier de toiture. #}
+            {% if scene.solarState == 'kit' %}
+                <twig:scene:SolarPanels variant="kit" transform="translate(62 268) scale(.95)" />
+            {% endif %}
             <rect class="hit" x="2" y="4" width="204" height="252"/>
+            {% if scene.solarState == 'kit' %}
+                <rect class="hit" x="60" y="272" width="96" height="66"/>
+            {% endif %}
         </g>
     </g>
 

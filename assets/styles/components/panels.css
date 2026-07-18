@@ -20,11 +20,11 @@
     overflow: visible;
     display: flex;
     flex-direction: column;
-    gap: .7rem;
-    padding: .8rem;
+    gap: var(--space-md);
+    padding: var(--space-lg);
     background: var(--surface-panel);
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: var(--radius-xl);
     box-shadow: 0 12px 40px rgba(0, 0, 0, .45);
 }
 
@@ -76,7 +76,7 @@
 
 .float-close {
     flex: 0 0 auto;
-    padding: .2rem .5rem;
+    padding: var(--space-2xs) var(--space-sm);
     line-height: 1;
 }
 
@@ -85,35 +85,35 @@
 }
 
 .float-panel .big {
-    margin-bottom: .2rem;
+    margin-bottom: var(--space-2xs);
 }
 
 .panel-note {
-    font-size: .78rem;
+    font-size: var(--text-sm);
     color: var(--muted);
-    margin: .45rem 0 0;
+    margin: var(--space-sm) 0 0;
 }
 
 .panel-head {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: .5rem;
+    gap: var(--space-sm);
 }
 
 .panel-head h2 {
     margin: 0;
-    font-size: .85rem;
+    font-size: var(--text-md);
 }
 
 .panel-footer {
-    margin-top: .2rem;
+    margin-top: var(--space-2xs);
 }
 
 .works-links {
     display: flex;
     flex-direction: column;
-    gap: .4rem;
+    gap: var(--space-xs);
     align-items: stretch;
 }
 
@@ -123,7 +123,7 @@
 
 details.card>summary {
     cursor: pointer;
-    font-size: .78rem;
+    font-size: var(--text-sm);
     text-transform: uppercase;
     letter-spacing: .8px;
     color: var(--muted);
@@ -131,7 +131,7 @@ details.card>summary {
 }
 
 details.card[open]>summary {
-    margin-bottom: .5rem;
+    margin-bottom: var(--space-sm);
 }
 
 /* écran de bienvenue (premier lancement) — overlay centré sur la scène */
@@ -142,7 +142,7 @@ details.card[open]>summary {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1rem;
+    padding: var(--space-xl);
     background: color-mix(in srgb, var(--bg) 68%, transparent);
     backdrop-filter: blur(3px);
 }
@@ -153,48 +153,48 @@ details.card[open]>summary {
     overflow-y: auto;
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 16px;
-    padding: 1.4rem 1.5rem;
+    border-radius: var(--radius-xl);
+    padding: var(--space-3xl) var(--space-3xl);
     box-shadow: 0 20px 60px rgba(0, 0, 0, .45);
 }
 
 .intro-card h2 {
-    margin: 0 0 .5rem;
-    font-size: 1.3rem;
+    margin: 0 0 var(--space-sm);
+    font-size: var(--text-2xl);
 }
 
 .intro-card .lead {
-    margin: 0 0 .8rem;
+    margin: 0 0 var(--space-lg);
 }
 
 .intro-card .intro-goal {
-    margin: 0 0 .8rem;
+    margin: 0 0 var(--space-lg);
     color: var(--ink);
 }
 
 .intro-axes {
     list-style: none;
     padding: 0;
-    margin: 0 0 1rem;
+    margin: 0 0 var(--space-xl);
     display: grid;
-    gap: .5rem;
-    font-size: .92rem;
+    gap: var(--space-sm);
+    font-size: var(--text-lg);
 }
 
 .intro-axes li {
     display: flex;
-    gap: .55rem;
+    gap: var(--space-sm);
     align-items: flex-start;
 }
 
 .intro-axes .ax {
-    font-size: 1.2rem;
+    font-size: var(--text-xl);
     line-height: 1.2;
 }
 
 .intro-card .intro-how {
-    margin: 0 0 1.1rem;
-    font-size: .85rem;
+    margin: 0 0 var(--space-xl);
+    font-size: var(--text-md);
     color: var(--muted);
 }
 
@@ -214,8 +214,8 @@ details.card[open]>summary {
 }
 
 .quote-eyebrow {
-    margin: 0 0 .5rem;
-    font-size: .68rem;
+    margin: 0 0 var(--space-sm);
+    font-size: var(--text-2xs);
     text-transform: uppercase;
     letter-spacing: .8px;
     font-weight: 600;
@@ -225,8 +225,8 @@ details.card[open]>summary {
 .quote-head {
     display: flex;
     align-items: center;
-    gap: .7rem;
-    margin-bottom: .6rem;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
 }
 
 .quote-icon {
@@ -237,7 +237,7 @@ details.card[open]>summary {
     align-items: center;
     justify-content: center;
     background: color-mix(in srgb, var(--accent) 12%, var(--bg));
-    border-radius: 10px;
+    border-radius: var(--radius-lg);
     overflow: hidden;
 }
 
@@ -258,7 +258,7 @@ details.card[open]>summary {
 
 .quote-head h2 {
     margin: 0;
-    font-size: .95rem;
+    font-size: var(--text-lg);
     text-transform: none;
     letter-spacing: normal;
     color: var(--ink);
@@ -267,12 +267,12 @@ details.card[open]>summary {
 
 .quote-advice {
     display: flex;
-    gap: .4rem;
+    gap: var(--space-xs);
     align-items: flex-start;
-    margin: .5rem 0 0;
-    padding: .4rem .55rem;
-    border-radius: 8px;
-    font-size: .78rem;
+    margin: var(--space-sm) 0 0;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
     line-height: 1.35;
     background: color-mix(in srgb, var(--muted) 12%, var(--card));
     color: var(--ink);
@@ -289,14 +289,14 @@ details.card[open]>summary {
 .done-strip {
     display: flex;
     flex-wrap: wrap;
-    gap: .3rem;
-    margin: .1rem 0 .2rem;
+    gap: var(--space-xs);
+    margin: var(--space-3xs) 0 var(--space-2xs);
 }
 
 .done-chip {
-    font-size: .72rem;
-    padding: .12rem .5rem;
-    border-radius: 999px;
+    font-size: var(--text-xs);
+    padding: var(--space-3xs) var(--space-sm);
+    border-radius: var(--radius-pill);
     background: color-mix(in srgb, var(--accent) 14%, var(--card));
     color: var(--muted);
 }
