@@ -21,12 +21,18 @@ final readonly class RenovationAdvisor
 {
     public function __construct(
         private BuildingCalibration $building = new BuildingCalibration(),
+        private RenovationCatalog $catalog = new RenovationCatalog(),
     ) {
     }
 
     /** Every work carries a word of advice — the match below is exhaustive. */
     public function adviceFor(Renovation $work, Household $household): RenovationAdvice
     {
+        $definition = $this->catalog->tryGet($work->value);
+        if (null !== $definition) {
+            return $definition->adviceFor($household);
+        }
+
         $poorlyInsulated = $this->building->envelopeLossFactor($household->envelope)
             > $this->building->poorlyInsulatedEnvelopeCeiling()->value;
 

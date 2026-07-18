@@ -11,8 +11,15 @@ use App\Domain\Building\Household;
 use App\Domain\Building\Ventilation;
 use App\Domain\Building\WallInsulation;
 use App\Domain\Building\WaterHeater;
+use App\Domain\Finance\AdviceLevel;
+use App\Domain\Finance\Money;
 use App\Domain\Finance\Renovation;
+use App\Domain\Finance\RenovationAdvice;
+use App\Domain\Finance\RenovationCatalog;
+use App\Domain\Finance\RenovationDefinition;
+use App\Domain\Finance\RenovationOffer;
 use App\Domain\Finance\RenovationQuoter;
+use App\Domain\Finance\SceneSlot;
 use PHPUnit\Framework\TestCase;
 
 final class RenovationQuoterTest extends TestCase
@@ -278,5 +285,97 @@ final class RenovationQuoterTest extends TestCase
             $quoter->quote(Renovation::PelletBoiler, $quote->resultingHousehold),
             'Already the pellet boiler: no longer offered.',
         );
+    }
+
+    /**
+     * The bridge: once a work has a definition, the quoter must price it from
+     * the definition — and still apply the subsidy policy itself, which is the
+     * whole reason offers are not quotes.
+     */
+    public function testPricesAWorkFromItsDefinitionWhenTheCatalogueKnowsIt(): void
+    {
+        $catalog = new RenovationCatalog([
+            new StubDefinition('roof_insulation', Money::fromEuros(1000.0), isEnergyPerformanceWork: true),
+        ]);
+        $quoter = new RenovationQuoter(catalog: $catalog);
+
+        $quote = $quoter->quote(Renovation::RoofInsulation, self::barePassoire());
+
+        self::assertNotNull($quote);
+        self::assertSame('Stub', $quote->title);
+        self::assertSame(100_000, $quote->cost->cents);
+        self::assertGreaterThan(0, $quote->subsidy->cents, 'the quoter applies the prime, not the definition');
+    }
+
+    public function testAppliesNoSubsidyToAWorkOutsideTheAidPerimeter(): void
+    {
+        $catalog = new RenovationCatalog([
+            new StubDefinition('home_battery', Money::fromEuros(1000.0), isEnergyPerformanceWork: false),
+        ]);
+        $quoter = new RenovationQuoter(catalog: $catalog);
+
+        $quote = $quoter->quote(Renovation::HomeBattery, self::barePassoire());
+
+        self::assertNotNull($quote);
+        self::assertSame(0, $quote->subsidy->cents);
+    }
+
+    /** A work with no definition yet still goes through the legacy match. */
+    public function testFallsBackToTheLegacyMatchForUnmigratedWorks(): void
+    {
+        $quoter = new RenovationQuoter(catalog: new RenovationCatalog([]));
+
+        self::assertNotNull($quoter->quote(Renovation::RoofInsulation, self::barePassoire()));
+    }
+}
+
+/** A definition whose offer is fixed, so the quoter's own policy is what gets tested. */
+final readonly class StubDefinition implements RenovationDefinition
+{
+    public function __construct(
+        private string $slug,
+        private Money $cost,
+        private bool $isEnergyPerformanceWork,
+    ) {
+    }
+
+    public function slug(): string
+    {
+        return $this->slug;
+    }
+
+    public function slot(): SceneSlot
+    {
+        return SceneSlot::Walls;
+    }
+
+    public function offerFor(Household $household): ?RenovationOffer
+    {
+        return new RenovationOffer('Stub', $this->cost, $household);
+    }
+
+    public function adviceFor(Household $household): RenovationAdvice
+    {
+        return new RenovationAdvice(AdviceLevel::Info, 'stub');
+    }
+
+    public function isEnergyPerformanceWork(): bool
+    {
+        return $this->isEnergyPerformanceWork;
+    }
+
+    public function doneLabelFor(Household $household): ?string
+    {
+        return null;
+    }
+
+    public function sceneLayerFor(Household $household): ?string
+    {
+        return null;
+    }
+
+    public function iconAsset(): string
+    {
+        return 'game/scene/assets/battery.svg';
     }
 }

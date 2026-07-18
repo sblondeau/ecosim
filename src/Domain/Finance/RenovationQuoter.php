@@ -28,11 +28,19 @@ final readonly class RenovationQuoter
         private FinanceCalibration $calibration = new FinanceCalibration(),
         private SubsidyCalculator $subsidy = new SubsidyCalculator(),
         private EnergyCalibration $energy = new EnergyCalibration(),
+        private RenovationCatalog $catalog = new RenovationCatalog(),
     ) {
     }
 
     public function quote(Renovation $work, Household $household): ?RenovationQuote
     {
+        // Bridge, while works migrate one by one: a definition wins over the
+        // legacy match. The match shrinks at each batch and dies in task 6.
+        $definition = $this->catalog->tryGet($work->value);
+        if (null !== $definition) {
+            return $this->fromDefinition($work, $definition, $household);
+        }
+
         return match ($work) {
             Renovation::RoofInsulation => $this->roofQuote($household),
             Renovation::WallInsulationInterior => $this->wallQuote($household, WallInsulation::Interior, Renovation::WallInsulationInterior, 'Isolation des murs — intérieure (ITI)', $this->calibration->wallInsulationInteriorCost()->value),
@@ -50,6 +58,29 @@ final readonly class RenovationQuoter
             Renovation::DraughtProofing => $this->draughtProofingQuote($household),
             Renovation::ThermalCurtains => $this->thermalCurtainsQuote($household),
         };
+    }
+
+    /**
+     * Turns a work's own offer into a signable quote by applying the FINANCING
+     * POLICY — the prime perimeter and rate. That policy is identical for every
+     * work, which is exactly why definitions declare offers and not quotes.
+     */
+    private function fromDefinition(Renovation $work, RenovationDefinition $definition, Household $household): ?RenovationQuote
+    {
+        $offer = $definition->offerFor($household);
+        if (null === $offer) {
+            return null;
+        }
+
+        return new RenovationQuote(
+            work: $work,
+            title: $offer->title,
+            cost: $offer->cost,
+            subsidy: $definition->isEnergyPerformanceWork()
+                ? $this->subsidy->subsidyFor($offer->cost)
+                : Money::zero(),
+            resultingHousehold: $offer->resultingHousehold,
+        );
     }
 
     private function boilerRepairQuote(Household $household): ?RenovationQuote
