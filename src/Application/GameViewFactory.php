@@ -394,6 +394,7 @@ final readonly class GameViewFactory
             },
             ventilation: Ventilation::DoubleFlow === $household->envelope->ventilation ? 'double-flow' : 'none',
             thermalCurtains: $household->envelope->thermalCurtains,
+            lowTempEmitters: $household->lowTempEmitters,
             insulationLabel: $this->envelopeLabel($household->envelope),
             heatingState: match (true) {
                 $household->boilerBroken => 'fioul-broken',

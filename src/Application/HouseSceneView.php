@@ -52,6 +52,13 @@ final readonly class HouseSceneView
         /** ventilation: none|double-flow. */
         public string $ventilation,
         public bool $thermalCurtains,
+        /**
+         * Underfloor low-temperature emitters (arbre travaux). Reverses the
+         * tranche 7 "hors coupe" exception: drawn as a discreet serpentine
+         * under the living-room floor rather than skipped, since the slab
+         * itself is already in frame there.
+         */
+        public bool $lowTempEmitters,
         public string $insulationLabel,
         /** heating: fioul|fioul-broken|heat-pump|pellet. */
         public string $heatingState,
