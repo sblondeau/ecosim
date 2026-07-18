@@ -77,7 +77,7 @@ final class RenovationCatalogTest extends TestCase
      * real assertion — fifteen works, no duplicate — arrives in task 5, when
      * it can be true. For now: the heating drawer's slugs, in offer order.
      */
-    public function testTheDefaultCatalogueIsConstructible(): void
+    public function testTheDefaultCatalogueListsTheHeatingDrawerInOfferOrder(): void
     {
         $slugs = array_map(
             static fn (RenovationDefinition $w): string => $w->slug(),

@@ -43,7 +43,7 @@ final readonly class PelletBoilerWork implements RenovationDefinition
         }
 
         return new RenovationOffer(
-            title: 'Chaudière à granulés',
+            title: HeatingSystem::PelletBoiler->label(),
             cost: Money::fromEuros($this->calibration->pelletBoilerCost()->value),
             resultingHousehold: $household->withHeatingSystem(HeatingSystem::PelletBoiler),
         );
@@ -64,7 +64,7 @@ final readonly class PelletBoilerWork implements RenovationDefinition
 
     public function doneLabelFor(Household $household): ?string
     {
-        return HeatingSystem::PelletBoiler === $household->heatingSystem ? 'Chaudière à granulés' : null;
+        return HeatingSystem::PelletBoiler === $household->heatingSystem ? HeatingSystem::PelletBoiler->label() : null;
     }
 
     public function sceneLayerFor(Household $household): ?string

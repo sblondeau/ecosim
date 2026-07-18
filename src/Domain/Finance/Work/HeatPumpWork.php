@@ -70,7 +70,7 @@ final readonly class HeatPumpWork implements RenovationDefinition
 
     public function doneLabelFor(Household $household): ?string
     {
-        return HeatingSystem::HeatPump === $household->heatingSystem ? 'Pompe à chaleur' : null;
+        return HeatingSystem::HeatPump === $household->heatingSystem ? HeatingSystem::HeatPump->label() : null;
     }
 
     public function sceneLayerFor(Household $household): ?string

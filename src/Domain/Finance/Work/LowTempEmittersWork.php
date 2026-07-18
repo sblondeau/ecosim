@@ -21,6 +21,8 @@ use App\Domain\Finance\SceneSlot;
  */
 final readonly class LowTempEmittersWork implements RenovationDefinition
 {
+    private const string LABEL = 'Émetteurs basse température';
+
     public function __construct(
         private FinanceCalibration $calibration = new FinanceCalibration(),
     ) {
@@ -43,7 +45,7 @@ final readonly class LowTempEmittersWork implements RenovationDefinition
         }
 
         return new RenovationOffer(
-            title: 'Émetteurs basse température',
+            title: self::LABEL,
             cost: Money::fromEuros($this->calibration->lowTempEmittersCost()->value),
             resultingHousehold: $household->withLowTempEmitters(true),
         );
@@ -63,7 +65,7 @@ final readonly class LowTempEmittersWork implements RenovationDefinition
 
     public function doneLabelFor(Household $household): ?string
     {
-        return $household->lowTempEmitters ? 'Émetteurs basse température' : null;
+        return $household->lowTempEmitters ? self::LABEL : null;
     }
 
     public function sceneLayerFor(Household $household): ?string

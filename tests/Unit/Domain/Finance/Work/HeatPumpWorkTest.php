@@ -16,12 +16,23 @@ use PHPUnit\Framework\TestCase;
 
 final class HeatPumpWorkTest extends TestCase
 {
-    private static function barePassoire(): Household
+    private static function barePassoire(bool $boilerBroken = false): Household
     {
         return new Household(
             solarKwc: 0.0,
             batteryKwh: 0.0,
             envelope: new EnvelopeState(false, WallInsulation::None, Glazing::Single),
+            heatingSystem: HeatingSystem::FuelOilBoiler,
+            boilerBroken: $boilerBroken,
+        );
+    }
+
+    private static function wellInsulated(): Household
+    {
+        return new Household(
+            solarKwc: 0.0,
+            batteryKwh: 0.0,
+            envelope: new EnvelopeState(true, WallInsulation::Interior, Glazing::Single),
             heatingSystem: HeatingSystem::FuelOilBoiler,
         );
     }
@@ -61,6 +72,23 @@ final class HeatPumpWorkTest extends TestCase
         $advice = new HeatPumpWork()->adviceFor(self::barePassoire());
 
         self::assertSame(AdviceLevel::Caution, $advice->level);
+        self::assertSame('Maison peu isolée → PAC surdimensionnée, factures qui resteront hautes. Isolez d\'abord.', $advice->message);
+    }
+
+    public function testAdvisesLeavingFuelOilDuringABoilerBreakdown(): void
+    {
+        $advice = new HeatPumpWork()->adviceFor(self::barePassoire(boilerBroken: true));
+
+        self::assertSame(AdviceLevel::Info, $advice->level);
+        self::assertSame('L\'occasion de sortir du fioul. Vérifiez que la maison est un minimum isolée, sinon la PAC sera bridée.', $advice->message);
+    }
+
+    public function testAdvisesGoodEfficiencyInAWellInsulatedHouse(): void
+    {
+        $advice = new HeatPumpWork()->adviceFor(self::wellInsulated());
+
+        self::assertSame(AdviceLevel::Info, $advice->level);
+        self::assertSame('Bon rendement attendu : la maison est suffisamment isolée pour une PAC efficace.', $advice->message);
     }
 
     public function testDoneLabelAndSceneLayerAppearOnlyOnceInstalled(): void
