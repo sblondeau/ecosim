@@ -11,7 +11,12 @@ use App\Domain\Building\Household;
 use App\Domain\Building\WallInsulation;
 use App\Domain\Finance\AdviceLevel;
 use App\Domain\Finance\Renovation;
+use App\Domain\Finance\RenovationAdvice;
 use App\Domain\Finance\RenovationAdvisor;
+use App\Domain\Finance\RenovationCatalog;
+use App\Domain\Finance\RenovationDefinition;
+use App\Domain\Finance\RenovationOffer;
+use App\Domain\Finance\SceneSlot;
 use PHPUnit\Framework\TestCase;
 
 final class RenovationAdvisorTest extends TestCase
@@ -177,5 +182,90 @@ final class RenovationAdvisorTest extends TestCase
         self::assertNotNull($advice);
         self::assertSame(AdviceLevel::Info, $advice->level);
         self::assertSame('Geste bon marché : un peu de confort près des fenêtres la nuit. Petit levier, pas un substitut à l\'isolation.', $advice->message);
+    }
+
+    /**
+     * Bridge test: when a work has a definition in the catalog, the advisor must
+     * return that definition's advice (not the legacy match). This locks down that
+     * the new bridge branch is exercised and that it takes precedence.
+     */
+    public function testReturnsDefinitionAdviceWhenCatalogKnowsTheWork(): void
+    {
+        $definition = new AdvisorTestDefinition('roof_insulation', 'definition advice');
+        $catalog = new RenovationCatalog([$definition]);
+        $advisor = new RenovationAdvisor(catalog: $catalog);
+        $household = $this->house($this->bare());
+
+        $advice = $advisor->adviceFor(Renovation::RoofInsulation, $household);
+
+        self::assertSame('definition advice', $advice->message);
+    }
+
+    /**
+     * Bridge test: when the catalog has no definition for a work, the advisor
+     * falls back to the legacy match branch. This ensures the fallback path
+     * remains intact and operational.
+     */
+    public function testFallsBackToLegacyMatchWhenCatalogDoesNotKnowTheWork(): void
+    {
+        $advisor = new RenovationAdvisor(catalog: new RenovationCatalog([]));
+        $household = $this->house($this->bare());
+
+        $advice = $advisor->adviceFor(Renovation::RoofInsulation, $household);
+
+        self::assertStringContainsString('gain/prix', $advice->message);
+    }
+}
+
+/**
+ * A definition whose advice is fixed, so the advisor's catalog bridge is what
+ * gets tested — not the legacy match arm.
+ */
+final readonly class AdvisorTestDefinition implements RenovationDefinition
+{
+    public function __construct(
+        private string $slug,
+        private string $adviceMessage,
+    ) {
+    }
+
+    public function slug(): string
+    {
+        return $this->slug;
+    }
+
+    public function slot(): SceneSlot
+    {
+        return SceneSlot::Walls;
+    }
+
+    public function offerFor(Household $household): ?RenovationOffer
+    {
+        return null;
+    }
+
+    public function adviceFor(Household $household): RenovationAdvice
+    {
+        return new RenovationAdvice(AdviceLevel::Info, $this->adviceMessage);
+    }
+
+    public function isEnergyPerformanceWork(): bool
+    {
+        return true;
+    }
+
+    public function doneLabelFor(Household $household): ?string
+    {
+        return null;
+    }
+
+    public function sceneLayerFor(Household $household): ?string
+    {
+        return null;
+    }
+
+    public function iconAsset(): string
+    {
+        return 'game/scene/assets/battery.svg';
     }
 }
