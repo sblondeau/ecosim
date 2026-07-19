@@ -75,16 +75,20 @@ final class RenovationCatalogTest extends TestCase
     /**
      * The default catalogue fills up drawer by drawer across tasks 3-5. The
      * real assertion — fifteen works, no duplicate — arrives in task 5, when
-     * it can be true. For now: the heating drawer's slugs, in offer order.
+     * it can be true. For now: the heating and envelope drawers' slugs, in
+     * offer order.
      */
-    public function testTheDefaultCatalogueListsTheHeatingDrawerInOfferOrder(): void
+    public function testTheDefaultCatalogueListsTheHeatingAndEnvelopeDrawersInOfferOrder(): void
     {
         $slugs = array_map(
             static fn (RenovationDefinition $w): string => $w->slug(),
             new RenovationCatalog()->all(),
         );
 
-        self::assertSame(['boiler_repair', 'heat_pump', 'pellet_boiler', 'low_temp_emitters', 'water_heater_thermo'], $slugs);
+        self::assertSame([
+            'boiler_repair', 'heat_pump', 'pellet_boiler', 'low_temp_emitters', 'water_heater_thermo',
+            'roof_insulation', 'wall_insulation_interior', 'wall_insulation_exterior', 'glazing', 'ventilation_double_flow',
+        ], $slugs);
     }
 }
 

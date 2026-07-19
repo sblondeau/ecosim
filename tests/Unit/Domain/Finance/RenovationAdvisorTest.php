@@ -205,15 +205,20 @@ final class RenovationAdvisorTest extends TestCase
      * Bridge test: when the catalog has no definition for a work, the advisor
      * falls back to the legacy match branch. This ensures the fallback path
      * remains intact and operational.
+     *
+     * Uses {@see Renovation::ThermalCurtains} — still unmigrated at the end of
+     * task 4 (envelope drawer). Task 3 used {@see Renovation::RoofInsulation}
+     * for this same purpose; it had to move here once roof insulation gained
+     * its own definition and its match arm was deleted.
      */
     public function testFallsBackToLegacyMatchWhenCatalogDoesNotKnowTheWork(): void
     {
         $advisor = new RenovationAdvisor(catalog: new RenovationCatalog([]));
         $household = $this->house($this->bare());
 
-        $advice = $advisor->adviceFor(Renovation::RoofInsulation, $household);
+        $advice = $advisor->adviceFor(Renovation::ThermalCurtains, $household);
 
-        self::assertStringContainsString('gain/prix', $advice->message);
+        self::assertStringContainsString('Petit levier', $advice->message);
     }
 }
 

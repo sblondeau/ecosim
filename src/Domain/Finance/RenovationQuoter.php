@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Finance;
 
-use App\Domain\Building\Glazing;
 use App\Domain\Building\Household;
-use App\Domain\Building\Ventilation;
-use App\Domain\Building\WallInsulation;
 use App\Domain\Energy\EnergyCalibration;
 use LogicException;
 
@@ -41,14 +38,9 @@ final readonly class RenovationQuoter
         }
 
         return match ($work) {
-            Renovation::RoofInsulation => $this->roofQuote($household),
-            Renovation::WallInsulationInterior => $this->wallQuote($household, WallInsulation::Interior, Renovation::WallInsulationInterior, 'Isolation des murs — intérieure (ITI)', $this->calibration->wallInsulationInteriorCost()->value),
-            Renovation::WallInsulationExterior => $this->wallQuote($household, WallInsulation::Exterior, Renovation::WallInsulationExterior, 'Isolation des murs — extérieure (ITE)', $this->calibration->wallInsulationExteriorCost()->value),
-            Renovation::Glazing => $this->glazingQuote($household),
             Renovation::SolarKit => $this->solarKitQuote($household),
             Renovation::SolarPanels => $this->solarQuote($household),
             Renovation::HomeBattery => $this->batteryQuote($household),
-            Renovation::VentilationDoubleFlow => $this->ventilationQuote($household),
             Renovation::DraughtProofing => $this->draughtProofingQuote($household),
             Renovation::ThermalCurtains => $this->thermalCurtainsQuote($household),
             // Migrated to the catalogue (tasks 3-5): a definition always
@@ -78,60 +70,6 @@ final readonly class RenovationQuoter
                 ? $this->subsidy->subsidyFor($offer->cost)
                 : Money::zero(),
             resultingHousehold: $offer->resultingHousehold,
-        );
-    }
-
-    private function roofQuote(Household $household): ?RenovationQuote
-    {
-        if ($household->envelope->roofInsulated) {
-            return null;
-        }
-        $price = Money::fromEuros($this->calibration->roofInsulationCost()->value);
-
-        return new RenovationQuote(
-            work: Renovation::RoofInsulation,
-            title: 'Isolation des combles',
-            cost: $price,
-            subsidy: $this->subsidy->subsidyFor($price),
-            resultingHousehold: $household->withEnvelope($household->envelope->withRoofInsulated(true)),
-        );
-    }
-
-    private function wallQuote(Household $household, WallInsulation $target, Renovation $work, string $title, float $cost): ?RenovationQuote
-    {
-        // ITI et ITE mutuellement exclusifs : dès que les murs sont isolés, plus d'offre murs.
-        if (WallInsulation::None !== $household->envelope->walls) {
-            return null;
-        }
-        $price = Money::fromEuros($cost);
-
-        return new RenovationQuote(
-            work: $work,
-            title: $title,
-            cost: $price,
-            subsidy: $this->subsidy->subsidyFor($price),
-            resultingHousehold: $household->withEnvelope($household->envelope->withWalls($target)),
-        );
-    }
-
-    private function glazingQuote(Household $household): ?RenovationQuote
-    {
-        $target = match ($household->envelope->glazing) {
-            Glazing::Single => Glazing::Double,
-            Glazing::Double => Glazing::Triple,
-            Glazing::Triple => null,
-        };
-        if (null === $target) {
-            return null;
-        }
-        $price = Money::fromEuros($this->calibration->glazingUpgradeCost()->value);
-
-        return new RenovationQuote(
-            work: Renovation::Glazing,
-            title: sprintf('Menuiseries — %s', $target->label()),
-            cost: $price,
-            subsidy: $this->subsidy->subsidyFor($price),
-            resultingHousehold: $household->withEnvelope($household->envelope->withGlazing($target)),
         );
     }
 
@@ -191,22 +129,6 @@ final readonly class RenovationQuoter
             cost: Money::fromEuros($this->calibration->batteryInstallCost()->value),
             subsidy: Money::zero(),
             resultingHousehold: $household->withBatteryKwh($kwh),
-        );
-    }
-
-    private function ventilationQuote(Household $household): ?RenovationQuote
-    {
-        if (Ventilation::None !== $household->envelope->ventilation) {
-            return null;
-        }
-        $price = Money::fromEuros($this->calibration->ventilationDoubleFlowCost()->value);
-
-        return new RenovationQuote(
-            work: Renovation::VentilationDoubleFlow,
-            title: 'VMC double flux',
-            cost: $price,
-            subsidy: $this->subsidy->subsidyFor($price),
-            resultingHousehold: $household->withEnvelope($household->envelope->withVentilation(Ventilation::DoubleFlow)),
         );
     }
 

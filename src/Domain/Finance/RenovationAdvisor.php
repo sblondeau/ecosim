@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Domain\Finance;
 
-use App\Domain\Building\BuildingCalibration;
 use App\Domain\Building\Household;
 use LogicException;
 
@@ -22,7 +21,6 @@ use function sprintf;
 final readonly class RenovationAdvisor
 {
     public function __construct(
-        private BuildingCalibration $building = new BuildingCalibration(),
         private RenovationCatalog $catalog = new RenovationCatalog(),
     ) {
     }
@@ -38,25 +36,7 @@ final readonly class RenovationAdvisor
             return $definition->adviceFor($household);
         }
 
-        $poorlyInsulated = $this->building->envelopeLossFactor($household->envelope)
-            > $this->building->poorlyInsulatedEnvelopeCeiling()->value;
-
         return match ($work) {
-            Renovation::RoofInsulation => new RenovationAdvice(
-                AdviceLevel::Info,
-                'Souvent le meilleur rapport gain/prix : ~24 % des pertes, et peu cher.',
-            ),
-            Renovation::WallInsulationInterior => new RenovationAdvice(
-                AdviceLevel::Info,
-                'ITI : moins chère, mais grignote la surface habitable et laisse des ponts thermiques.',
-            ),
-            Renovation::WallInsulationExterior => new RenovationAdvice(
-                AdviceLevel::Info,
-                'ITE : plus chère, mais meilleure (pas de pont thermique) et ravale la façade.',
-            ),
-            Renovation::Glazing => $poorlyInsulated
-                ? new RenovationAdvice(AdviceLevel::Caution, 'Le vitrage pèse peu (~10 % des pertes) : priorisez d\'abord combles et murs.')
-                : new RenovationAdvice(AdviceLevel::Info, 'Complète l\'isolation ; gagne surtout du confort (paroi froide) et de l\'acoustique. Le triple n\'est utile qu\'en climat froid.'),
             Renovation::SolarKit => new RenovationAdvice(
                 AdviceLevel::Info,
                 'Le premier pas accessible : sans installateur ni aide, rendement modeste.',
@@ -69,9 +49,6 @@ final readonly class RenovationAdvisor
                 AdviceLevel::Info,
                 'Stocke le surplus solaire pour le consommer le soir.',
             ),
-            Renovation::VentilationDoubleFlow => $poorlyInsulated
-                ? new RenovationAdvice(AdviceLevel::Caution, 'À poser plutôt APRÈS l\'isolation : la VMC double flux récupère la chaleur, autant qu\'il y en ait à récupérer.')
-                : new RenovationAdvice(AdviceLevel::Info, 'Récupère la chaleur de l\'air extrait et renouvelle l\'air sainement.'),
             Renovation::DraughtProofing => new RenovationAdvice(
                 AdviceLevel::Info,
                 'Geste bon marché : coupe les courants d\'air (quelques % de pertes). Utile en complément — pas un gros levier.',
