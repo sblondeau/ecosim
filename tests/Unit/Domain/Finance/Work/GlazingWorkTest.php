@@ -51,7 +51,7 @@ final class GlazingWorkTest extends TestCase
 
         self::assertNotNull($offer);
         self::assertSame('Menuiseries — Double vitrage', $offer->title);
-        self::assertGreaterThan(0, $offer->cost->cents);
+        self::assertSame(800000, $offer->cost->cents);
         self::assertSame(Glazing::Double, $offer->resultingHousehold->envelope->glazing);
     }
 
@@ -61,6 +61,7 @@ final class GlazingWorkTest extends TestCase
 
         self::assertNotNull($offer);
         self::assertSame('Menuiseries — Triple vitrage', $offer->title);
+        self::assertSame(800000, $offer->cost->cents);
         self::assertSame(Glazing::Triple, $offer->resultingHousehold->envelope->glazing);
     }
 

@@ -42,7 +42,7 @@ final class BoilerRepairWorkTest extends TestCase
 
         self::assertNotNull($offer);
         self::assertSame('Réparer la chaudière fioul', $offer->title);
-        self::assertGreaterThan(0, $offer->cost->cents);
+        self::assertSame(150000, $offer->cost->cents);
         self::assertFalse($offer->resultingHousehold->boilerBroken);
     }
 

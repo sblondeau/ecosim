@@ -41,7 +41,7 @@ final class PelletBoilerWorkTest extends TestCase
 
         self::assertNotNull($offer);
         self::assertSame('Chaudière à granulés', $offer->title);
-        self::assertGreaterThan(0, $offer->cost->cents);
+        self::assertSame(1400000, $offer->cost->cents);
         self::assertSame(HeatingSystem::PelletBoiler, $offer->resultingHousehold->heatingSystem);
     }
 

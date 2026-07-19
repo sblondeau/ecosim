@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Domain\Finance;
 
 use App\Domain\Building\Household;
-use App\Domain\Energy\EnergyCalibration;
 use LogicException;
 
 use function sprintf;
@@ -21,9 +20,7 @@ use function sprintf;
 final readonly class RenovationQuoter
 {
     public function __construct(
-        private FinanceCalibration $calibration = new FinanceCalibration(),
         private SubsidyCalculator $subsidy = new SubsidyCalculator(),
-        private EnergyCalibration $energy = new EnergyCalibration(),
         private RenovationCatalog $catalog = new RenovationCatalog(),
     ) {
     }
@@ -38,11 +35,6 @@ final readonly class RenovationQuoter
         }
 
         return match ($work) {
-            Renovation::SolarKit => $this->solarKitQuote($household),
-            Renovation::SolarPanels => $this->solarQuote($household),
-            Renovation::HomeBattery => $this->batteryQuote($household),
-            Renovation::DraughtProofing => $this->draughtProofingQuote($household),
-            Renovation::ThermalCurtains => $this->thermalCurtainsQuote($household),
             // Migrated to the catalogue (tasks 3-5): a definition always
             // answers these before the match is reached. Reaching here would
             // mean defaultWorks() lost an entry — a real bug, not a legal state.
@@ -70,97 +62,6 @@ final readonly class RenovationQuoter
                 ? $this->subsidy->subsidyFor($offer->cost)
                 : Money::zero(),
             resultingHousehold: $offer->resultingHousehold,
-        );
-    }
-
-    /**
-     * The plug-and-play kit — no installer, no aid — is the cheap entry
-     * point: available on a bare roof only, superseded by the full install.
-     */
-    private function solarKitQuote(Household $household): ?RenovationQuote
-    {
-        if (0.0 !== $household->solarKwc) {
-            return null;
-        }
-
-        $kwc = $this->energy->solarKitPeakPowerKwc()->value;
-
-        return new RenovationQuote(
-            work: Renovation::SolarKit,
-            title: sprintf('Kit solaire plug-and-play %.1f kWc', $kwc),
-            cost: Money::fromEuros($this->calibration->solarKitInstallCost()->value),
-            subsidy: Money::zero(),
-            resultingHousehold: $household->withSolarKwc($kwc),
-        );
-    }
-
-    private function solarQuote(Household $household): ?RenovationQuote
-    {
-        // The gate is the full install's own power, not zero: this also
-        // offers the full install as an upgrade from the plug-and-play kit.
-        if ($household->solarKwc >= $this->energy->defaultSolarPeakPowerKwc()->value) {
-            return null;
-        }
-
-        $kwc = $this->energy->defaultSolarPeakPowerKwc()->value;
-
-        return new RenovationQuote(
-            work: Renovation::SolarPanels,
-            title: sprintf('Panneaux solaires %.0f kWc', $kwc),
-            cost: Money::fromEuros($this->calibration->solarInstallCost()->value),
-            subsidy: Money::zero(),
-            resultingHousehold: $household->withSolarKwc($kwc),
-        );
-    }
-
-    private function batteryQuote(Household $household): ?RenovationQuote
-    {
-        // A battery only stores solar production (the MVP's sole source) —
-        // offering it before panels are installed would let it sit unused.
-        if ($household->batteryKwh > 0.0 || $household->solarKwc <= 0.0) {
-            return null;
-        }
-
-        $kwh = $this->energy->defaultBatteryCapacityKwh()->value;
-
-        return new RenovationQuote(
-            work: Renovation::HomeBattery,
-            title: sprintf('Batterie domestique %.0f kWh', $kwh),
-            cost: Money::fromEuros($this->calibration->batteryInstallCost()->value),
-            subsidy: Money::zero(),
-            resultingHousehold: $household->withBatteryKwh($kwh),
-        );
-    }
-
-    private function draughtProofingQuote(Household $household): ?RenovationQuote
-    {
-        if ($household->envelope->draughtProofed) {
-            return null;
-        }
-        $price = Money::fromEuros($this->calibration->draughtProofingCost()->value);
-
-        return new RenovationQuote(
-            work: Renovation::DraughtProofing,
-            title: 'Calfeutrage / joints',
-            cost: $price,
-            subsidy: Money::zero(),
-            resultingHousehold: $household->withEnvelope($household->envelope->withDraughtProofed(true)),
-        );
-    }
-
-    private function thermalCurtainsQuote(Household $household): ?RenovationQuote
-    {
-        if ($household->envelope->thermalCurtains) {
-            return null;
-        }
-        $price = Money::fromEuros($this->calibration->thermalCurtainsCost()->value);
-
-        return new RenovationQuote(
-            work: Renovation::ThermalCurtains,
-            title: 'Rideaux thermiques',
-            cost: $price,
-            subsidy: Money::zero(),
-            resultingHousehold: $household->withEnvelope($household->envelope->withThermalCurtains(true)),
         );
     }
 }

@@ -42,7 +42,7 @@ final class LowTempEmittersWorkTest extends TestCase
 
         self::assertNotNull($offer);
         self::assertSame('Émetteurs basse température', $offer->title);
-        self::assertGreaterThan(0, $offer->cost->cents);
+        self::assertSame(650000, $offer->cost->cents);
         self::assertTrue($offer->resultingHousehold->lowTempEmitters);
     }
 

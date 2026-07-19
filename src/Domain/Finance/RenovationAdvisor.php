@@ -37,26 +37,6 @@ final readonly class RenovationAdvisor
         }
 
         return match ($work) {
-            Renovation::SolarKit => new RenovationAdvice(
-                AdviceLevel::Info,
-                'Le premier pas accessible : sans installateur ni aide, rendement modeste.',
-            ),
-            Renovation::SolarPanels => new RenovationAdvice(
-                AdviceLevel::Info,
-                'Réduit la facture d\'électricité. Plus rentable une fois les besoins de chauffage réduits.',
-            ),
-            Renovation::HomeBattery => new RenovationAdvice(
-                AdviceLevel::Info,
-                'Stocke le surplus solaire pour le consommer le soir.',
-            ),
-            Renovation::DraughtProofing => new RenovationAdvice(
-                AdviceLevel::Info,
-                'Geste bon marché : coupe les courants d\'air (quelques % de pertes). Utile en complément — pas un gros levier.',
-            ),
-            Renovation::ThermalCurtains => new RenovationAdvice(
-                AdviceLevel::Info,
-                'Geste bon marché : un peu de confort près des fenêtres la nuit. Petit levier, pas un substitut à l\'isolation.',
-            ),
             // Migrated to the catalogue (tasks 3-5): a definition always
             // answers these before the match is reached. Reaching here would
             // mean defaultWorks() lost an entry — a real bug, not a legal state.

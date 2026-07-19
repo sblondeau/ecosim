@@ -43,7 +43,7 @@ final class WaterHeaterThermoWorkTest extends TestCase
 
         self::assertNotNull($offer);
         self::assertSame('Chauffe-eau thermodynamique', $offer->title);
-        self::assertGreaterThan(0, $offer->cost->cents);
+        self::assertSame(350000, $offer->cost->cents);
         self::assertSame(WaterHeater::Thermodynamic, $offer->resultingHousehold->waterHeater);
     }
 

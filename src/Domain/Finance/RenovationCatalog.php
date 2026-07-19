@@ -5,11 +5,16 @@ declare(strict_types=1);
 namespace App\Domain\Finance;
 
 use App\Domain\Finance\Work\BoilerRepairWork;
+use App\Domain\Finance\Work\DraughtProofingWork;
 use App\Domain\Finance\Work\GlazingWork;
 use App\Domain\Finance\Work\HeatPumpWork;
+use App\Domain\Finance\Work\HomeBatteryWork;
 use App\Domain\Finance\Work\LowTempEmittersWork;
 use App\Domain\Finance\Work\PelletBoilerWork;
 use App\Domain\Finance\Work\RoofInsulationWork;
+use App\Domain\Finance\Work\SolarKitWork;
+use App\Domain\Finance\Work\SolarPanelsWork;
+use App\Domain\Finance\Work\ThermalCurtainsWork;
 use App\Domain\Finance\Work\VentilationDoubleFlowWork;
 use App\Domain\Finance\Work\WallInsulationExteriorWork;
 use App\Domain\Finance\Work\WallInsulationInteriorWork;
@@ -110,6 +115,13 @@ final readonly class RenovationCatalog
             new WallInsulationExteriorWork(),
             new GlazingWork(),
             new VentilationDoubleFlowWork(),
+            // Production & storage
+            new SolarPanelsWork(),
+            new SolarKitWork(),
+            new HomeBatteryWork(),
+            // Daily gestures
+            new DraughtProofingWork(),
+            new ThermalCurtainsWork(),
         ];
     }
 }

@@ -52,7 +52,7 @@ final class HeatPumpWorkTest extends TestCase
 
         self::assertNotNull($offer);
         self::assertSame('Pompe à chaleur air/eau', $offer->title);
-        self::assertGreaterThan(0, $offer->cost->cents);
+        self::assertSame(1300000, $offer->cost->cents);
         self::assertSame(HeatingSystem::HeatPump, $offer->resultingHousehold->heatingSystem);
     }
 

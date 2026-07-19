@@ -20,6 +20,7 @@ use App\Domain\Finance\RenovationDefinition;
 use App\Domain\Finance\RenovationOffer;
 use App\Domain\Finance\RenovationQuoter;
 use App\Domain\Finance\SceneSlot;
+use LogicException;
 use PHPUnit\Framework\TestCase;
 
 final class RenovationQuoterTest extends TestCase
@@ -321,18 +322,22 @@ final class RenovationQuoterTest extends TestCase
     }
 
     /**
-     * A work with no definition yet still goes through the legacy match.
-     *
-     * Uses {@see Renovation::ThermalCurtains} — still unmigrated at the end of
-     * task 4 (envelope drawer). Task 3 used {@see Renovation::RoofInsulation}
-     * for this same purpose; it had to move here once roof insulation gained
-     * its own definition and its match arm was deleted.
+     * Every work now has a definition, so the legacy match is dead code kept
+     * only as a defensive safety net (its own comment: reaching it would mean
+     * `defaultWorks()` lost an entry — a real bug). This used to be the
+     * "falls back to the legacy match" bridge test, repointed at a different
+     * unmigrated work at the end of each of tasks 3 and 4; task 5 leaves none
+     * to repoint it to, so it is repurposed to lock down the safety net
+     * itself — an artificially-empty catalogue is what still exercises it.
      */
-    public function testFallsBackToTheLegacyMatchForUnmigratedWorks(): void
+    public function testThrowsWhenTheCatalogueDoesNotKnowAWork(): void
     {
         $quoter = new RenovationQuoter(catalog: new RenovationCatalog([]));
 
-        self::assertNotNull($quoter->quote(Renovation::ThermalCurtains, self::barePassoire()));
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('"thermal_curtains" is migrated to the renovation catalogue — the bridge above should have answered it.');
+
+        $quoter->quote(Renovation::ThermalCurtains, self::barePassoire());
     }
 }
 

@@ -41,7 +41,7 @@ final class WallInsulationExteriorWorkTest extends TestCase
 
         self::assertNotNull($offer);
         self::assertSame('Isolation des murs — extérieure (ITE)', $offer->title);
-        self::assertGreaterThan(0, $offer->cost->cents);
+        self::assertSame(1800000, $offer->cost->cents);
         self::assertSame(WallInsulation::Exterior, $offer->resultingHousehold->envelope->walls);
     }
 

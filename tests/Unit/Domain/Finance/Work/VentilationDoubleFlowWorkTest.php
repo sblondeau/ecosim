@@ -52,7 +52,7 @@ final class VentilationDoubleFlowWorkTest extends TestCase
 
         self::assertNotNull($offer);
         self::assertSame('VMC double flux', $offer->title);
-        self::assertGreaterThan(0, $offer->cost->cents);
+        self::assertSame(600000, $offer->cost->cents);
         self::assertSame(Ventilation::DoubleFlow, $offer->resultingHousehold->envelope->ventilation);
     }
 

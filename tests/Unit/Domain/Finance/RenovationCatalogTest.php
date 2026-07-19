@@ -73,12 +73,11 @@ final class RenovationCatalogTest extends TestCase
     }
 
     /**
-     * The default catalogue fills up drawer by drawer across tasks 3-5. The
-     * real assertion — fifteen works, no duplicate — arrives in task 5, when
-     * it can be true. For now: the heating and envelope drawers' slugs, in
-     * offer order.
+     * The default catalogue, filled up drawer by drawer across tasks 3-5: all
+     * fifteen works, in offer/display order — the order `worksOfSlot` used to
+     * encode in the template.
      */
-    public function testTheDefaultCatalogueListsTheHeatingAndEnvelopeDrawersInOfferOrder(): void
+    public function testTheDefaultCatalogueListsAllFifteenWorksInOfferOrder(): void
     {
         $slugs = array_map(
             static fn (RenovationDefinition $w): string => $w->slug(),
@@ -88,7 +87,29 @@ final class RenovationCatalogTest extends TestCase
         self::assertSame([
             'boiler_repair', 'heat_pump', 'pellet_boiler', 'low_temp_emitters', 'water_heater_thermo',
             'roof_insulation', 'wall_insulation_interior', 'wall_insulation_exterior', 'glazing', 'ventilation_double_flow',
+            'solar_panels', 'solar_kit', 'home_battery',
+            'draught_proofing', 'thermal_curtains',
         ], $slugs);
+    }
+
+    /**
+     * The catalogue is now full (task 5). The `default => throw` arm in both
+     * `RenovationQuoter::quote()` and `RenovationAdvisor::adviceFor()` turned
+     * off PHPStan's exhaustiveness check on those matches — this count (and
+     * the order test above) is what now catches a work whose class exists but
+     * was never registered in `defaultWorks()`.
+     */
+    public function testDefaultCatalogueExposesEveryWorkExactlyOnce(): void
+    {
+        $catalog = new RenovationCatalog();
+
+        $slugs = array_map(
+            static fn (RenovationDefinition $w): string => $w->slug(),
+            $catalog->all(),
+        );
+
+        self::assertCount(15, $slugs);
+        self::assertSame($slugs, array_unique($slugs));
     }
 }
 

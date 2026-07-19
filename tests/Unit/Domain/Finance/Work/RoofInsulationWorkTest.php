@@ -41,7 +41,7 @@ final class RoofInsulationWorkTest extends TestCase
 
         self::assertNotNull($offer);
         self::assertSame('Isolation des combles', $offer->title);
-        self::assertGreaterThan(0, $offer->cost->cents);
+        self::assertSame(400000, $offer->cost->cents);
         self::assertTrue($offer->resultingHousehold->envelope->roofInsulated);
     }
 
