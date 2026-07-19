@@ -169,18 +169,18 @@ opaques.
 
 > **Correction (revue finale, tâche 6 — à lire avant d'implémenter le
 > palier 4) :** le plan ci-dessus ne tient pas tel quel. `sceneLayerFor()`
-> retourne une simple `string`, mais ses 15 valeurs se répartissent en **deux
+> retourne une simple `string`, mais ses 14 clés distinctes se répartissent en **deux
 > familles disjointes de consommateurs**, alors que `activeLayers` +
 > `house--{{ layer }}` en boucle n'en sert qu'une :
 >
-> - **9 clés sont des gates CSS** que `HouseShell` doit préfixer de
+> - **8 clés sont des gates CSS** que `HouseShell` doit préfixer de
 >   `house--` (`scene.css` : `.house--{layer} .xxx { display: initial }`) :
 >   `roof-ins`, `walls-interior`, `walls-exterior`, `glazing-double`,
 >   `glazing-triple`, `vmc-double-flow`, `curtains`, `floor-heating`.
-> - **5 clés pilotent l'affichage d'un `<twig:scene:*>` entier** dans
+> - **6 clés pilotent l'affichage d'un `<twig:scene:*>` entier** dans
 >   `_cutaway.html.twig` (`{% if scene.xxx == '...' %}`) et **n'ont aucune
 >   règle `.house--*`** : `heating-heat-pump`, `heating-pellet`,
->   `water-heater-thermo`, `battery`, `solar-full`/`solar-kit`.
+>   `water-heater-thermo`, `battery`, `solar-full`, `solar-kit`.
 >
 >   Implémentée telle quelle, la boucle `house--{{ layer }}` poserait ces 5
 >   valeurs comme classes CSS mortes (`house--battery`, `house--solar-full`…)

@@ -74,6 +74,8 @@ final readonly class HomeBatteryWork implements RenovationDefinition
     {
         // Deliberately NOT self::TITLE_FORMAT: the drawer's "done" chip reads
         // "Batterie N kWh" (a state), not the offer's CTA title.
+        // Note: sprintf('%.0f') diverges from the old template's number_format(0, ',', ' ') at ≥1000 kWh,
+        // but this is unreachable at the current 5 kWh calibration — whoever wires this output should align formats.
         return $household->batteryKwh > 0.0 ? sprintf('Batterie %.0f kWh', $household->batteryKwh) : null;
     }
 

@@ -134,14 +134,28 @@ final class RenovationCatalogTest extends TestCase
      *
      * The allow-list has two disjoint groups (design-flaw correction, see
      * docs/specs/2026-07-18-catalogue-travaux-design.md §3 sceneLayerFor()):
-     * CSS gates prefixed `house--` by HouseShell, and cutaway component
-     * selectors that pick a `<twig:scene:*>` on/off with no `.house--*` rule.
+     *
+     * Group A (8 CSS gates): independently derived from scene.css selectors.
+     * Each key appears as `.house--{key}` in scene.css with actual styling rules,
+     * consumed by HouseShell's class emission. These really bite on typo.
+     *
+     * Group B (6 cutaway component selectors): partially independently derived
+     * and partially a snapshot. Five of them (`heating-heat-pump`, `water-heater-thermo`,
+     * `battery`, `solar-full`, `solar-kit`) are independently verified via explicit
+     * checks in _cutaway.html.twig (`scene.heatingState == 'heat-pump'`,
+     * `scene.waterHeaterThermo`, `scene.garageState == 'installed'`,
+     * `scene.solarState == 'full'`, `scene.solarState == 'kit'`). One (`heating-pellet`)
+     * has no explicit check in the template — the Boiler component renders it by state
+     * but doesn't guard it with a conditional — so it is currently a recorded snapshot
+     * of what works produce, pending a follow-up plan to wire these values.
      */
     public function testEveryNonNullSceneLayerBelongsToAConsumerTheSceneActuallyHonours(): void
     {
         // Group A — CSS gates in assets/styles/scene.css, each consumed as
-        // `.house--{layer}` by a rule keyed off the class HouseShell.html.twig
-        // emits (`house--{{ prop }}`, see templates/components/scene/HouseShell.html.twig):
+        // `.house--{layer}` by a rule keyed off the classes HouseShell.html.twig
+        // emits (e.g., `house--walls-{{ wallInsulation }}`, `house--vmc-{{ ventilation }}`,
+        // `house--glazing-{{ glazing }}` for props, or direct classes like
+        // `house--roof-ins`, `house--curtains`; see templates/components/scene/HouseShell.html.twig):
         //   .house--roof-ins            (scene.css:140)
         //   .house--walls-interior      (scene.css:141)
         //   .house--walls-exterior      (scene.css:142)
