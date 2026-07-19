@@ -75,6 +75,19 @@ final class SolarKitWorkTest extends TestCase
         self::assertNull($work->sceneLayerFor(self::household(3.0)));
     }
 
+    /**
+     * Any power strictly between empty and the full install still reads as a
+     * kit — the same range rule {@see \App\Application\GameViewFactory} uses
+     * for the scene's solar state, not just the exact kit calibration value.
+     */
+    public function testDoneLabelAndSceneLayerAppearForAnyIntermediatePower(): void
+    {
+        $work = new SolarKitWork();
+
+        self::assertSame('Kit solaire plug-and-play 1.5 kWc', $work->doneLabelFor(self::household(1.5)));
+        self::assertSame('solar-kit', $work->sceneLayerFor(self::household(1.5)));
+    }
+
     public function testIconAssetPointsAtARealFile(): void
     {
         self::assertFileExists(__DIR__.'/../../../../../templates/'.new SolarKitWork()->iconAsset());

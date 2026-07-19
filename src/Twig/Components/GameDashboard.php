@@ -11,7 +11,6 @@ use App\Application\GameViewFactory;
 use App\Application\RenovationHandler;
 use App\Application\TimeKeeper;
 use App\Domain\Building\BuildingCalibration;
-use App\Domain\Finance\Renovation;
 use App\Domain\Simulation\GameState;
 use App\Domain\Time\TickSpeed;
 use DateTimeImmutable;
@@ -170,15 +169,8 @@ final class GameDashboard
     {
         $this->notice = '';
 
-        $renovation = Renovation::tryFrom($work);
-        if (null === $renovation) {
-            $this->fail('Travaux inconnus.');
-
-            return;
-        }
-
         $game = $this->timeKeeper->catchUp($this->store->current(), new DateTimeImmutable());
-        $result = $this->renovations->order($game->state, $renovation, $financing);
+        $result = $this->renovations->order($game->state, $work, $financing);
 
         if (!$result instanceof GameState) {
             $this->commit($game); // keep the caught-up days

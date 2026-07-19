@@ -187,8 +187,8 @@ final class GameViewFactoryTest extends TestCase
             'A battery with no panels stores nothing — it should not even be offered.',
         );
 
-        // Renovation::Insulation was split into 4 per-surface works (Task 3);
-        // the old aggregate key no longer exists.
+        // The old aggregate "insulation" work was split into 4 per-surface
+        // works (Task 3); the aggregate key no longer exists.
         self::assertArrayNotHasKey('insulation', $view->actions);
         self::assertArrayHasKey('roof_insulation', $view->actions, 'A bare passoire is quoted for roof insulation.');
     }

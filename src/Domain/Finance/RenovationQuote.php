@@ -13,7 +13,8 @@ use App\Domain\Building\Household;
 final readonly class RenovationQuote
 {
     public function __construct(
-        public Renovation $work,
+        /** Slug of the work this quote prices ({@see RenovationDefinition::slug()}). */
+        public string $workSlug,
         /** Player-facing description of the work (French). */
         public string $title,
         public Money $cost,

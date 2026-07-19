@@ -44,9 +44,9 @@
     {% elseif selected == 'heating' %}
         {# Décision-context : le générateur en place (+ son SCOP effectif pour
            une PAC — les émetteurs basse température le font grimper de ~2,5 à
-           ~4,3, cf. RenovationAdvisor). Le détail jour-à-jour (fioul brûlé,
-           air intérieur…) vit déjà dans les coins Énergie/Confort — pas de
-           doublon ici. #}
+           ~4,3, cf. HeatPumpWork/LowTempEmittersWork). Le détail jour-à-jour
+           (fioul brûlé, air intérieur…) vit déjà dans les coins
+           Énergie/Confort — pas de doublon ici. #}
         {% if game.boilerBroken %}
             <div class="row"><span class="key">État</span><span class="neg"><strong>🚨 En panne</strong> — chauffage électrique d'appoint forcé</span></div>
             <div class="row"><span class="key">Élec. de chauffage (jour)</span><span class="neg">{{ game.heatingElectricityKwh|number_format(1, ',', ' ') }} kWh</span></div>

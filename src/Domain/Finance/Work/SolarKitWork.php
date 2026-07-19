@@ -71,14 +71,26 @@ final readonly class SolarKitWork implements RenovationDefinition
 
     public function doneLabelFor(Household $household): ?string
     {
-        return $household->solarKwc === $this->energy->solarKitPeakPowerKwc()->value
+        return $this->isKitPower($household->solarKwc)
             ? sprintf(self::TITLE_FORMAT, $household->solarKwc)
             : null;
     }
 
     public function sceneLayerFor(Household $household): ?string
     {
-        return $household->solarKwc === $this->energy->solarKitPeakPowerKwc()->value ? 'solar-kit' : null;
+        return $this->isKitPower($household->solarKwc) ? 'solar-kit' : null;
+    }
+
+    /**
+     * Anything strictly between empty and the full install is "a kit" — the
+     * same range rule {@see \App\Application\GameViewFactory} uses to decide
+     * the scene's solar state, not the exact kit power. An installer could in
+     * principle leave the household at an intermediate power (e.g. a second
+     * kit panel added later); this must still read as a kit, not vanish.
+     */
+    private function isKitPower(float $solarKwc): bool
+    {
+        return $solarKwc > 0.0 && $solarKwc < $this->energy->defaultSolarPeakPowerKwc()->value;
     }
 
     public function iconAsset(): string

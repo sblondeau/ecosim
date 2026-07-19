@@ -11,7 +11,6 @@ use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
 use App\Domain\Building\WallInsulation;
 use App\Domain\Finance\Money;
-use App\Domain\Finance\Renovation;
 use App\Domain\Simulation\GameState;
 use PHPUnit\Framework\TestCase;
 
@@ -27,7 +26,7 @@ final class RenovationHandlerTest extends TestCase
 
     public function testCashPurchaseDebitsTheSavings(): void
     {
-        $result = new RenovationHandler()->order(self::bareState(), Renovation::SolarPanels, RenovationHandler::FINANCING_CASH);
+        $result = new RenovationHandler()->order(self::bareState(), 'solar_panels', RenovationHandler::FINANCING_CASH);
 
         self::assertInstanceOf(GameState::class, $result);
         self::assertSame(3.0, $result->household->solarKwc);
@@ -38,7 +37,7 @@ final class RenovationHandlerTest extends TestCase
 
     public function testCashIsRefusedWhenSavingsAreInsufficient(): void
     {
-        $result = new RenovationHandler()->order(self::bareState(5000.0), Renovation::SolarPanels, RenovationHandler::FINANCING_CASH);
+        $result = new RenovationHandler()->order(self::bareState(5000.0), 'solar_panels', RenovationHandler::FINANCING_CASH);
 
         self::assertIsString($result);
         self::assertStringContainsString('Épargne insuffisante', $result);
@@ -46,7 +45,7 @@ final class RenovationHandlerTest extends TestCase
 
     public function testLoanFinancesTheNetCostWithoutTouchingSavings(): void
     {
-        $result = new RenovationHandler()->order(self::bareState(), Renovation::HeatPump, RenovationHandler::FINANCING_LOAN);
+        $result = new RenovationHandler()->order(self::bareState(), 'heat_pump', RenovationHandler::FINANCING_LOAN);
 
         self::assertInstanceOf(GameState::class, $result);
         self::assertSame(HeatingSystem::HeatPump, $result->household->heatingSystem);
@@ -56,7 +55,7 @@ final class RenovationHandlerTest extends TestCase
 
     public function testLoanIsRefusedForProductionEquipment(): void
     {
-        $result = new RenovationHandler()->order(self::bareState(), Renovation::SolarPanels, RenovationHandler::FINANCING_LOAN);
+        $result = new RenovationHandler()->order(self::bareState(), 'solar_panels', RenovationHandler::FINANCING_LOAN);
 
         self::assertIsString($result);
         self::assertStringContainsString('éco-PTZ', $result);
@@ -69,9 +68,16 @@ final class RenovationHandlerTest extends TestCase
             Money::fromEuros(8000.0),
         );
 
-        $result = new RenovationHandler()->order($heatPumpHome, Renovation::HeatPump, RenovationHandler::FINANCING_CASH);
+        $result = new RenovationHandler()->order($heatPumpHome, 'heat_pump', RenovationHandler::FINANCING_CASH);
 
         self::assertIsString($result);
+    }
+
+    public function testRefusesAnUnknownWorkSlug(): void
+    {
+        $result = new RenovationHandler()->order(self::bareState(), 'nope', RenovationHandler::FINANCING_CASH);
+
+        self::assertIsString($result, 'an unknown slug is refused, never fatal');
     }
 
     public function testTheBrokenBoilerCanBeRepairedInCashWithTheStartingSavings(): void
@@ -81,7 +87,7 @@ final class RenovationHandlerTest extends TestCase
             Money::fromEuros(7750.0), // The recalibrated scenario savings.
         );
 
-        $result = new RenovationHandler()->order($broken, Renovation::BoilerRepair, RenovationHandler::FINANCING_CASH);
+        $result = new RenovationHandler()->order($broken, 'boiler_repair', RenovationHandler::FINANCING_CASH);
 
         self::assertInstanceOf(GameState::class, $result);
         self::assertFalse($result->household->boilerBroken);
@@ -95,7 +101,7 @@ final class RenovationHandlerTest extends TestCase
             Money::fromEuros(4000.0),
         );
 
-        $result = new RenovationHandler()->order($broken, Renovation::BoilerRepair, RenovationHandler::FINANCING_LOAN);
+        $result = new RenovationHandler()->order($broken, 'boiler_repair', RenovationHandler::FINANCING_LOAN);
 
         self::assertIsString($result);
         self::assertStringContainsString('éco-PTZ', $result);
@@ -108,7 +114,7 @@ final class RenovationHandlerTest extends TestCase
         $handler = new RenovationHandler();
         $state = self::bareState();
 
-        foreach ([Renovation::RoofInsulation, Renovation::WallInsulationInterior, Renovation::Glazing, Renovation::HeatPump] as $work) {
+        foreach (['roof_insulation', 'wall_insulation_interior', 'glazing', 'heat_pump'] as $work) {
             $result = $handler->order($state, $work, RenovationHandler::FINANCING_LOAN);
             self::assertInstanceOf(GameState::class, $result);
             $state = $result;
@@ -129,12 +135,12 @@ final class RenovationHandlerTest extends TestCase
         $handler = new RenovationHandler();
         $state = self::bareState();
 
-        $withEmitters = $handler->order($state, Renovation::LowTempEmitters, RenovationHandler::FINANCING_LOAN);
+        $withEmitters = $handler->order($state, 'low_temp_emitters', RenovationHandler::FINANCING_LOAN);
         self::assertInstanceOf(GameState::class, $withEmitters);
         self::assertTrue($withEmitters->household->lowTempEmitters);
         self::assertSame(3900_00, $withEmitters->loan->borrowedTotal->cents, 'Net cost (6500 − 2600 prime) borrowed.');
 
-        $withPellet = $handler->order($withEmitters, Renovation::PelletBoiler, RenovationHandler::FINANCING_LOAN);
+        $withPellet = $handler->order($withEmitters, 'pellet_boiler', RenovationHandler::FINANCING_LOAN);
         self::assertInstanceOf(GameState::class, $withPellet);
         self::assertSame(HeatingSystem::PelletBoiler, $withPellet->household->heatingSystem);
         // 3900 (emitters) + 8400 (14000 − 5600 prime, pellet boiler) = 12 300 €.

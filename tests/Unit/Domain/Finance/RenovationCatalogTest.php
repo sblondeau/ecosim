@@ -93,11 +93,11 @@ final class RenovationCatalogTest extends TestCase
     }
 
     /**
-     * The catalogue is now full (task 5). The `default => throw` arm in both
-     * `RenovationQuoter::quote()` and `RenovationAdvisor::adviceFor()` turned
-     * off PHPStan's exhaustiveness check on those matches — this count (and
-     * the order test above) is what now catches a work whose class exists but
-     * was never registered in `defaultWorks()`.
+     * The catalogue is now the only source of truth for the works (task 6
+     * dropped the `Renovation` enum, whose exhaustive matches used to catch
+     * this at the type level) — this count (and the order test above) is what
+     * now catches a work whose class exists but was never registered in
+     * `defaultWorks()`.
      */
     public function testDefaultCatalogueExposesEveryWorkExactlyOnce(): void
     {
