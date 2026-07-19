@@ -1,9 +1,8 @@
-{% import 'game/_macros.html.twig' as ui %}
 {# Météo (puce haut-centre) : le temps du jour + son évolution récente. #}
-{{ ui.panel_head('🌤️ Météo — ' ~ game.seasonLabel) }}
+<twig:PanelHead title="🌤️ Météo — {{ game.seasonLabel }}" />
 <div class="card">
     <div class="row"><span class="key">Température</span><span>{{ game.temperatureC|number_format(1, ',', ' ') }} °C</span></div>
-    <div class="row"><span class="key">Nébulosité{{ ui.tip(game.help.cloud) }}</span><span>{{ game.cloudPct }} %</span></div>
+    <div class="row"><span class="key">Nébulosité<twig:Tip text="{{ game.help.cloud }}" /></span><span>{{ game.cloudPct }} %</span></div>
     {% set spark = game.weatherSparkline %}
     {% if spark.days > 1 %}
         <div class="spark">

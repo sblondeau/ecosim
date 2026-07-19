@@ -1,10 +1,9 @@
-{% import 'game/_macros.html.twig' as ui %}
 {# Axe Confort (coin ↗) : l'état du ressenti. Le réglage vit sur le séjour. #}
-{{ ui.panel_head('🛋️ Confort') }}
+<twig:PanelHead title="🛋️ Confort" />
 <div class="card">
     <div class="big">{{ game.comfortScorePct }} %</div>
     <div class="gauge"><span style="width: {{ game.comfortScorePct }}%; background: var(--accent);"></span></div>
-    <div class="row" style="margin-top: .5rem"><span class="key">Ressenti{{ ui.tip(game.help.comfort) }}</span><span>{{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
+    <div class="row" style="margin-top: .5rem"><span class="key">Ressenti<twig:Tip text="{{ game.help.comfort }}" /></span><span>{{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
     <div class="row"><span class="key">Air intérieur</span><span>{{ game.indoorTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
     {% if game.setpointBelowHealthy %}<div class="precarity">🥶 Consigne sous 18 °C : sous-chauffage (plancher santé OMS).</div>{% endif %}
     <p class="panel-note">Le confort suit la température <em>ressentie</em> (air + parois froides), pas la seule consigne. Réglez le thermostat en cliquant le séjour.</p>

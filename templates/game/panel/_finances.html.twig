@@ -1,7 +1,6 @@
-{% import 'game/_macros.html.twig' as ui %}
 {# Axe Finances (coin ↖) : le capital, puis le budget mensuel par nature
    (vie / énergie / dette) pour voir clairement où part l'argent. #}
-{{ ui.panel_head('💶 Finances') }}
+<twig:PanelHead title="💶 Finances" />
 
 <div class="card">
     <div class="key">Épargne</div>
@@ -15,14 +14,14 @@
     <div class="row"><span class="key">Vie courante</span><span class="neg">−{{ game.monthlyExpensesLabel }}</span></div>
     <div class="row"><span class="key">Énergie · moyenne</span><span class="neg">−{{ game.monthlyEnergyCostLabel }}</span></div>
     {% if game.loanActive %}
-        <div class="row"><span class="key">Dette éco-PTZ{{ ui.tip(game.help.ecoPtz) }}</span><span class="neg">−{{ game.loanMonthlyPaymentLabel }}</span></div>
+        <div class="row"><span class="key">Dette éco-PTZ<twig:Tip text="{{ game.help.ecoPtz }}" /></span><span class="neg">−{{ game.loanMonthlyPaymentLabel }}</span></div>
     {% endif %}
     <div class="row"><span class="key"><strong>Reste à vivre</strong></span><span class="{{ game.monthlyLeftoverNegative ? 'neg' }}"><strong>{{ game.monthlyLeftoverLabel }}</strong></span></div>
     <p class="panel-note">Reste à vivre = revenu − vie courante − énergie − dette. L'énergie est une moyenne mensuelle (la facture réelle est saisonnière, plus salée l'hiver).</p>
 </div>
 
 <div class="card">
-    <div class="row"><span class="key">Taux d'effort énergétique{{ ui.tip(game.help.fuelPoverty) }}</span><span class="{{ game.inFuelPoverty ? 'neg' }}">{{ game.energyEffortPct }} %{% if game.inFuelPoverty %} ⚠️{% endif %}</span></div>
+    <div class="row"><span class="key">Taux d'effort énergétique<twig:Tip text="{{ game.help.fuelPoverty }}" /></span><span class="{{ game.inFuelPoverty ? 'neg' }}">{{ game.energyEffortPct }} %{% if game.inFuelPoverty %} ⚠️{% endif %}</span></div>
     {% if game.inFuelPoverty %}
         <div class="precarity">⚠️ Foyer en <strong>précarité énergétique</strong> (plus de 8 % du revenu dans l'énergie). Isoler ou changer de chauffage l'en fait sortir.</div>
     {% endif %}

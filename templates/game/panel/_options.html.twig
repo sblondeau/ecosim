@@ -1,6 +1,5 @@
-{% import 'game/_macros.html.twig' as ui %}
 {# Roue crantée : ce qui n'appartient à aucun axe — bilan de session + options. #}
-{{ ui.panel_head('⚙ Partie · jour ' ~ game.dayNumber ~ ' / ' ~ game.horizonDays) }}
+<twig:PanelHead title="⚙ Partie · jour {{ game.dayNumber }} / {{ game.horizonDays }}" />
 <details class="card" open>
     <summary>Bilan de session — depuis le début</summary>
     <div class="row"><span class="key">Production cumulée</span><span>{{ game.totalProductionKwh|number_format(1, ',', ' ') }} kWh</span></div>
