@@ -65,7 +65,11 @@ final readonly class WallInsulationInteriorWork implements RenovationDefinition
 
     public function doneLabelFor(Household $household): ?string
     {
-        return WallInsulation::Interior === $household->envelope->walls ? $household->envelope->walls->label() : null;
+        // The drawer's chip prefixes the surface ("Murs — ") to the enum
+        // label; the offer title above does not share this text.
+        return WallInsulation::Interior === $household->envelope->walls
+            ? 'Murs — '.$household->envelope->walls->label()
+            : null;
     }
 
     public function sceneLayerFor(Household $household): ?string

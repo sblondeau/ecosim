@@ -64,7 +64,7 @@ final class RoofInsulationWorkTest extends TestCase
 
         self::assertNull($work->doneLabelFor(self::household(false)));
         self::assertNull($work->sceneLayerFor(self::household(false)));
-        self::assertSame('Isolation des combles', $work->doneLabelFor(self::household(true)));
+        self::assertSame('Combles isolés', $work->doneLabelFor(self::household(true)));
         self::assertSame('roof-ins', $work->sceneLayerFor(self::household(true)));
     }
 

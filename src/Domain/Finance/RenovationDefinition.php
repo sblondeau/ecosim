@@ -48,6 +48,13 @@ interface RenovationDefinition
      * The "done" chip for this house ("Batterie 10 kWh", "Murs — ITE"), or
      * null when the work has not been carried out.
      *
+     * This is the STATE phrase the drawer shows once the work is done — NOT
+     * the same string as {@see self::offerFor()}'s offer title (a
+     * call-to-action). Several works share wording between the two by
+     * coincidence (an enum label used verbatim in both places); others do
+     * not (e.g. the offer "Isolation des combles" vs. the done chip "Combles
+     * isolés") — never assume the two match without checking the template.
+     *
      * Independent from {@see self::offerFor()}: double glazing is BOTH done
      * (a chip) and upgradeable to triple (an offer). Both answer non-null.
      */

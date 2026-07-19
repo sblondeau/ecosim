@@ -69,7 +69,7 @@ final class SolarKitWorkTest extends TestCase
 
         self::assertNull($work->doneLabelFor(self::household(0.0)));
         self::assertNull($work->sceneLayerFor(self::household(0.0)));
-        self::assertSame('Kit solaire plug-and-play 0.9 kWc', $work->doneLabelFor(self::household(0.9)));
+        self::assertSame('Kit solaire · 0.9 kWc', $work->doneLabelFor(self::household(0.9)));
         self::assertSame('solar-kit', $work->sceneLayerFor(self::household(0.9)));
         self::assertNull($work->doneLabelFor(self::household(3.0)), 'Superseded once upgraded to the full install.');
         self::assertNull($work->sceneLayerFor(self::household(3.0)));
@@ -84,7 +84,7 @@ final class SolarKitWorkTest extends TestCase
     {
         $work = new SolarKitWork();
 
-        self::assertSame('Kit solaire plug-and-play 1.5 kWc', $work->doneLabelFor(self::household(1.5)));
+        self::assertSame('Kit solaire · 1.5 kWc', $work->doneLabelFor(self::household(1.5)));
         self::assertSame('solar-kit', $work->sceneLayerFor(self::household(1.5)));
     }
 

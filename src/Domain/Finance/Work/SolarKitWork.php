@@ -71,8 +71,11 @@ final readonly class SolarKitWork implements RenovationDefinition
 
     public function doneLabelFor(Household $household): ?string
     {
+        // Deliberately NOT self::TITLE_FORMAT: the drawer's "done" chip
+        // reads "Kit solaire · N kWc" (a state, · U+00B7 middle dot, matching
+        // GameViewFactory::solarKindLabel), not the offer's CTA title.
         return $this->isKitPower($household->solarKwc)
-            ? sprintf(self::TITLE_FORMAT, $household->solarKwc)
+            ? sprintf('Kit solaire · %.1f kWc', $household->solarKwc)
             : null;
     }
 

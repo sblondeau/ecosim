@@ -70,7 +70,7 @@ final class DraughtProofingWorkTest extends TestCase
         );
 
         self::assertNull($work->doneLabelFor(self::barePassoire()));
-        self::assertSame('Calfeutrage / joints', $work->doneLabelFor($done));
+        self::assertSame('Calfeutrage', $work->doneLabelFor($done));
     }
 
     /**

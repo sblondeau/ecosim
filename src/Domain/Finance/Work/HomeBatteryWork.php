@@ -72,7 +72,9 @@ final readonly class HomeBatteryWork implements RenovationDefinition
 
     public function doneLabelFor(Household $household): ?string
     {
-        return $household->batteryKwh > 0.0 ? sprintf(self::TITLE_FORMAT, $household->batteryKwh) : null;
+        // Deliberately NOT self::TITLE_FORMAT: the drawer's "done" chip reads
+        // "Batterie N kWh" (a state), not the offer's CTA title.
+        return $household->batteryKwh > 0.0 ? sprintf('Batterie %.0f kWh', $household->batteryKwh) : null;
     }
 
     public function sceneLayerFor(Household $household): ?string

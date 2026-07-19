@@ -65,7 +65,9 @@ final readonly class DraughtProofingWork implements RenovationDefinition
 
     public function doneLabelFor(Household $household): ?string
     {
-        return $household->envelope->draughtProofed ? self::LABEL : null;
+        // Deliberately NOT self::LABEL: the drawer's "done" chip reads
+        // "Calfeutrage" (a state), not the offer's CTA title.
+        return $household->envelope->draughtProofed ? 'Calfeutrage' : null;
     }
 
     public function sceneLayerFor(Household $household): ?string

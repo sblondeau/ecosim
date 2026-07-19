@@ -78,7 +78,7 @@ final class SolarPanelsWorkTest extends TestCase
         self::assertNull($work->sceneLayerFor(self::household(0.0)));
         self::assertNull($work->doneLabelFor(self::household(0.9)), 'A kit alone is not the full install.');
         self::assertNull($work->sceneLayerFor(self::household(0.9)));
-        self::assertSame('Panneaux solaires 3 kWc', $work->doneLabelFor(self::household(3.0)));
+        self::assertSame('Panneaux solaires · 3 kWc', $work->doneLabelFor(self::household(3.0)));
         self::assertSame('solar-full', $work->sceneLayerFor(self::household(3.0)));
     }
 

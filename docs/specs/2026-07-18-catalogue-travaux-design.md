@@ -167,6 +167,43 @@ La règle d'hygiène §17 s'en trouve mieux respectée qu'aujourd'hui : le modè
 scène ne connaît plus le nom des équipements, seulement des clés sémantiques
 opaques.
 
+> **Correction (revue finale, tâche 6 — à lire avant d'implémenter le
+> palier 4) :** le plan ci-dessus ne tient pas tel quel. `sceneLayerFor()`
+> retourne une simple `string`, mais ses 15 valeurs se répartissent en **deux
+> familles disjointes de consommateurs**, alors que `activeLayers` +
+> `house--{{ layer }}` en boucle n'en sert qu'une :
+>
+> - **9 clés sont des gates CSS** que `HouseShell` doit préfixer de
+>   `house--` (`scene.css` : `.house--{layer} .xxx { display: initial }`) :
+>   `roof-ins`, `walls-interior`, `walls-exterior`, `glazing-double`,
+>   `glazing-triple`, `vmc-double-flow`, `curtains`, `floor-heating`.
+> - **5 clés pilotent l'affichage d'un `<twig:scene:*>` entier** dans
+>   `_cutaway.html.twig` (`{% if scene.xxx == '...' %}`) et **n'ont aucune
+>   règle `.house--*`** : `heating-heat-pump`, `heating-pellet`,
+>   `water-heater-thermo`, `battery`, `solar-full`/`solar-kit`.
+>
+>   Implémentée telle quelle, la boucle `house--{{ layer }}` poserait ces 5
+>   valeurs comme classes CSS mortes (`house--battery`, `house--solar-full`…)
+>   et les visuels PAC, batterie, chauffe-eau et solaire **disparaîtraient**.
+>   Le palier 4 doit distinguer les deux familles — par exemple deux
+>   accesseurs (`houseLayers()`/`componentSelectors()`) ou une structure
+>   typée par famille — pas une seule liste plate consommée par une seule
+>   boucle.
+>
+> Deux écarts supplémentaires, dans la même zone :
+> - `.house--draughtproofed` existe déjà dans `scene.css` et y est actif
+>   (bandeau rouge de la fenêtre, tant qu'elle reste en simple vitrage), mais
+>   `DraughtProofingWork::sceneLayerFor()` retourne délibérément `null`
+>   (calfeutrage jugé invisible à cette échelle — voir le commentaire de la
+>   classe). Le palier 4 doit décider explicitement : soit brancher ce
+>   travail sur la classe existante, soit documenter que la classe CSS reste
+>   orpheline.
+> - L'état `fioul-broken` de `scene.heatingState` n'est porté par **aucun**
+>   travail (c'est un état — la panne scriptée — pas un geste du joueur), donc
+>   `HouseSceneView`/`scene.heatingState` ne pourra pas être intégralement
+>   remplacé par `activeLayers` : il restera un champ d'état à côté, quelle
+>   que soit la forme retenue pour le palier 4.
+
 ### `iconAsset(): string`
 Remplace les 10 `elseif` de `QuoteCard`, qui devient
 `{{ include(action.iconAsset) }}`.

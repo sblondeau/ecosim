@@ -74,7 +74,7 @@ final class HomeBatteryWorkTest extends TestCase
 
         self::assertNull($work->doneLabelFor(self::household(3.0, 0.0)));
         self::assertNull($work->sceneLayerFor(self::household(3.0, 0.0)));
-        self::assertSame('Batterie domestique 5 kWh', $work->doneLabelFor(self::household(3.0, 5.0)));
+        self::assertSame('Batterie 5 kWh', $work->doneLabelFor(self::household(3.0, 5.0)));
         self::assertSame('battery', $work->sceneLayerFor(self::household(3.0, 5.0)));
     }
 

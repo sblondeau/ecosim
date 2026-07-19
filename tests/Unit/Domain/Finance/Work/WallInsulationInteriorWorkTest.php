@@ -73,7 +73,7 @@ final class WallInsulationInteriorWorkTest extends TestCase
 
         self::assertNull($work->doneLabelFor(self::household(WallInsulation::None)));
         self::assertNull($work->sceneLayerFor(self::household(WallInsulation::None)));
-        self::assertSame('Intérieure (ITI)', $work->doneLabelFor(self::household(WallInsulation::Interior)));
+        self::assertSame('Murs — Intérieure (ITI)', $work->doneLabelFor(self::household(WallInsulation::Interior)));
         self::assertSame('walls-interior', $work->sceneLayerFor(self::household(WallInsulation::Interior)));
     }
 

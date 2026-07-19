@@ -64,7 +64,9 @@ final readonly class RoofInsulationWork implements RenovationDefinition
 
     public function doneLabelFor(Household $household): ?string
     {
-        return $household->envelope->roofInsulated ? self::LABEL : null;
+        // Deliberately NOT self::LABEL: the drawer's "done" chip reads
+        // "Combles isolés" (a state), not the offer's CTA title.
+        return $household->envelope->roofInsulated ? 'Combles isolés' : null;
     }
 
     public function sceneLayerFor(Household $household): ?string

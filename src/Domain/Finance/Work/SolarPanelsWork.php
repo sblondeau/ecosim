@@ -71,8 +71,11 @@ final readonly class SolarPanelsWork implements RenovationDefinition
 
     public function doneLabelFor(Household $household): ?string
     {
+        // Deliberately NOT self::TITLE_FORMAT: the drawer's "done" chip
+        // reads "Panneaux solaires · N kWc" (a state, · U+00B7 middle dot,
+        // matching GameViewFactory::solarKindLabel), not the offer's CTA title.
         return $household->solarKwc >= $this->energy->defaultSolarPeakPowerKwc()->value
-            ? sprintf(self::TITLE_FORMAT, $household->solarKwc)
+            ? sprintf('Panneaux solaires · %.0f kWc', $household->solarKwc)
             : null;
     }
 

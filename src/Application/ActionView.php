@@ -11,7 +11,7 @@ namespace App\Application;
 final readonly class ActionView
 {
     public function __construct(
-        /** Form value identifying the work ({@see \App\Domain\Finance\Renovation} backed value). */
+        /** Form value identifying the work ({@see \App\Domain\Finance\RenovationDefinition::slug()}). */
         public string $work,
         public string $title,
         public string $costLabel,

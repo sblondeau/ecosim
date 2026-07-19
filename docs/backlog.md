@@ -461,6 +461,42 @@ le MVP Phase 0-1 reste verrouillé tant que la phase n'est pas ouverte.
 > SVG posés en T7 sont fonctionnels et lisibles, pas de l'illustration soignée —
 > ils peuvent être remplacés un par un sans toucher au modèle sémantique).
 
+**Catalogue de travaux (`docs/specs/2026-07-18-catalogue-travaux-design.md`,
+branche `refactor/renovation-catalog`) — coût réel d'un 16ᵉ travail, AUJOURD'HUI
+(revue finale, avant que les paliers 4-6 du plan ferment l'écart).** Le titre du
+chantier (« une classe + une ligne ») ne devient vrai qu'après les paliers 4-6
+(scène pilotée par `activeLayers`, `doneLabelsBySlot`, `iconAsset()` branché).
+En l'état, ajouter un 16ᵉ travail touche encore :
+- **3 sites domaine** (attendus, sans surprise) : la classe `XxxWork`, la ligne
+  dans `RenovationCatalog::defaultWorks()`, le `Coefficient` de calibration.
+- **~4 sites présentation** (le vrai reliquat, non couvert par le catalogue) :
+  `worksOfSlot` dans `templates/game/panel/_slot.html.twig` (le nouveau slug
+  doit y être ajouté à la main) ; le `elseif` d'icône de `QuoteCard` ; le bloc
+  « done chip » de `_slot.html.twig` **plus** son champ `GameView` **plus** son
+  mapping dans `GameViewFactory` ; et, pour un travail avec un visuel, le trio
+  `HouseSceneView`/`HouseShell`/`_cutaway.html.twig`.
+  **Deux de ces oublis échouent SILENCIEUSEMENT** : un slug manquant dans
+  `worksOfSlot` fait que le `QuoteCard` du travail ne s'affiche **jamais**
+  (aucune erreur, `make qa` reste vert) ; de même côté scène, un travail dont le
+  visuel n'est branché nulle part ne casse rien, il ne se voit juste jamais.
+  `RenovationCatalogTest::testDefaultCatalogueExposesEveryWorkExactlyOnce()`
+  attrape l'oubli côté domaine (classe existante jamais enregistrée) — rien
+  d'équivalent n'existe côté présentation.
+- Déclencheur pour clore l'écart : les paliers 4-6 du plan ci-dessus
+  (`activeLayers` scène — avec la correction du §3 sur les deux familles
+  disjointes de consommateurs — et `doneLabelsBySlot`/`iconAsset()` remplaçant
+  `worksOfSlot`/les done-chips/les `elseif` d'icône).
+
+**Convention `LABEL`/`TITLE_FORMAT` non uniforme (revue finale, tâche 6).** 7
+des 15 classes `Work` hissent leur libellé en `private const string` (ex.
+`RoofInsulationWork::LABEL`, `SolarPanelsWork::TITLE_FORMAT`), les 8 autres
+l'inlinent directement dans `offerFor()`/`doneLabelFor()` — un clivage qui suit
+les trois lots d'implémentation (chauffage → enveloppe → garage/toit/séjour),
+pas un choix délibéré. Sans conséquence (`make qa` vert, comportement
+identique), mais c'est la première classe qu'un futur contributeur copiera pour
+en écrire une 16ᵉ. À trancher — une seule convention — quand ce chantier
+présentation (ci-dessus) rouvre ces classes.
+
 Répond à la mollesse structurelle du gameplay (décisions one-shot, milieu
 d'année vide) en **multipliant les choix de travaux**, avec pour **rôle premier
 la pédagogie de la rénovation** (le vrai parcours ADEME, pas un gating de jeu).
