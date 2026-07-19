@@ -70,6 +70,20 @@ final class SolarPanelsWorkTest extends TestCase
         self::assertSame('Réduit la facture d\'électricité. Plus rentable une fois les besoins de chauffage réduits.', $advice->message);
     }
 
+    /**
+     * With a kit already installed, the roof supersedes it — the two cannot
+     * share one delivery point once the roof sells its surplus — so the
+     * player must be cautioned that the kit is scrapped, not kept.
+     */
+    public function testCautionsThatTheRoofReplacesAnInstalledKit(): void
+    {
+        $advice = new SolarPanelsWork()->adviceFor(self::household(0.9));
+
+        self::assertSame(AdviceLevel::Caution, $advice->level);
+        self::assertStringContainsString('remplace', $advice->message);
+        self::assertStringContainsString('kit', $advice->message);
+    }
+
     public function testDoneLabelAndSceneLayerAppearOnlyOnceTheFullInstallIsDone(): void
     {
         $work = new SolarPanelsWork();

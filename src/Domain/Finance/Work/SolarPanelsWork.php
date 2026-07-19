@@ -58,6 +58,25 @@ final readonly class SolarPanelsWork implements RenovationDefinition
 
     public function adviceFor(Household $household): RenovationAdvice
     {
+        // A plug-and-play kit is installed, but not yet the full rooftop model.
+        $kitInstalled = $household->solarKwc > 0.0
+            && $household->solarKwc < $this->energy->defaultSolarPeakPowerKwc()->value;
+
+        // The two cannot coexist on one delivery point: selling the roof's
+        // surplus (EDF OA) requires guaranteeing the injected energy's origin,
+        // which a socket-plugged kit cannot — so a CACSI (kit, no injection)
+        // and a CAE (roof, surplus sale) are mutually exclusive on one PDL.
+        // Installing the roof therefore scraps the kit; the player must be told.
+        // Sources: photovoltaique.info (kits Plug and Play — production « sans
+        // injection ni vente ») ; Enedis (CACSI incompatible avec une CAE sur
+        // le même PDL). Reviewed 2026-07-19.
+        if ($kitInstalled) {
+            return new RenovationAdvice(
+                AdviceLevel::Caution,
+                'Les panneaux en toiture remplacent votre kit plug-and-play — il n\'est pas récupéré. Les deux ne peuvent pas coexister : revendre le surplus du toit oblige à garantir l\'origine de l\'électricité injectée, ce qu\'un kit branché sur prise ne permet pas.',
+            );
+        }
+
         return new RenovationAdvice(
             AdviceLevel::Info,
             'Réduit la facture d\'électricité. Plus rentable une fois les besoins de chauffage réduits.',
