@@ -15,8 +15,9 @@ use App\Domain\Finance\SceneSlot;
 
 /**
  * Draught-proofing: window seals, door sweeps, mastic. A cheap daily gesture
- * with a small effect (arbre travaux, Tranche 6) — window seals are invisible
- * at this scale, so unlike every other work this one has no scene layer.
+ * with a small effect (arbre travaux, Tranche 6). Tranche 7 (fenêtre-
+ * cohérence) added a scene visual — a red draught band — so this work does
+ * activate a layer once done.
  */
 final readonly class DraughtProofingWork implements RenovationDefinition
 {
@@ -72,9 +73,10 @@ final readonly class DraughtProofingWork implements RenovationDefinition
 
     public function sceneLayerFor(Household $household): ?string
     {
-        // Deliberate exception (arbre travaux, Tranche 7): window seals are
-        // invisible at this scale, so this work never activates a layer.
-        return null;
+        // The red draught band, revealed once done (tranche 7 fenêtre-
+        // cohérence added it; CSS hides it again once the frames are
+        // replaced, .house--draughtproofed.house--glazing-* in scene.css).
+        return $household->envelope->draughtProofed ? 'draughtproofed' : null;
     }
 
     public function iconAsset(): string

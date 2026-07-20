@@ -122,114 +122,43 @@ final class RenovationCatalogTest extends TestCase
     }
 
     /**
-     * The safety net promised by docs/specs/2026-07-18-catalogue-travaux-design.md
-     * §7: dropping the `Renovation` enum (task 6) also dropped PHPStan's
-     * exhaustive `match` as a guard against a work's `sceneLayerFor()` naming
-     * a layer key the scene does not actually honour — a typo here now fails
-     * silently (the layer is simply never rendered) instead of a stan error.
-     * This test is that guard, moved to runtime: every non-null value any
-     * work can produce, across every state the field it reads can take, must
-     * belong to an allow-list independently derived from the scene's own
-     * consumers (not from the works themselves — that would be a tautology).
-     *
-     * The allow-list has two disjoint groups (design-flaw correction, see
-     * docs/specs/2026-07-18-catalogue-travaux-design.md §3 sceneLayerFor()):
-     *
-     * Group A (8 CSS gates): independently derived from scene.css selectors.
-     * Each key appears as `.house--{key}` in scene.css with actual styling rules,
-     * consumed by HouseShell's class emission. These really bite on typo.
-     *
-     * Group B (6 cutaway component selectors): partially independently derived
-     * and partially a snapshot. Five of them (`heating-heat-pump`, `water-heater-thermo`,
-     * `battery`, `solar-full`, `solar-kit`) are independently verified via explicit
-     * checks in _cutaway.html.twig (`scene.heatingState == 'heat-pump'`,
-     * `scene.waterHeaterThermo`, `scene.garageState == 'installed'`,
-     * `scene.solarState == 'full'`, `scene.solarState == 'kit'`). One (`heating-pellet`)
-     * has no explicit check in the template — the Boiler component renders it by state
-     * but doesn't guard it with a conditional — so it is currently a recorded snapshot
-     * of what works produce, pending a follow-up plan to wire these values.
+     * Every non-null sceneLayerFor() value, across every household state a
+     * work can produce, is a real house--* gate in scene.css. This is the
+     * net that replaces the lost PHPStan exhaustiveness: a typo'd or invented
+     * layer key would fail here, before it silently broke the scene.
      */
-    public function testEveryNonNullSceneLayerBelongsToAConsumerTheSceneActuallyHonours(): void
+    public function testEverySceneLayerIsARealCssGate(): void
     {
-        // Group A — CSS gates in assets/styles/scene.css, each consumed as
-        // `.house--{layer}` by a rule keyed off the classes HouseShell.html.twig
-        // emits (e.g., `house--walls-{{ wallInsulation }}`, `house--vmc-{{ ventilation }}`,
-        // `house--glazing-{{ glazing }}` for props, or direct classes like
-        // `house--roof-ins`, `house--curtains`; see templates/components/scene/HouseShell.html.twig):
-        //   .house--roof-ins            (scene.css:140)
-        //   .house--walls-interior      (scene.css:141)
-        //   .house--walls-exterior      (scene.css:142)
-        //   .house--glazing-double      (scene.css:143, 154-157)
-        //   .house--glazing-triple      (scene.css:144-145, 158-161)
-        //   .house--vmc-double-flow     (scene.css:146)
-        //   .house--curtains            (scene.css:147)
-        //   .house--floor-heating       (scene.css:148)
-        // NB: .house--draughtproofed also exists (scene.css:166) but no work
-        // produces it today — DraughtProofingWork::sceneLayerFor() is a
-        // deliberate null (design-flaw correction, see the spec §3 above).
-        $cssGateLayers = [
+        // The nine envelope gates declared in assets/styles/scene.css.
+        $gates = [
             'roof-ins', 'walls-interior', 'walls-exterior',
-            'glazing-double', 'glazing-triple',
-            'vmc-double-flow', 'curtains', 'floor-heating',
+            'glazing-double', 'glazing-triple', 'vmc-double-flow',
+            'curtains', 'draughtproofed', 'floor-heating',
         ];
 
-        // Group B — whole-component selectors in
-        // templates/game/scene/_cutaway.html.twig: these gate whether a
-        // <twig:scene:*> component renders at all, and have NO .house--*
-        // counterpart in scene.css:
-        //   scene.heatingState == 'heat-pump'  -> <twig:scene:HeatPump>    (_cutaway.html.twig:162-163)
-        //   scene.waterHeaterThermo            -> <twig:scene:WaterHeater> (_cutaway.html.twig:172-173)
-        //   scene.garageState == 'installed'   -> <twig:scene:Battery>     (_cutaway.html.twig:185-186)
-        //   scene.solarState == 'full'         -> <twig:scene:SolarPanels> on the roof (_cutaway.html.twig:118-119)
-        //   scene.solarState == 'kit'          -> <twig:scene:SolarPanels variant="kit"> in the garage (_cutaway.html.twig:193-194)
-        // heating-pellet has no dedicated component today (pellet renders via
-        // <twig:scene:Boiler state="...">, same as fuel-oil) but is included
-        // here as the value HeatPumpWork's sibling PelletBoilerWork produces,
-        // matched against scene.heatingState the same way heat-pump is.
-        $cutawaySelectorLayers = [
-            'heating-heat-pump', 'heating-pellet',
-            'water-heater-thermo', 'battery',
-            'solar-full', 'solar-kit',
-        ];
-
-        $allowList = [...$cssGateLayers, ...$cutawaySelectorLayers];
-
-        $catalog = new RenovationCatalog();
-        $energy = new EnergyCalibration();
-
-        foreach ($catalog->all() as $work) {
-            foreach (self::reachableHouseholdStates($energy) as $description => $household) {
+        foreach (self::everyHouseholdState() as $household) {
+            foreach (new RenovationCatalog()->all() as $work) {
                 $layer = $work->sceneLayerFor($household);
-                if (null === $layer) {
-                    continue;
+                if (null !== $layer) {
+                    self::assertContains($layer, $gates, sprintf('%s → %s', $work->slug(), $layer));
                 }
-
-                self::assertContains(
-                    $layer,
-                    $allowList,
-                    sprintf(
-                        '%s::sceneLayerFor() returned "%s" for state "%s", which no scene consumer honours (not in the CSS-gate or cutaway-selector allow-list).',
-                        $work::class,
-                        $layer,
-                        $description,
-                    ),
-                );
             }
         }
     }
 
     /**
-     * One-factor-at-a-time household states: every value each field read by
-     * some `sceneLayerFor()` can take, varied one at a time from the bare
-     * passoire baseline. Sufficient here because no work's `sceneLayerFor()`
-     * reads more than one field (verified by inspection of the 15 classes) —
-     * a full cross-product would multiply combinations without exercising
-     * any branch a single-axis sweep does not already reach.
+     * One household per palier reachable via the works' witters — enough to
+     * activate every non-null sceneLayerFor() branch across the catalogue
+     * without a full combinatorial cross-product (no work's sceneLayerFor()
+     * reads more than one Household field, verified by inspection of the 15
+     * classes).
      *
      * @return iterable<string, Household>
      */
-    private static function reachableHouseholdStates(EnergyCalibration $energy): iterable
+    private static function everyHouseholdState(): iterable
     {
+        $energy = new EnergyCalibration();
+
         $bare = new Household(
             solarKwc: 0.0,
             batteryKwh: 0.0,
@@ -239,30 +168,23 @@ final class RenovationCatalogTest extends TestCase
 
         yield 'bare passoire' => $bare;
 
-        yield 'solar: kit power' => $bare->withSolarKwc($energy->solarKitPeakPowerKwc()->value);
-        yield 'solar: full install' => $bare->withSolarKwc($energy->defaultSolarPeakPowerKwc()->value);
-        yield 'solar: intermediate kit power' => $bare->withSolarKwc(1.5);
-
-        yield 'battery: installed' => $bare->withBatteryKwh($energy->defaultBatteryCapacityKwh()->value);
-
         yield 'roof: insulated' => $bare->withEnvelope($bare->envelope->withRoofInsulated(true));
-
         yield 'walls: interior (ITI)' => $bare->withEnvelope($bare->envelope->withWalls(WallInsulation::Interior));
         yield 'walls: exterior (ITE)' => $bare->withEnvelope($bare->envelope->withWalls(WallInsulation::Exterior));
-
         yield 'glazing: double' => $bare->withEnvelope($bare->envelope->withGlazing(Glazing::Double));
         yield 'glazing: triple' => $bare->withEnvelope($bare->envelope->withGlazing(Glazing::Triple));
-
         yield 'ventilation: double flow' => $bare->withEnvelope($bare->envelope->withVentilation(Ventilation::DoubleFlow));
-
-        yield 'draught-proofed' => $bare->withEnvelope($bare->envelope->withDraughtProofed(true));
         yield 'thermal curtains' => $bare->withEnvelope($bare->envelope->withThermalCurtains(true));
+        yield 'draught-proofed' => $bare->withEnvelope($bare->envelope->withDraughtProofed(true));
+        yield 'low-temp emitters' => $bare->withLowTempEmitters(true);
 
         yield 'heating: heat pump' => $bare->withHeatingSystem(HeatingSystem::HeatPump);
         yield 'heating: pellet boiler' => $bare->withHeatingSystem(HeatingSystem::PelletBoiler);
-        yield 'heating: fuel-oil boiler broken' => $bare->withBoilerBroken(true);
 
-        yield 'low-temp emitters' => $bare->withLowTempEmitters(true);
+        yield 'solar: kit power' => $bare->withSolarKwc($energy->solarKitPeakPowerKwc()->value);
+        yield 'solar: full install' => $bare->withSolarKwc($energy->defaultSolarPeakPowerKwc()->value);
+
+        yield 'battery: installed' => $bare->withBatteryKwh($energy->defaultBatteryCapacityKwh()->value);
 
         yield 'water heater: thermodynamic' => $bare->withWaterHeater(WaterHeater::Thermodynamic);
     }

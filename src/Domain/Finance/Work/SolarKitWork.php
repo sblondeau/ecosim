@@ -81,7 +81,9 @@ final readonly class SolarKitWork implements RenovationDefinition
 
     public function sceneLayerFor(Household $household): ?string
     {
-        return $this->isKitPower($household->solarKwc) ? 'solar-kit' : null;
+        // Equipment: drawn as a <twig:scene:*> component selected from the
+        // household's equipment state, not via an envelope house--* gate.
+        return null;
     }
 
     /**

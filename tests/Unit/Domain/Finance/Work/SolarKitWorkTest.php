@@ -63,16 +63,13 @@ final class SolarKitWorkTest extends TestCase
         self::assertSame('Le premier pas accessible : sans installateur ni aide, rendement modeste.', $advice->message);
     }
 
-    public function testDoneLabelAndSceneLayerAppearOnlyWhileAtTheKitStage(): void
+    public function testDoneLabelAppearsOnlyWhileAtTheKitStage(): void
     {
         $work = new SolarKitWork();
 
         self::assertNull($work->doneLabelFor(self::household(0.0)));
-        self::assertNull($work->sceneLayerFor(self::household(0.0)));
         self::assertSame('Kit solaire · 0.9 kWc', $work->doneLabelFor(self::household(0.9)));
-        self::assertSame('solar-kit', $work->sceneLayerFor(self::household(0.9)));
         self::assertNull($work->doneLabelFor(self::household(3.0)), 'Superseded once upgraded to the full install.');
-        self::assertNull($work->sceneLayerFor(self::household(3.0)));
     }
 
     /**
@@ -80,12 +77,26 @@ final class SolarKitWorkTest extends TestCase
      * kit — the same range rule {@see \App\Application\GameViewFactory} uses
      * for the scene's solar state, not just the exact kit calibration value.
      */
-    public function testDoneLabelAndSceneLayerAppearForAnyIntermediatePower(): void
+    public function testDoneLabelAppearsForAnyIntermediatePower(): void
     {
         $work = new SolarKitWork();
 
         self::assertSame('Kit solaire · 1.5 kWc', $work->doneLabelFor(self::household(1.5)));
-        self::assertSame('solar-kit', $work->sceneLayerFor(self::household(1.5)));
+    }
+
+    /**
+     * Equipment has no envelope CSS layer: its visual is a whole scene
+     * component selected by HouseSceneView from the household's equipment
+     * state (solar state), not by a house--* gate. So sceneLayerFor is null.
+     */
+    public function testHasNoEnvelopeLayer(): void
+    {
+        $work = new SolarKitWork();
+
+        self::assertNull($work->sceneLayerFor(self::household(0.0)));
+        self::assertNull($work->sceneLayerFor(self::household(0.9)));
+        self::assertNull($work->sceneLayerFor(self::household(1.5)));
+        self::assertNull($work->sceneLayerFor(self::household(3.0)));
     }
 
     public function testIconAssetPointsAtARealFile(): void

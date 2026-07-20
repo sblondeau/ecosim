@@ -61,9 +61,15 @@ interface RenovationDefinition
     public function doneLabelFor(Household $household): ?string;
 
     /**
-     * The semantic scene layer this work activates for this house, or null
-     * when it has no visual (game-design §17: a key, never geometry — no
-     * coordinates, colours or shapes here).
+     * The envelope CSS layer this work reveals in the cutaway — one of the
+     * house--* gates in scene.css: roof-ins, walls-interior|exterior,
+     * glazing-double|triple, vmc-double-flow, curtains, draughtproofed,
+     * floor-heating — or null.
+     *
+     * Null covers three cases: a base state with no gate (single glazing,
+     * bare walls), equipment (heat pump, solar, battery… — drawn as a whole
+     * scene component selected from the household's equipment state, NOT via
+     * a gate), and repairs. game-design §17: a key, never geometry.
      */
     public function sceneLayerFor(Household $household): ?string;
 

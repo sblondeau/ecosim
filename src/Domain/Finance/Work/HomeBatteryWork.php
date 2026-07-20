@@ -81,7 +81,9 @@ final readonly class HomeBatteryWork implements RenovationDefinition
 
     public function sceneLayerFor(Household $household): ?string
     {
-        return $household->batteryKwh > 0.0 ? 'battery' : null;
+        // Equipment: drawn as a <twig:scene:*> component selected from the
+        // household's equipment state, not via an envelope house--* gate.
+        return null;
     }
 
     public function iconAsset(): string
