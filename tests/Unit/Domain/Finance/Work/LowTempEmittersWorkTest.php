@@ -33,7 +33,7 @@ final class LowTempEmittersWorkTest extends TestCase
 
         self::assertSame('low_temp_emitters', $work->slug());
         self::assertSame(SceneSlot::Heating, $work->slot());
-        self::assertTrue($work->isEnergyPerformanceWork());
+        self::assertTrue($work->qualifiesForEnergyAid());
     }
 
     public function testOffersLowTempEmittersWhenNotInstalled(): void

@@ -43,7 +43,7 @@ final class HeatPumpWorkTest extends TestCase
 
         self::assertSame('heat_pump', $work->slug());
         self::assertSame(SceneSlot::Heating, $work->slot());
-        self::assertTrue($work->isEnergyPerformanceWork());
+        self::assertTrue($work->qualifiesForEnergyAid());
     }
 
     public function testOffersAHeatPumpToAFuelOilHouse(): void

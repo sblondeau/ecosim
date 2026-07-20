@@ -34,7 +34,7 @@ final class WaterHeaterThermoWorkTest extends TestCase
 
         self::assertSame('water_heater_thermo', $work->slug());
         self::assertSame(SceneSlot::Heating, $work->slot());
-        self::assertTrue($work->isEnergyPerformanceWork());
+        self::assertTrue($work->qualifiesForEnergyAid());
     }
 
     public function testOffersAThermodynamicTankWhenElectric(): void

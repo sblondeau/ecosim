@@ -32,7 +32,7 @@ final class WallInsulationExteriorWorkTest extends TestCase
 
         self::assertSame('wall_insulation_exterior', $work->slug());
         self::assertSame(SceneSlot::Walls, $work->slot());
-        self::assertTrue($work->isEnergyPerformanceWork());
+        self::assertTrue($work->qualifiesForEnergyAid());
     }
 
     public function testOffersIteWhenWallsAreBare(): void

@@ -37,7 +37,7 @@ final class HomeBatteryWorkTest extends TestCase
 
         self::assertSame('home_battery', $work->slug());
         self::assertSame(SceneSlot::Garage, $work->slot());
-        self::assertFalse($work->isEnergyPerformanceWork(), 'Production/storage equipment is not covered by the prime.');
+        self::assertFalse($work->qualifiesForEnergyAid(), 'Production/storage equipment is not covered by the prime.');
     }
 
     public function testOffersNoBatteryBeforeAnySolarIsInstalled(): void

@@ -65,7 +65,7 @@ final readonly class HomeBatteryWork implements RenovationDefinition
         );
     }
 
-    public function isEnergyPerformanceWork(): bool
+    public function qualifiesForEnergyAid(): bool
     {
         return false;
     }

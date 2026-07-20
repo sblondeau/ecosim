@@ -39,10 +39,10 @@ interface RenovationDefinition
     /**
      * Does this work fall inside the perimeter of the energy-performance aid
      * schemes? Drives BOTH the prime and éco-PTZ eligibility — they share the
-     * same real-world perimeter, so this names the underlying fact rather than
-     * either of its two consequences.
+     * same real-world perimeter, so this names the underlying eligibility
+     * rather than either of its two consequences.
      */
-    public function isEnergyPerformanceWork(): bool;
+    public function qualifiesForEnergyAid(): bool;
 
     /**
      * The "done" chip for this house ("Batterie 10 kWh", "Murs — ITE"), or

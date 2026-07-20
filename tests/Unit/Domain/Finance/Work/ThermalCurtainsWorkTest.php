@@ -32,7 +32,7 @@ final class ThermalCurtainsWorkTest extends TestCase
 
         self::assertSame('thermal_curtains', $work->slug());
         self::assertSame(SceneSlot::Living, $work->slot());
-        self::assertFalse($work->isEnergyPerformanceWork(), 'Too small a gesture to qualify for public money.');
+        self::assertFalse($work->qualifiesForEnergyAid(), 'Too small a gesture to qualify for public money.');
     }
 
     public function testOffersThermalCurtainsWhenNotDone(): void

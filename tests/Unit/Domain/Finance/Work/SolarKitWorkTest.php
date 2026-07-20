@@ -32,7 +32,7 @@ final class SolarKitWorkTest extends TestCase
 
         self::assertSame('solar_kit', $work->slug());
         self::assertSame(SceneSlot::Garage, $work->slot());
-        self::assertFalse($work->isEnergyPerformanceWork(), 'Production equipment is not covered by the prime.');
+        self::assertFalse($work->qualifiesForEnergyAid(), 'Production equipment is not covered by the prime.');
     }
 
     public function testOffersTheKitFromABareRoof(): void

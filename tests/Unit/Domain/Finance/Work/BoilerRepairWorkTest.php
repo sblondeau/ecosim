@@ -33,7 +33,7 @@ final class BoilerRepairWorkTest extends TestCase
 
         self::assertSame('boiler_repair', $work->slug());
         self::assertSame(SceneSlot::Heating, $work->slot());
-        self::assertFalse($work->isEnergyPerformanceWork());
+        self::assertFalse($work->qualifiesForEnergyAid());
     }
 
     public function testOffersARepairWhenTheBoilerIsBroken(): void

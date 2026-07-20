@@ -62,7 +62,7 @@ final readonly class VentilationDoubleFlowWork implements RenovationDefinition
             : new RenovationAdvice(AdviceLevel::Info, 'Récupère la chaleur de l\'air extrait et renouvelle l\'air sainement.');
     }
 
-    public function isEnergyPerformanceWork(): bool
+    public function qualifiesForEnergyAid(): bool
     {
         return true;
     }

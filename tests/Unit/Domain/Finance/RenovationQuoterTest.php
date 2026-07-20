@@ -52,7 +52,7 @@ final class RenovationQuoterTest extends TestCase
     public function testAppliesTheIncomeBracketPrimeToAnyEnergyPerformanceDefinition(): void
     {
         $quote = new RenovationQuoter()->quote(
-            new StubDefinition('roof_insulation', Money::fromEuros(1000.0), isEnergyPerformanceWork: true),
+            new StubDefinition('roof_insulation', Money::fromEuros(1000.0), qualifiesForEnergyAid: true),
             self::barePassoire(),
         );
 
@@ -65,7 +65,7 @@ final class RenovationQuoterTest extends TestCase
     public function testAppliesNoSubsidyToAWorkOutsideTheAidPerimeter(): void
     {
         $quote = new RenovationQuoter()->quote(
-            new StubDefinition('home_battery', Money::fromEuros(1000.0), isEnergyPerformanceWork: false),
+            new StubDefinition('home_battery', Money::fromEuros(1000.0), qualifiesForEnergyAid: false),
             self::barePassoire(),
         );
 
@@ -80,7 +80,7 @@ final readonly class StubDefinition implements RenovationDefinition
     public function __construct(
         private string $slug,
         private Money $cost,
-        private bool $isEnergyPerformanceWork,
+        private bool $qualifiesForEnergyAid,
     ) {
     }
 
@@ -104,9 +104,9 @@ final readonly class StubDefinition implements RenovationDefinition
         return new RenovationAdvice(AdviceLevel::Info, 'stub');
     }
 
-    public function isEnergyPerformanceWork(): bool
+    public function qualifiesForEnergyAid(): bool
     {
-        return $this->isEnergyPerformanceWork;
+        return $this->qualifiesForEnergyAid;
     }
 
     public function doneLabelFor(Household $household): ?string

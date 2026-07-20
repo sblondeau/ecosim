@@ -32,7 +32,7 @@ final class PelletBoilerWorkTest extends TestCase
 
         self::assertSame('pellet_boiler', $work->slug());
         self::assertSame(SceneSlot::Heating, $work->slot());
-        self::assertTrue($work->isEnergyPerformanceWork());
+        self::assertTrue($work->qualifiesForEnergyAid());
     }
 
     public function testOffersAPelletBoilerToAFuelOilHouse(): void

@@ -297,7 +297,7 @@ final readonly class FakeWork implements RenovationDefinition
         return new RenovationAdvice(\App\Domain\Finance\AdviceLevel::Info, 'test');
     }
 
-    public function isEnergyPerformanceWork(): bool
+    public function qualifiesForEnergyAid(): bool
     {
         return false;
     }

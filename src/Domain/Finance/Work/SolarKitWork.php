@@ -64,7 +64,7 @@ final readonly class SolarKitWork implements RenovationDefinition
         );
     }
 
-    public function isEnergyPerformanceWork(): bool
+    public function qualifiesForEnergyAid(): bool
     {
         return false;
     }

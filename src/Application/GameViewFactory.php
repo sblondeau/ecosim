@@ -568,7 +568,7 @@ final readonly class GameViewFactory
                 subsidyLabel: $quote->subsidy->cents > 0 ? $quote->subsidy->format() : '',
                 netCostLabel: $net->format(),
                 cashAllowed: $state->savings->cents >= $net->cents,
-                loanAllowed: $loanEligible = ($work->isEnergyPerformanceWork()
+                loanAllowed: $loanEligible = ($work->qualifiesForEnergyAid()
                     && $state->loan->borrowedTotal->plus($net)->cents <= $loanCap->cents),
                 loanMonthlyLabel: $loanEligible ? Loan::none()->borrow($net)->monthlyPayment->format() : '',
                 effectLabels: $this->effectLabels($before, $after),

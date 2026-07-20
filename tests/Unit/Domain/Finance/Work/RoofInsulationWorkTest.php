@@ -32,7 +32,7 @@ final class RoofInsulationWorkTest extends TestCase
 
         self::assertSame('roof_insulation', $work->slug());
         self::assertSame(SceneSlot::Walls, $work->slot());
-        self::assertTrue($work->isEnergyPerformanceWork());
+        self::assertTrue($work->qualifiesForEnergyAid());
     }
 
     public function testOffersRoofInsulationWhenNotDone(): void

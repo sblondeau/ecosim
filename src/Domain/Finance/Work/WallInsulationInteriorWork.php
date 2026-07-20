@@ -58,7 +58,7 @@ final readonly class WallInsulationInteriorWork implements RenovationDefinition
         );
     }
 
-    public function isEnergyPerformanceWork(): bool
+    public function qualifiesForEnergyAid(): bool
     {
         return true;
     }

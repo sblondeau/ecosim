@@ -32,7 +32,7 @@ final class DraughtProofingWorkTest extends TestCase
 
         self::assertSame('draught_proofing', $work->slug());
         self::assertSame(SceneSlot::Living, $work->slot());
-        self::assertFalse($work->isEnergyPerformanceWork(), 'Too small a gesture to qualify for public money.');
+        self::assertFalse($work->qualifiesForEnergyAid(), 'Too small a gesture to qualify for public money.');
     }
 
     public function testOffersDraughtProofingWhenNotDone(): void
