@@ -213,6 +213,75 @@ final class GameDashboardTest extends KernelTestCase
         self::assertStringNotContainsString('Chauffe-eau thermodynamique', $garage);
     }
 
+    /**
+     * Task 4 (arbre travaux, palier 5): the drawers' "done" chips are now
+     * fully catalogue-driven, grouped strictly by RenovationDefinition::slot()
+     * instead of the template's old, independently-placed flags. This moves
+     * three chips relative to the pre-Task-4 rendering — approved changes,
+     * proven here rather than silently relied upon.
+     */
+    public function testGarageDrawerShowsTheSolarKitDoneChipOnceInstalled(): void
+    {
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        // The 800 € plug-and-play kit is affordable in cash from the 7 750 €
+        // starting savings.
+        $component->call('order', ['work' => 'solar_kit', 'financing' => 'cash']);
+
+        $garage = (string) $component->call('selectSlot', ['slot' => 'garage'])->render();
+        self::assertStringContainsString(
+            'done-chip">✔ Kit solaire',
+            $garage,
+            'SolarKitWork::slot() is Garage: the done chip now lives where the offer already did, not in roof (Task 4, approved change 2/3).',
+        );
+
+        $roof = (string) $component->call('selectSlot', ['slot' => 'roof'])->render();
+        self::assertStringNotContainsString(
+            'done-chip">✔ Kit solaire',
+            $roof,
+            'The roof drawer still names the kit in its "Installation actuelle" context row, but no longer shows the done chip.',
+        );
+    }
+
+    public function testHeatingDrawerShowsTheThermodynamicWaterHeaterDoneChipOnceInstalled(): void
+    {
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        // 3 500 €, affordable in cash from the 7 750 € starting savings.
+        $component->call('order', ['work' => 'water_heater_thermo', 'financing' => 'cash']);
+
+        $heating = (string) $component->call('selectSlot', ['slot' => 'heating'])->render();
+        self::assertStringContainsString(
+            'done-chip">✔ Chauffe-eau thermodynamique',
+            $heating,
+            'WaterHeaterThermoWork::slot() is Heating: the done chip now lives where the offer already did, not in garage (Task 4, approved change 1/3).',
+        );
+
+        $garage = (string) $component->call('selectSlot', ['slot' => 'garage'])->render();
+        self::assertStringNotContainsString(
+            'done-chip">✔ Chauffe-eau thermodynamique',
+            $garage,
+            'The garage drawer still names the water heater in its "Équipement actuel" context row, but no longer shows the done chip.',
+        );
+    }
+
+    public function testHeatingDrawerNoLongerBadgesTheStartingFuelOilBoilerAsDone(): void
+    {
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        // A brand-new game starts on fuel oil: no catalogue work claims
+        // "still on the starting boiler" as a done upgrade (only switching TO
+        // a heat pump/pellet boiler does).
+        $html = (string) $component->call('selectSlot', ['slot' => 'heating'])->render();
+
+        self::assertStringContainsString('Chaudière fioul', $html, 'The "Générateur actuel" context row still names it.');
+        self::assertStringNotContainsString(
+            'done-chip">✔ Chaudière fioul',
+            $html,
+            'But the starting boiler is no longer badged as a "done" chip (Task 4, approved change 3/3).',
+        );
+    }
+
     public function testLivingSlotOffersTheDraughtProofingAndThermalCurtainsGestures(): void
     {
         $component = $this->createLiveComponent(GameDashboard::class);

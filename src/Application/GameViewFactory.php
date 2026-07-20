@@ -13,7 +13,6 @@ use App\Domain\Building\EnvelopeState;
 use App\Domain\Building\Glazing;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
-use App\Domain\Building\Ventilation;
 use App\Domain\Building\WallInsulation;
 use App\Domain\Building\WaterHeater;
 use App\Domain\Energy\CarbonAccountant;
@@ -24,6 +23,7 @@ use App\Domain\Finance\Money;
 use App\Domain\Finance\PropertyValuator;
 use App\Domain\Finance\RenovationCatalog;
 use App\Domain\Finance\RenovationQuoter;
+use App\Domain\Finance\SceneSlot;
 use App\Domain\Math\SeasonalCycle;
 use App\Domain\Scenario\PrimoAccedantScenario;
 use App\Domain\Scenario\Scenario;
@@ -104,6 +104,25 @@ final readonly class GameViewFactory
         $monthlyEnergy = Money::fromCents(intdiv($currentAnnual->netEnergyCost->cents, 12));
         $monthlyLeftover = $monthlyIncome->minus($monthlyLiving)->minus($monthlyEnergy)->minus($state->loan->monthlyPayment);
 
+        // The drawer's done chips and quote order, both driven by the
+        // catalogue instead of the template's old hardcoded worksOfSlot and
+        // its five copied done-chip blocks (arbre travaux, palier 5).
+        $doneChipsBySlot = [];
+        $worksBySlot = [];
+        foreach (SceneSlot::cases() as $slot) {
+            $chips = [];
+            $slugs = [];
+            foreach ($this->catalog->forSlot($slot) as $work) {
+                $slugs[] = $work->slug();
+                $chip = $work->doneLabelFor($household);
+                if (null !== $chip) {
+                    $chips[] = $chip;
+                }
+            }
+            $doneChipsBySlot[$slot->value] = $chips;
+            $worksBySlot[$slot->value] = $slugs;
+        }
+
         return new GameView(
             dayNumber: min($state->currentDay + 1, $config->horizonDays),
             dateLabel: $this->frenchDate($snapshot->date, $state->currentDay),
@@ -154,13 +173,7 @@ final readonly class GameViewFactory
             setpointDownEffectLabel: $this->setpointEffect($household, $currentAnnual, -1.0),
             setpointUpEffectLabel: $this->setpointEffect($household, $currentAnnual, 1.0),
             insulationLabel: $this->envelopeLabel($household->envelope),
-            roofInsulated: $household->envelope->roofInsulated,
-            wallInsulationLabel: WallInsulation::None === $household->envelope->walls ? '' : $household->envelope->walls->label(),
-            glazingLabel: Glazing::Single === $household->envelope->glazing ? '' : $household->envelope->glazing->label(),
             glazingMaxed: Glazing::Triple === $household->envelope->glazing,
-            hasDraughtProofing: $household->envelope->draughtProofed,
-            hasThermalCurtains: $household->envelope->thermalCurtains,
-            hasLowTempEmitters: $household->lowTempEmitters,
             heatPumpScopLabel: HeatingSystem::HeatPump === $household->heatingSystem
                 ? number_format(
                     $household->lowTempEmitters
@@ -171,13 +184,14 @@ final readonly class GameViewFactory
                     ' ',
                 )
                 : '',
-            hasHeatRecoveryVentilation: Ventilation::DoubleFlow === $household->envelope->ventilation,
             solarKindLabel: match (true) {
                 $household->solarKwc <= 0.0 => '',
                 $household->solarKwc < $this->energy->defaultSolarPeakPowerKwc()->value => sprintf('Kit solaire · %.1f kWc', $household->solarKwc),
                 default => sprintf('Panneaux solaires · %.0f kWc', $household->solarKwc),
             },
             waterHeaterLabel: WaterHeater::Thermodynamic === $household->waterHeater ? $household->waterHeater->label() : '',
+            doneChipsBySlot: $doneChipsBySlot,
+            worksBySlot: $worksBySlot,
             dpeLetter: $dpe->finalClass->label(),
             dpeEnergyLetter: $dpe->energyClass->label(),
             dpeEnergyIntensity: (int) round($dpe->energyIntensity),

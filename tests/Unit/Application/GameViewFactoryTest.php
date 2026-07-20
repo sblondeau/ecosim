@@ -208,18 +208,25 @@ final class GameViewFactoryTest extends TestCase
         $bare = new Household(0.0, 0.0, self::original(), HeatingSystem::FuelOilBoiler);
         $view = new GameViewFactory()->build(self::config(), GameState::start($bare, Money::fromEuros(4000.0)));
 
-        self::assertFalse($view->roofInsulated);
-        self::assertSame('', $view->wallInsulationLabel);
-        self::assertSame('', $view->glazingLabel);
+        self::assertSame([], $view->doneChipsBySlot['walls'], 'A bare envelope has no walls-drawer done chip.');
         self::assertFalse($view->glazingMaxed);
 
         $best = new Household(0.0, 0.0, self::bestEnvelope(), HeatingSystem::HeatPump);
         $bestView = new GameViewFactory()->build(self::config(), GameState::start($best, Money::fromEuros(4000.0)));
 
-        self::assertTrue($bestView->roofInsulated);
-        self::assertSame('Extérieure (ITE)', $bestView->wallInsulationLabel);
-        self::assertSame('Triple vitrage', $bestView->glazingLabel);
+        self::assertContains('Combles isolés', $bestView->doneChipsBySlot['walls']);
+        self::assertContains('Murs — Extérieure (ITE)', $bestView->doneChipsBySlot['walls']);
+        self::assertContains('Triple vitrage', $bestView->doneChipsBySlot['walls']);
         self::assertTrue($bestView->glazingMaxed);
+    }
+
+    public function testDoneChipsComeFromTheCatalogue(): void
+    {
+        $household = self::passoire()->withEnvelope(self::original()->withRoofInsulated(true));
+
+        $view = new GameViewFactory()->build(self::config(), GameState::start($household, Money::fromEuros(8000.0)));
+
+        self::assertContains('Combles isolés', $view->doneChipsBySlot['walls']);
     }
 
     public function testTheSceneModelSpeaksInSemanticStates(): void
