@@ -35,6 +35,8 @@ final readonly class ActionView
         public string $adviceLevel = '',
         /** Player-facing advice message (French), empty when no advice applies. */
         public string $adviceMessage = '',
+        /** Template path of the drawer icon (the scene asset). @see RenovationDefinition::iconAsset() */
+        public string $iconAsset = '',
     ) {
     }
 }

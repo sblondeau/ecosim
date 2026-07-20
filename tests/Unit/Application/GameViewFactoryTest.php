@@ -193,6 +193,13 @@ final class GameViewFactoryTest extends TestCase
         self::assertArrayHasKey('roof_insulation', $view->actions, 'A bare passoire is quoted for roof insulation.');
     }
 
+    public function testEachActionCarriesItsCatalogueIcon(): void
+    {
+        $view = new GameViewFactory()->build(self::config(), GameState::start(self::passoire(), Money::fromEuros(8000.0)));
+
+        self::assertSame('game/scene/assets/heat-pump.svg', $view->actions['heat_pump']->iconAsset);
+    }
+
     public function testEnvelopeActionsCarryAdvice(): void
     {
         $bare = new Household(0.0, 0.0, self::original(), HeatingSystem::FuelOilBoiler);

@@ -582,6 +582,7 @@ final readonly class GameViewFactory
                 effectLabels: $this->effectLabels($before, $after),
                 adviceLevel: $advice->level->value,
                 adviceMessage: $advice->message,
+                iconAsset: $work->iconAsset(),
             );
         }
 
