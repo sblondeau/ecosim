@@ -300,6 +300,21 @@ final class GameViewFactoryTest extends TestCase
         self::assertSame('single', $s->glazing);
     }
 
+    public function testSceneEnvelopeLayersComeFromTheCatalogue(): void
+    {
+        $household = self::passoire()->withEnvelope(
+            self::original()->withRoofInsulated(true)->withGlazing(Glazing::Double),
+        );
+
+        $scene = new GameViewFactory()
+            ->build(self::config(), GameState::start($household, Money::fromEuros(8000.0)))
+            ->scene;
+
+        self::assertContains('roof-ins', $scene->envelopeLayers);
+        self::assertContains('glazing-double', $scene->envelopeLayers);
+        self::assertNotContains('walls-interior', $scene->envelopeLayers, 'walls untouched → no layer');
+    }
+
     public function testGroundSnowAccumulatesAndMeltsGradually(): void
     {
         $factory = new GameViewFactory();

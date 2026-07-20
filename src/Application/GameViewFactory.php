@@ -359,6 +359,14 @@ final readonly class GameViewFactory
      */
     private function houseScene(DailySnapshot $snapshot, Household $household, int $snowDepthPct): HouseSceneView
     {
+        $envelopeLayers = [];
+        foreach ($this->catalog->all() as $work) {
+            $layer = $work->sceneLayerFor($household);
+            if (null !== $layer) {
+                $envelopeLayers[] = $layer;
+            }
+        }
+
         return new HouseSceneView(
             season: $snapshot->date->season()->value,
             cloudPct: (int) round($snapshot->weather->cloudCover * 100),
@@ -414,6 +422,7 @@ final readonly class GameViewFactory
                 $snapshot->comfort->feltC > self::FELT_HOT_ABOVE => 'hot',
                 default => 'warm',
             },
+            envelopeLayers: $envelopeLayers,
         );
     }
 

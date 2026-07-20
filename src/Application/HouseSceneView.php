@@ -82,6 +82,15 @@ final readonly class HouseSceneView
         public bool $waterHeaterThermo,
         /** Indoor feel bucket: cold|cool|warm — drives the living-room tint. */
         public string $comfortState,
+        /**
+         * The active envelope CSS layers for the cutaway (game-design §17):
+         * the house--* gates HouseShell emits, sourced from the catalogue's
+         * sceneLayerFor(). Equipment visuals are NOT here — they are selected
+         * from the equipment states above (heatingState, solarState…).
+         *
+         * @var list<string>
+         */
+        public array $envelopeLayers,
     ) {
     }
 }
