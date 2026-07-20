@@ -1,15 +1,8 @@
-{# The cutaway house shell: walls, roof, living room, utility recess. The roof
-   itself is a plain solid gable (no cutaway) so solar panels have a single
-   unambiguous surface to sit flush on. Each renovable surface gets its own
-   prop → its own local variant class (CVA-manuel), so a work done on ONE
-   surface only moves that surface's layer: `roofInsulated` reveals the attic
-   layer (and lets the roof snow hold instead of melting), `wallInsulation`
-   picks the interior doubling vs the exterior render, `glazing` counts the
-   nested panes AND recolours the frame (wood/PVC/aluminium), `ventilation`
-   and `thermalCurtains` reveal their fixture, `draughtProofed` reveals the
-   window's red band — only while still single-glazed (new frames are
-   assumed to already seal, cf. docs/specs/2026-07-18-tranche7-fenetre-coherence-plan.md),
-   `lowTempEmitters` reveals the underfloor serpentine in the living room.
-   Room tint, chimney smoke and frost stay scene-wide. #}
-{% props roofInsulated = false, wallInsulation = 'none', glazing = 'single', ventilation = 'none', thermalCurtains = false, draughtProofed = false, lowTempEmitters = false %}
-<g class="house{{ roofInsulated ? ' house--roof-ins' }} house--walls-{{ wallInsulation }} house--glazing-{{ glazing }} house--vmc-{{ ventilation }}{{ thermalCurtains ? ' house--curtains' }}{{ draughtProofed ? ' house--draughtproofed' }}{{ lowTempEmitters ? ' house--floor-heating' }}"{{ attributes }}>{{ include('game/scene/assets/house-cutaway.svg') }}</g>
+{# The cutaway house shell. Envelope layers (insulation, glazing, VMC,
+   curtains, draught band, underfloor emitters) arrive as a flat list of
+   house--* gate keys, sourced from the catalogue (HouseSceneView::
+   $envelopeLayers) — adding an envelope visual is a new SVG group + a CSS
+   gate + the work's sceneLayerFor(), no prop here. Equipment is drawn by the
+   renderer, not here. Room tint, chimney smoke and frost stay scene-wide. #}
+{% props layers = [] %}
+<g class="house{% for layer in layers %} house--{{ layer }}{% endfor %}"{{ attributes }}>{{ include('game/scene/assets/house-cutaway.svg') }}</g>

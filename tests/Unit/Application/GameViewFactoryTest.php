@@ -265,12 +265,12 @@ final class GameViewFactoryTest extends TestCase
         $bare = new Household(0.0, 0.0, self::original(), HeatingSystem::FuelOilBoiler);
         $s = $factory->build($config, GameState::start($bare, Money::fromEuros(4000.0)))->scene;
 
-        self::assertFalse($s->roofInsulated);
-        self::assertSame('none', $s->wallInsulation);
-        self::assertSame('single', $s->glazing);
-        self::assertSame('none', $s->ventilation);
-        self::assertFalse($s->thermalCurtains);
-        self::assertFalse($s->draughtProofed);
+        self::assertNotContains('roof-ins', $s->envelopeLayers);
+        self::assertNotContains('walls-exterior', $s->envelopeLayers);
+        self::assertNotContains('glazing-double', $s->envelopeLayers);
+        self::assertNotContains('vmc-double-flow', $s->envelopeLayers);
+        self::assertNotContains('curtains', $s->envelopeLayers);
+        self::assertNotContains('draughtproofed', $s->envelopeLayers);
         self::assertSame('fioul', $s->heatingState);
         self::assertSame('empty', $s->solarState);
         self::assertFalse($s->waterHeaterThermo, 'The plain electric tank is the starting equipment.');
@@ -280,14 +280,14 @@ final class GameViewFactoryTest extends TestCase
         $renovated = new Household(1.5, 0.0, self::perSurfaceRenovatedEnvelope(), HeatingSystem::PelletBoiler, waterHeater: WaterHeater::Thermodynamic);
         $s = $factory->build($config, GameState::start($renovated, Money::fromEuros(4000.0)))->scene;
 
-        self::assertTrue($s->roofInsulated);
-        self::assertSame('exterior', $s->wallInsulation);
-        self::assertSame('double', $s->glazing);
-        self::assertSame('double-flow', $s->ventilation);
+        self::assertContains('roof-ins', $s->envelopeLayers);
+        self::assertContains('walls-exterior', $s->envelopeLayers);
+        self::assertContains('glazing-double', $s->envelopeLayers);
+        self::assertContains('vmc-double-flow', $s->envelopeLayers);
         self::assertSame('pellet', $s->heatingState);
         self::assertSame('kit', $s->solarState);
-        self::assertTrue($s->thermalCurtains);
-        self::assertFalse($s->draughtProofed, 'perSurfaceRenovatedEnvelope explicitly leaves draught-proofing undone.');
+        self::assertContains('curtains', $s->envelopeLayers);
+        self::assertNotContains('draughtproofed', $s->envelopeLayers, 'perSurfaceRenovatedEnvelope explicitly leaves draught-proofing undone.');
         self::assertTrue($s->waterHeaterThermo);
         self::assertTrue($s->chimneySmoking, 'Burning wood pellets smokes the flue just as fuel oil did.');
 
@@ -296,8 +296,8 @@ final class GameViewFactoryTest extends TestCase
         $draughtProofed = new Household(0.0, 0.0, self::draughtProofedEnvelope(), HeatingSystem::FuelOilBoiler);
         $s = $factory->build($config, GameState::start($draughtProofed, Money::fromEuros(4000.0)))->scene;
 
-        self::assertTrue($s->draughtProofed);
-        self::assertSame('single', $s->glazing);
+        self::assertContains('draughtproofed', $s->envelopeLayers);
+        self::assertNotContains('glazing-double', $s->envelopeLayers);
     }
 
     public function testSceneEnvelopeLayersComeFromTheCatalogue(): void

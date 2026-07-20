@@ -388,21 +388,6 @@ final readonly class GameViewFactory
             roofLabel: $household->solarKwc > 0.0
                 ? sprintf('%.0f kWc', $household->solarKwc)
                 : 'Pas de panneaux',
-            roofInsulated: $household->envelope->roofInsulated,
-            wallInsulation: match ($household->envelope->walls) {
-                WallInsulation::None => 'none',
-                WallInsulation::Interior => 'interior',
-                WallInsulation::Exterior => 'exterior',
-            },
-            glazing: match ($household->envelope->glazing) {
-                Glazing::Single => 'single',
-                Glazing::Double => 'double',
-                Glazing::Triple => 'triple',
-            },
-            ventilation: Ventilation::DoubleFlow === $household->envelope->ventilation ? 'double-flow' : 'none',
-            thermalCurtains: $household->envelope->thermalCurtains,
-            draughtProofed: $household->envelope->draughtProofed,
-            lowTempEmitters: $household->lowTempEmitters,
             insulationLabel: $this->envelopeLabel($household->envelope),
             heatingState: match (true) {
                 $household->boilerBroken => 'fioul-broken',
