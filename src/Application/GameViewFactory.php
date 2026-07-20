@@ -22,8 +22,7 @@ use App\Domain\Finance\FinanceCalibration;
 use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
 use App\Domain\Finance\PropertyValuator;
-use App\Domain\Finance\Renovation;
-use App\Domain\Finance\RenovationAdvisor;
+use App\Domain\Finance\RenovationCatalog;
 use App\Domain\Finance\RenovationQuoter;
 use App\Domain\Math\SeasonalCycle;
 use App\Domain\Scenario\PrimoAccedantScenario;
@@ -77,7 +76,7 @@ final readonly class GameViewFactory
         private EnergyCalibration $energy = new EnergyCalibration(),
         private DpeCertifier $dpeCertifier = new DpeCertifier(),
         private CarbonAccountant $carbon = new CarbonAccountant(),
-        private RenovationAdvisor $advisor = new RenovationAdvisor(),
+        private RenovationCatalog $catalog = new RenovationCatalog(),
     ) {
     }
 
@@ -394,6 +393,7 @@ final readonly class GameViewFactory
             },
             ventilation: Ventilation::DoubleFlow === $household->envelope->ventilation ? 'double-flow' : 'none',
             thermalCurtains: $household->envelope->thermalCurtains,
+            draughtProofed: $household->envelope->draughtProofed,
             lowTempEmitters: $household->lowTempEmitters,
             insulationLabel: $this->envelopeLabel($household->envelope),
             heatingState: match (true) {
@@ -549,7 +549,7 @@ final readonly class GameViewFactory
         $loanCap = Money::fromEuros($this->finance->loanCap()->value);
         $actions = [];
 
-        foreach (Renovation::cases() as $work) {
+        foreach ($this->catalog->all() as $work) {
             $quote = $this->quoter->quote($work, $state->household);
             if (null === $quote) {
                 continue;
@@ -559,16 +559,16 @@ final readonly class GameViewFactory
             $after = $this->estimator->estimate($quote->resultingHousehold);
 
             $net = $quote->netCost();
-            $advice = $this->advisor->adviceFor($work, $state->household);
+            $advice = $work->adviceFor($state->household);
 
-            $actions[$work->value] = new ActionView(
-                work: $work->value,
+            $actions[$work->slug()] = new ActionView(
+                work: $work->slug(),
                 title: $quote->title,
                 costLabel: $quote->cost->format(),
                 subsidyLabel: $quote->subsidy->cents > 0 ? $quote->subsidy->format() : '',
                 netCostLabel: $net->format(),
                 cashAllowed: $state->savings->cents >= $net->cents,
-                loanAllowed: $loanEligible = ($work->isLoanEligible()
+                loanAllowed: $loanEligible = ($work->isEnergyPerformanceWork()
                     && $state->loan->borrowedTotal->plus($net)->cents <= $loanCap->cents),
                 loanMonthlyLabel: $loanEligible ? Loan::none()->borrow($net)->monthlyPayment->format() : '',
                 effectLabels: $this->effectLabels($before, $after),

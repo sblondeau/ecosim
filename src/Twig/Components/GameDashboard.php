@@ -11,12 +11,14 @@ use App\Application\GameViewFactory;
 use App\Application\RenovationHandler;
 use App\Application\TimeKeeper;
 use App\Domain\Building\BuildingCalibration;
-use App\Domain\Finance\Renovation;
+use App\Domain\Finance\SceneSlot;
 use App\Domain\Simulation\GameState;
 use App\Domain\Time\TickSpeed;
+
+use function array_map;
+
 use DateTimeImmutable;
 
-use function in_array;
 use function max;
 use function min;
 
@@ -41,12 +43,6 @@ use Symfony\UX\LiveComponent\DefaultActionTrait;
 final class GameDashboard
 {
     use DefaultActionTrait;
-
-    /** Openable panels: equipment slots, the four axis corners, and the options gear. */
-    private const array PANELS = [
-        'roof', 'walls', 'heating', 'garage', 'living',
-        'finances', 'comfort', 'energy', 'patrimoine', 'weather', 'options',
-    ];
 
     /** The floating panel currently open over the scene (null = none, fullwidth). */
     #[LiveProp(writable: true)]
@@ -92,7 +88,7 @@ final class GameDashboard
     {
         $this->notice = '';
 
-        if (!in_array($slot, self::PANELS, true)) {
+        if (null === SceneSlot::tryFrom($slot) && null === AxisPanel::tryFrom($slot)) {
             return;
         }
 
@@ -170,15 +166,8 @@ final class GameDashboard
     {
         $this->notice = '';
 
-        $renovation = Renovation::tryFrom($work);
-        if (null === $renovation) {
-            $this->fail('Travaux inconnus.');
-
-            return;
-        }
-
         $game = $this->timeKeeper->catchUp($this->store->current(), new DateTimeImmutable());
-        $result = $this->renovations->order($game->state, $renovation, $financing);
+        $result = $this->renovations->order($game->state, $work, $financing);
 
         if (!$result instanceof GameState) {
             $this->commit($game); // keep the caught-up days
@@ -210,6 +199,30 @@ final class GameDashboard
     public function getSpeedValue(): int
     {
         return $this->loaded()->progression->speed->value;
+    }
+
+    /** @return list<string> */
+    public function getZoneSlots(): array
+    {
+        return array_map(static fn (SceneSlot $slot): string => $slot->value, SceneSlot::cases());
+    }
+
+    /**
+     * Where each panel docks: the drawer for house zones, a scene corner/edge for axis panels.
+     *
+     * @return array<string, string>
+     */
+    public function getPanelPositions(): array
+    {
+        $positions = [];
+        foreach (SceneSlot::cases() as $slot) {
+            $positions[$slot->value] = 'at-drawer';
+        }
+        foreach (AxisPanel::cases() as $panel) {
+            $positions[$panel->value] = $panel->anchor();
+        }
+
+        return $positions;
     }
 
     private function fail(string $message): void

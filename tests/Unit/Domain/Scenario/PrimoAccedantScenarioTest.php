@@ -7,8 +7,8 @@ namespace App\Tests\Unit\Domain\Scenario;
 use App\Domain\Building\Glazing;
 use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\WallInsulation;
-use App\Domain\Finance\Renovation;
 use App\Domain\Finance\RenovationQuoter;
+use App\Domain\Finance\Work\HeatPumpWork;
 use App\Domain\Scenario\BoilerBreakdownEvent;
 use App\Domain\Scenario\PrimoAccedantScenario;
 use PHPUnit\Framework\TestCase;
@@ -46,7 +46,7 @@ final class PrimoAccedantScenarioTest extends TestCase
     public function testTheHeatPumpIsNotCashAffordableOnDayOne(): void
     {
         $scenario = new PrimoAccedantScenario();
-        $quote = new RenovationQuoter()->quote(Renovation::HeatPump, $scenario->initialHousehold());
+        $quote = new RenovationQuoter()->quote(new HeatPumpWork(), $scenario->initialHousehold());
 
         self::assertNotNull($quote);
         self::assertLessThan(

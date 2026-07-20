@@ -1,0 +1,9 @@
+<!-- Rideaux thermiques : la même fenêtre, cette fois encadrée par
+     deux pans de rideau tombant de la tringle. -->
+<svg viewBox="0 0 80 80" overflow="visible">
+    <rect x="22" y="16" width="36" height="44" rx="2" fill="#bfe0ee" opacity=".85"/>
+    <path d="M22 16v44M58 16v44M22 38h36" stroke="#7d8ea0" stroke-width="3"/>
+    <rect x="10" y="12" width="60" height="4" rx="2" fill="#8a7458"/>
+    <path d="M14 16 q6 22 -2 46 h14 q-8 -24 -2 -46 z" fill="#c94f4f"/>
+    <path d="M66 16 q-6 22 2 46 h-14 q8 -24 2 -46 z" fill="#c94f4f"/>
+</svg>

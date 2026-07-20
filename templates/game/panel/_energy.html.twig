@@ -1,20 +1,19 @@
-{% import 'game/_macros.html.twig' as ui %}
 {# Axe Énergie & climat (coin ↙) : flux du jour, empreinte du logement, météo. #}
-{{ ui.panel_head('⚡ Énergie & climat') }}
+<twig:PanelHead title="⚡ Énergie & climat" />
 <div class="card">
     <div class="row"><span class="key">Production solaire</span><span>{{ game.productionKwh|number_format(1, ',', ' ') }} kWh</span></div>
     <div class="row"><span class="key">Consommation élec.</span><span>{{ game.demandKwh|number_format(1, ',', ' ') }} kWh</span></div>
     {% if game.fuelOilLitres > 0 %}
-        <div class="row"><span class="key">Fioul brûlé{{ ui.tip(game.help.fuelOil) }}</span><span>{{ game.fuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
+        <div class="row"><span class="key">Fioul brûlé<twig:Tip text="{{ game.help.fuelOil }}" /></span><span>{{ game.fuelOilLitres|number_format(1, ',', ' ') }} L</span></div>
     {% endif %}
     {% if game.pelletKg > 0 %}
         <div class="row"><span class="key">Granulés brûlés</span><span>{{ game.pelletKg|number_format(1, ',', ' ') }} kg</span></div>
     {% endif %}
-    <div class="row"><span class="key">Autosuffisance{{ ui.tip(game.help.selfSufficiency) }}</span><span>{{ game.selfSufficiencyPct }} %</span></div>
+    <div class="row"><span class="key">Autosuffisance<twig:Tip text="{{ game.help.selfSufficiency }}" /></span><span>{{ game.selfSufficiencyPct }} %</span></div>
 </div>
 <div class="card">
     <h2>Empreinte réelle</h2>
-    <div class="row"><span class="key">CO₂ émis depuis le début{{ ui.tip(game.help.co2Emitted) }}</span><span><strong>{{ game.co2EmittedLabel }}</strong></span></div>
+    <div class="row"><span class="key">CO₂ émis depuis le début<twig:Tip text="{{ game.help.co2Emitted }}" /></span><span><strong>{{ game.co2EmittedLabel }}</strong></span></div>
     <p class="panel-note">Ce que vous avez vraiment mis dans l'air (fioul + réseau) — monte jour après jour.</p>
 </div>
 <div class="card">

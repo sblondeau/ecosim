@@ -173,14 +173,16 @@ inline sans le rattacher au registre + un commentaire de source.
   `final readonly`.
 - Identifiants/commentaires de code en **anglais** ; libellés destinés au joueur
   en **français** (`Season::label()` → « Été »…).
-- **Composants d'interface = Twig Components ANONYMES par défaut**
+- **Composants d'interface = Twig Components ANONYMES, sans exception**
   (`templates/components/*`, `<twig:Name>` + `{% props %}` + classe de variante
-  locale/CVA), JAMAIS des macros pour un composant d'UI. Ex : `<twig:Button>`,
-  `<twig:QuoteCard>`, `<twig:scene:Occupant>`. Un **LiveComponent** (classe PHP
+  locale/CVA) — y compris les petits helpers de texte/inline (`<twig:Tip>`,
+  `<twig:PanelHead>`) : un seul mécanisme de composition dans tout le projet,
+  pas de macros Twig. Ex : `<twig:Button>`, `<twig:QuoteCard>`, `<twig:Tip>`,
+  `<twig:scene:Occupant>`. Un **LiveComponent** (classe PHP
   `#[AsLiveComponent]`) UNIQUEMENT quand l'interactivité/état l'exige (`#[LiveAction]`,
-  `data-poll`, props écrivables) — sinon anonyme. Les **macros Twig** restent
-  réservées aux petits helpers de *texte/inline* sans logique de présentation
-  (ex. `tip()` qui enrobe un libellé d'une infobulle).
+  `data-poll`, props écrivables) — sinon anonyme. Ne réintroduire une macro
+  Twig que face à un besoin qui ne se prête vraiment pas à un composant
+  (aucun cas de ce genre à ce jour).
 - **CSS : variables plutôt que valeurs en dur.** Couleurs, espacements ou
   dimensions réutilisés passent par des custom properties (`:root` de
   `game.css` : `--accent`, `--warn`…), jamais dupliqués en littéral — c'est

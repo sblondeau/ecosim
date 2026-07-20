@@ -74,8 +74,12 @@
     <rect class="room-tint" x="46" y="152" width="306" height="220" fill="#31465c"/>
     <!-- fenêtre du mur du fond -->
     <g>
-        <rect x="82" y="194" width="96" height="88" rx="4" fill="#6b5a45"/>
-        <rect x="84" y="196" width="92" height="84" rx="3" fill="#8a7458"/>
+        <!-- cadre (huisserie) : bois par défaut (simple vitrage, fenêtre
+             d'origine) ; scene.css le recolore en PVC blanc / alu anthracite
+             dès double/triple vitrage — même géométrie, le remplacement de
+             l'huisserie se lit dans la matière, pas dans le tracé. -->
+        <rect class="window-frame-outer" x="82" y="194" width="96" height="88" rx="4" fill="#6b5a45"/>
+        <rect class="window-frame-inner" x="84" y="196" width="92" height="84" rx="3" fill="#8a7458"/>
         <rect x="90" y="202" width="80" height="72" fill="url(#hGlass)"/>
         <path d="M92 204 L128 204 L98 272 L92 272 Z" fill="#ffffff" opacity=".12"/>
         <!-- vitrages : chaque vitre supplémentaire = une lame de verre de plus,
@@ -84,8 +88,12 @@
              se lit à l'œil : la 2e lame est plus fine et plus pâle que la 1re. -->
         <rect class="glazing-pane glazing-pane-2" x="93" y="205" width="74" height="66" fill="none" stroke="#e8f4ff" stroke-width="4" opacity=".8"/>
         <rect class="glazing-pane glazing-pane-3" x="99" y="211" width="62" height="54" fill="none" stroke="#e8f4ff" stroke-width="2.5" opacity=".55"/>
-        <path d="M130 202v72 M90 238h80" stroke="#8a7458" stroke-width="5"/>
-        <rect x="90" y="202" width="80" height="72" rx="1" fill="none" stroke="#6b5a45" stroke-width="1.5"/>
+        <path class="window-muntins" d="M130 202v72 M90 238h80" stroke="#8a7458" stroke-width="5"/>
+        <rect class="window-frame-border" x="90" y="202" width="80" height="72" rx="1" fill="none" stroke="#6b5a45" stroke-width="1.5"/>
+        <!-- calfeutrage : joint/bandeau visible autour du cadre — masqué par
+             défaut, révélé (scene.css) seulement tant que le vitrage est
+             simple : une fenêtre changée est réputée déjà étanche. -->
+        <rect class="draught-band" x="79" y="191" width="102" height="94" rx="5" fill="none" stroke="#e05341" stroke-width="3" stroke-dasharray="5 4"/>
         <!-- appui de fenêtre + jardinière -->
         <rect x="78" y="280" width="104" height="7" rx="2" fill="#7d6b52"/>
         <rect x="78" y="280" width="104" height="2" fill="#94815f"/>

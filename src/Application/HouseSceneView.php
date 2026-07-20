@@ -53,6 +53,14 @@ final readonly class HouseSceneView
         public string $ventilation,
         public bool $thermalCurtains,
         /**
+         * Draught-proofing done (window seals, door sweeps). Drives the
+         * window's red band — but only while still single-glazed; new
+         * double/triple-glazed frames are assumed to already seal (Tranche 7
+         * window-coherence follow-up), even though the underlying gesture
+         * mechanically still applies (it also covers doors).
+         */
+        public bool $draughtProofed,
+        /**
          * Underfloor low-temperature emitters (arbre travaux). Reverses the
          * tranche 7 "hors coupe" exception: drawn as a discreet serpentine
          * under the living-room floor rather than skipped, since the slab

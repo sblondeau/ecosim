@@ -6,7 +6,7 @@ namespace App\Application;
 
 use App\Domain\Finance\FinanceCalibration;
 use App\Domain\Finance\Money;
-use App\Domain\Finance\Renovation;
+use App\Domain\Finance\RenovationCatalog;
 use App\Domain\Finance\RenovationQuoter;
 use App\Domain\Simulation\GameState;
 
@@ -29,14 +29,20 @@ final readonly class RenovationHandler
     public function __construct(
         private RenovationQuoter $quoter = new RenovationQuoter(),
         private FinanceCalibration $finance = new FinanceCalibration(),
+        private RenovationCatalog $catalog = new RenovationCatalog(),
     ) {
     }
 
     /**
      * @return GameState|string the renovated state, or a French refusal message
      */
-    public function order(GameState $state, Renovation $work, string $financing): GameState|string
+    public function order(GameState $state, string $workSlug, string $financing): GameState|string
     {
+        $work = $this->catalog->tryGet($workSlug);
+        if (null === $work) {
+            return 'Ces travaux ne sont pas (ou plus) disponibles.';
+        }
+
         $quote = $this->quoter->quote($work, $state->household);
         if (null === $quote) {
             return 'Ces travaux ne sont pas (ou plus) disponibles.';
@@ -45,7 +51,7 @@ final readonly class RenovationHandler
         $net = $quote->netCost();
 
         if (self::FINANCING_LOAN === $financing) {
-            if (!$work->isLoanEligible()) {
+            if (!$work->isEnergyPerformanceWork()) {
                 return 'L\'éco-PTZ ne finance que les travaux de performance énergétique (isolation, pompe à chaleur).';
             }
 

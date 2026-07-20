@@ -17,67 +17,21 @@
             {% elseif action.work == 'pellet_boiler' %}
                 {{ include('game/scene/assets/boiler-pellet.svg') }}
             {% elseif action.work == 'low_temp_emitters' %}
-                <svg viewBox="0 0 80 80" overflow="visible">
-                    <rect x="6" y="50" width="68" height="22" rx="3" fill="#8a7458"/>
-                    <path d="M12 60 h8 v-10 h8 v10 h8 v-10 h8 v10 h8 v-10 h8 v10 h8"
-                          fill="none" stroke="#e05341" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M12 60 h8 v-10 h8 v10 h8 v-10 h8 v10 h8 v-10 h8 v10 h8"
-                          fill="none" stroke="#f6b199" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/>
-                </svg>
+                {{ include('game/scene/assets/icons/low-temp-emitters.svg') }}
             {% elseif action.work == 'home_battery' %}
                 {{ include('game/scene/assets/battery.svg') }}
             {% elseif action.work in ['roof_insulation', 'wall_insulation_interior', 'wall_insulation_exterior'] %}
-                <svg viewBox="0 0 80 80" overflow="visible">
-                    <rect x="8" y="8" width="64" height="64" rx="6" fill="#8a7458"/>
-                    <rect x="14" y="14" width="52" height="52" rx="3" fill="#69b585"/>
-                    <path d="M14 24h52M14 34h52M14 44h52M14 54h52" stroke="#5f9c74" stroke-width="3" opacity=".6"/>
-                    <path d="M22 14v52M32 14v52M42 14v52M52 14v52M62 14v52" stroke="#5f9c74" stroke-width="2" opacity=".35"/>
-                </svg>
+                {{ include('game/scene/assets/icons/insulation.svg') }}
             {% elseif action.work == 'glazing' %}
-                <svg viewBox="0 0 80 80" overflow="visible">
-                    <rect x="12" y="10" width="56" height="60" rx="4" fill="#7d8ea0"/>
-                    <rect x="18" y="16" width="44" height="48" rx="2" fill="#bfe0ee" opacity=".85"/>
-                    <path d="M40 16v48M18 40h44" stroke="#7d8ea0" stroke-width="4"/>
-                    <path d="M24 22l12 12" stroke="#fff" stroke-width="2" opacity=".6"/>
-                </svg>
+                {{ include('game/scene/assets/icons/glazing.svg') }}
             {% elseif action.work == 'ventilation_double_flow' %}
-                {# VMC double flux : boîtier échangeur + flux d'air entrant/sortant. #}
-                <svg viewBox="0 0 80 80" overflow="visible">
-                    <rect x="20" y="26" width="40" height="28" rx="4" fill="#8a7458"/>
-                    <circle cx="40" cy="40" r="9" fill="none" stroke="#e7e2d8" stroke-width="3"/>
-                    <path d="M40 33v14M33 40h14" stroke="#e7e2d8" stroke-width="2"/>
-                    <path d="M10 20 q10 6 10 20 t-10 20" fill="none" stroke="#69b585" stroke-width="3" stroke-linecap="round"/>
-                    <path d="M70 20 q-10 6 -10 20 t10 20" fill="none" stroke="#e05341" stroke-width="3" stroke-linecap="round" opacity=".8"/>
-                </svg>
+                {{ include('game/scene/assets/icons/ventilation-double-flow.svg') }}
             {% elseif action.work == 'solar_kit' %}
-                {# Kit plug-and-play : un seul petit panneau + une prise (pas d'installateur). #}
-                <svg viewBox="0 0 80 80" overflow="visible">
-                    <rect x="16" y="24" width="36" height="24" rx="2" fill="#2f4a63"/>
-                    <path d="M16 32h36M16 40h36M28 24v24M40 24v24" stroke="#5a7a9a" stroke-width="1.5"/>
-                    <circle cx="62" cy="54" r="10" fill="none" stroke="#c9a24b" stroke-width="3"/>
-                    <path d="M58 54h8M62 50v8" stroke="#c9a24b" stroke-width="2.5" stroke-linecap="round"/>
-                </svg>
+                {{ include('game/scene/assets/solar-kit.svg') }}
             {% elseif action.work == 'draught_proofing' %}
-                {# Calfeutrage : une fenêtre dont le cadre porte un joint (liseré),
-                   et les flèches d'air extérieur stoppées à son contact. #}
-                <svg viewBox="0 0 80 80" overflow="visible">
-                    <rect x="16" y="10" width="48" height="56" rx="3" fill="#7d8ea0"/>
-                    <rect x="16" y="10" width="48" height="56" rx="3" fill="none" stroke="#c9a24b" stroke-width="3" stroke-dasharray="4 3"/>
-                    <rect x="22" y="16" width="36" height="44" rx="2" fill="#bfe0ee" opacity=".85"/>
-                    <path d="M40 16v44M22 38h36" stroke="#7d8ea0" stroke-width="3"/>
-                    <path d="M4 24h9M4 38h9M4 52h9" stroke="#e05341" stroke-width="3" stroke-linecap="round"/>
-                    <path d="M13 24l-4-4m4 4l-4 4M13 38l-4-4m4 4l-4 4M13 52l-4-4m4 4l-4 4" stroke="#e05341" stroke-width="2" stroke-linecap="round" opacity=".6"/>
-                </svg>
+                {{ include('game/scene/assets/icons/draught-proofing.svg') }}
             {% elseif action.work == 'thermal_curtains' %}
-                {# Rideaux thermiques : la même fenêtre, cette fois encadrée par
-                   deux pans de rideau tombant de la tringle. #}
-                <svg viewBox="0 0 80 80" overflow="visible">
-                    <rect x="22" y="16" width="36" height="44" rx="2" fill="#bfe0ee" opacity=".85"/>
-                    <path d="M22 16v44M58 16v44M22 38h36" stroke="#7d8ea0" stroke-width="3"/>
-                    <rect x="10" y="12" width="60" height="4" rx="2" fill="#8a7458"/>
-                    <path d="M14 16 q6 22 -2 46 h14 q-8 -24 -2 -46 z" fill="#c94f4f"/>
-                    <path d="M66 16 q-6 22 2 46 h-14 q8 -24 2 -46 z" fill="#c94f4f"/>
-                </svg>
+                {{ include('game/scene/assets/icons/thermal-curtains.svg') }}
             {% elseif action.work == 'water_heater_thermo' %}
                 {{ include('game/scene/assets/water-heater-thermo.svg') }}
             {% endif %}

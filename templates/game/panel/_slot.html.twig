@@ -1,4 +1,3 @@
-{% import 'game/_macros.html.twig' as ui %}
 {# Le panneau contextuel d'un emplacement cliqué : ses indicateurs, ses devis. #}
 {% set scene = game.scene %}
 {# Juste la pièce/partie concernée : la présence d'un devis « travaux »
@@ -19,7 +18,7 @@
     living: ['draught_proofing', 'thermal_curtains'],
 } %}
 
-{{ ui.panel_head(titles[selected]) }}
+<twig:PanelHead title="{{ titles[selected] }}" />
 
 <div class="card">
     {% if selected == 'roof' %}
@@ -27,7 +26,7 @@
            vs complète) — la production/nébulosité du jour vivent déjà dans les
            coins Énergie/Météo, pas de doublon ici. #}
         <div class="row"><span class="key">Installation actuelle</span><span><strong>{{ game.solarKindLabel is not empty ? game.solarKindLabel : 'Aucune' }}</strong></span></div>
-        <div class="row"><span class="key">Exporté aujourd'hui{{ ui.tip(game.help.surplus) }}</span><span>{{ game.gridExportKwh|number_format(1, ',', ' ') }} kWh</span></div>
+        <div class="row"><span class="key">Exporté aujourd'hui<twig:Tip text="{{ game.help.surplus }}" /></span><span>{{ game.gridExportKwh|number_format(1, ',', ' ') }} kWh</span></div>
         {% if game.solarKindLabel is not empty %}
             <div class="done-strip"><span class="done-chip">✔ {{ game.solarKindLabel }}</span></div>
         {% endif %}
@@ -44,9 +43,9 @@
     {% elseif selected == 'heating' %}
         {# Décision-context : le générateur en place (+ son SCOP effectif pour
            une PAC — les émetteurs basse température le font grimper de ~2,5 à
-           ~4,3, cf. RenovationAdvisor). Le détail jour-à-jour (fioul brûlé,
-           air intérieur…) vit déjà dans les coins Énergie/Confort — pas de
-           doublon ici. #}
+           ~4,3, cf. HeatPumpWork/LowTempEmittersWork). Le détail jour-à-jour
+           (fioul brûlé, air intérieur…) vit déjà dans les coins
+           Énergie/Confort — pas de doublon ici. #}
         {% if game.boilerBroken %}
             <div class="row"><span class="key">État</span><span class="neg"><strong>🚨 En panne</strong> — chauffage électrique d'appoint forcé</span></div>
             <div class="row"><span class="key">Élec. de chauffage (jour)</span><span class="neg">{{ game.heatingElectricityKwh|number_format(1, ',', ' ') }} kWh</span></div>
@@ -79,7 +78,7 @@
             <div class="gauge"><span style="width: {{ game.batteryCapacityKwh > 0 ? (100 * game.batteryDischargedKwh / game.batteryCapacityKwh)|round : 0 }}%; background: var(--warn);"></span></div>
         {% endif %}
     {% elseif selected == 'living' %}
-        <div class="row"><span class="key">Confort thermique{{ ui.tip(game.help.comfort) }}</span><span>{{ game.comfortScorePct }} %</span></div>
+        <div class="row"><span class="key">Confort thermique<twig:Tip text="{{ game.help.comfort }}" /></span><span>{{ game.comfortScorePct }} %</span></div>
         <div class="gauge"><span style="width: {{ game.comfortScorePct }}%; background: var(--accent);"></span></div>
         <div class="row" style="margin-top:.5rem"><span class="key">Ressenti</span><span>{{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
         <div class="row"><span class="key">Air intérieur</span><span>{{ game.indoorTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
@@ -94,7 +93,7 @@
 
 {% if selected == 'living' and not game.finished and not game.boilerBroken %}
     <div class="card thermostat-panel">
-        <h2>Thermostat{{ ui.tip(game.help.setpoint) }}</h2>
+        <h2>Thermostat<twig:Tip text="{{ game.help.setpoint }}" /></h2>
         <div class="thermo-dial">
             <button type="button" class="btn-ghost thermo-btn" {{ game.setpointCanDown ? '' : 'disabled' }} aria-label="Baisser"
                     data-action="live#action" data-live-action-param="adjustSetpoint" data-live-delta-param="-1">−</button>

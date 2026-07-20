@@ -53,6 +53,12 @@ final class GameViewFactoryTest extends TestCase
         return new EnvelopeState(true, WallInsulation::Exterior, Glazing::Double, Ventilation::DoubleFlow, draughtProofed: false, thermalCurtains: true);
     }
 
+    /** Draught-proofing done, windows still single-glazed — the case the window's red band shows for. */
+    private static function draughtProofedEnvelope(): EnvelopeState
+    {
+        return new EnvelopeState(false, WallInsulation::None, Glazing::Single, draughtProofed: true);
+    }
+
     private static function passoire(): Household
     {
         return new Household(3.0, 5.0, self::original(), HeatingSystem::FuelOilBoiler);
@@ -181,8 +187,8 @@ final class GameViewFactoryTest extends TestCase
             'A battery with no panels stores nothing — it should not even be offered.',
         );
 
-        // Renovation::Insulation was split into 4 per-surface works (Task 3);
-        // the old aggregate key no longer exists.
+        // The old aggregate "insulation" work was split into 4 per-surface
+        // works (Task 3); the aggregate key no longer exists.
         self::assertArrayNotHasKey('insulation', $view->actions);
         self::assertArrayHasKey('roof_insulation', $view->actions, 'A bare passoire is quoted for roof insulation.');
     }
@@ -264,6 +270,7 @@ final class GameViewFactoryTest extends TestCase
         self::assertSame('single', $s->glazing);
         self::assertSame('none', $s->ventilation);
         self::assertFalse($s->thermalCurtains);
+        self::assertFalse($s->draughtProofed);
         self::assertSame('fioul', $s->heatingState);
         self::assertSame('empty', $s->solarState);
         self::assertFalse($s->waterHeaterThermo, 'The plain electric tank is the starting equipment.');
@@ -280,8 +287,17 @@ final class GameViewFactoryTest extends TestCase
         self::assertSame('pellet', $s->heatingState);
         self::assertSame('kit', $s->solarState);
         self::assertTrue($s->thermalCurtains);
+        self::assertFalse($s->draughtProofed, 'perSurfaceRenovatedEnvelope explicitly leaves draught-proofing undone.');
         self::assertTrue($s->waterHeaterThermo);
         self::assertTrue($s->chimneySmoking, 'Burning wood pellets smokes the flue just as fuel oil did.');
+
+        // Draught-proofing done, still single-glazed: the only case where the
+        // window's red band should show (Task 3 of the tranche7 window plan).
+        $draughtProofed = new Household(0.0, 0.0, self::draughtProofedEnvelope(), HeatingSystem::FuelOilBoiler);
+        $s = $factory->build($config, GameState::start($draughtProofed, Money::fromEuros(4000.0)))->scene;
+
+        self::assertTrue($s->draughtProofed);
+        self::assertSame('single', $s->glazing);
     }
 
     public function testGroundSnowAccumulatesAndMeltsGradually(): void

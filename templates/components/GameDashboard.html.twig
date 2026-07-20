@@ -1,15 +1,12 @@
 {% set game = this.game %}
 {% set speed = this.speedValue %}
 {% set selected = this.selectedSlot %}
-{% set slots = ['roof', 'walls', 'heating', 'garage', 'living'] %}
 {# Focused panels: the four axis corners plus weather/options open as
    corner/edge popovers; equipment slots (roof/walls/heating/garage/living)
-   are explicitly routed to the scrollable side drawer instead. #}
-{% set panelPos = {
-    finances: 'at-tl', comfort: 'at-tr', energy: 'at-bl', patrimoine: 'at-br',
-    weather: 'at-top', options: 'at-bottom',
-    roof: 'at-drawer', walls: 'at-drawer', heating: 'at-drawer', garage: 'at-drawer', living: 'at-drawer',
-} %}
+   are explicitly routed to the scrollable side drawer instead — see
+   SceneSlot/AxisPanel (PHP), the single source of truth for both lists. #}
+{% set slots = this.zoneSlots %}
+{% set panelPos = this.panelPositions %}
 {# Welcome overlay: a brand-new game (day 1), until dismissed. Freezes the clock. #}
 {% set showIntro = not this.introDismissed and game.dayNumber == 1 and not game.finished %}
 <div{{ attributes }} class="game{{ game.finished ? ' is-finished' }}" {% if not game.finished and not showIntro %}data-poll="delay(4000)|$render"{% endif %}>

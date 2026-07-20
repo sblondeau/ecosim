@@ -1,0 +1,7 @@
+{# Bulle d'aide ⓘ (composant Twig anonyme, cf. règle projet §7 : un seul
+   mécanisme de composition, pas de macros). Pensé pour être collé au dernier
+   mot d'un libellé, sans espace (`Ressenti<twig:Tip text="..." />`) — le
+   `-%}` évite que le saut de ligne du template ne devienne un point de
+   rupture CSS entre le mot et l'icône (elle partirait seule à la ligne). #}
+{% props text -%}
+<span class="tip" tabindex="0">ⓘ<span class="tipbox">{{ text }}</span></span>

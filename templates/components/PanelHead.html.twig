@@ -1,0 +1,9 @@
+{# En-tête partagé de tout panneau flottant : titre + croix de fermeture dans
+   le même flex-row, alignées par construction (composant Twig anonyme — même
+   pattern que Button.html.twig pour le bouton `data-action="live#action"`). #}
+{% props title %}
+<div class="card panel-head">
+    <h2>{{ title }}</h2>
+    <button type="button" class="float-close btn-ghost btn-small"
+            data-action="click->live#action" data-live-action-param="closePanel" aria-label="Fermer">✕</button>
+</div>
