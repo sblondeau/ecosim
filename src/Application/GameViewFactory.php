@@ -189,7 +189,6 @@ final readonly class GameViewFactory
                 $household->solarKwc < $this->energy->defaultSolarPeakPowerKwc()->value => sprintf('Kit solaire · %.1f kWc', $household->solarKwc),
                 default => sprintf('Panneaux solaires · %.0f kWc', $household->solarKwc),
             },
-            waterHeaterLabel: WaterHeater::Thermodynamic === $household->waterHeater ? $household->waterHeater->label() : '',
             doneChipsBySlot: $doneChipsBySlot,
             worksBySlot: $worksBySlot,
             dpeLetter: $dpe->finalClass->label(),

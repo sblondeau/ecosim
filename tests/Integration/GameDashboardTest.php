@@ -239,7 +239,64 @@ final class GameDashboardTest extends KernelTestCase
         self::assertStringNotContainsString(
             'done-chip">✔ Kit solaire',
             $roof,
-            'The roof drawer still names the kit in its "Installation actuelle" context row, but no longer shows the done chip.',
+            'The roof drawer no longer shows the done chip: SolarKitWork::slot() is Garage.',
+        );
+    }
+
+    /**
+     * Follow-up to Task 4: the roof drawer's "Installation actuelle" row must
+     * name the ROOFTOP install only. With a kit-only household, it must read
+     * "Aucune" — the kit is decided/shown in the garage drawer instead.
+     */
+    public function testRoofDrawerContextRowReadsNoneWithOnlyTheGroundKitInstalled(): void
+    {
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        $component->call('order', ['work' => 'solar_kit', 'financing' => 'cash']);
+
+        $roof = (string) $component->call('selectSlot', ['slot' => 'roof'])->render();
+        self::assertMatchesRegularExpression(
+            '/Installation actuelle<\/span><span><strong>Aucune<\/strong>/',
+            $roof,
+            'A kit-only household has no rooftop install: the roof drawer\'s context row reads "Aucune", not the kit label.',
+        );
+    }
+
+    /**
+     * Mirror of the above: the garage drawer's "Équipement actuel" row must
+     * name the kit once installed (its home now that SolarKitWork::slot() is
+     * Garage), and must never name the water heater (moved to the heating
+     * drawer in the same refactor).
+     */
+    public function testGarageDrawerContextRowNamesTheKitNotTheWaterHeater(): void
+    {
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        $component->call('order', ['work' => 'solar_kit', 'financing' => 'cash']);
+        $component->call('order', ['work' => 'water_heater_thermo', 'financing' => 'cash']);
+
+        $garage = (string) $component->call('selectSlot', ['slot' => 'garage'])->render();
+
+        // Scoped to the "Équipement actuel" row's value span itself — the
+        // scene SVG always draws the installed water-heater asset (whose
+        // markup carries its own "Chauffe-eau thermodynamique" comment)
+        // regardless of which drawer is open, so a page-wide assertion would
+        // false-positive on that unrelated graphic.
+        $matched = preg_match(
+            '/Équipement actuel<\/span>\s*<span>(.*?)<\/span>\s*<\/div>/s',
+            $garage,
+            $row,
+        );
+        self::assertSame(1, $matched, 'The garage drawer renders its "Équipement actuel" context row.');
+        self::assertStringContainsString(
+            'Kit solaire',
+            $row[1],
+            'The garage drawer\'s context row names the kit alongside the battery state.',
+        );
+        self::assertStringNotContainsString(
+            'Chauffe-eau',
+            $row[1],
+            'The water heater is never named in the garage drawer\'s context row any more: it moved to the heating drawer.',
         );
     }
 
@@ -261,7 +318,7 @@ final class GameDashboardTest extends KernelTestCase
         self::assertStringNotContainsString(
             'done-chip">✔ Chauffe-eau thermodynamique',
             $garage,
-            'The garage drawer still names the water heater in its "Équipement actuel" context row, but no longer shows the done chip.',
+            'The garage drawer no longer shows the done chip, nor names the water heater in its context row any more (Task 4 + follow-up fix).',
         );
     }
 

@@ -19,7 +19,7 @@
         {# Décision-context : l'installation solaire en place (kit plug-and-play
            vs complète) — la production/nébulosité du jour vivent déjà dans les
            coins Énergie/Météo, pas de doublon ici. #}
-        <div class="row"><span class="key">Installation actuelle</span><span><strong>{{ game.solarKindLabel is not empty ? game.solarKindLabel : 'Aucune' }}</strong></span></div>
+        <div class="row"><span class="key">Installation actuelle</span><span><strong>{{ scene.solarState == 'full' ? game.solarKindLabel : 'Aucune' }}</strong></span></div>
         <div class="row"><span class="key">Exporté aujourd'hui<twig:Tip text="{{ game.help.surplus }}" /></span><span>{{ game.gridExportKwh|number_format(1, ',', ' ') }} kWh</span></div>
     {% elseif selected == 'walls' %}
         <div class="row"><span class="key">DPE actuel</span><span><strong>{{ game.dpeLetter }}</strong> · déperditions dominantes : toiture, murs</span></div>
@@ -40,12 +40,13 @@
         {% endif %}
     {% elseif selected == 'garage' %}
         {# Décision-context : l'équipement garage en place — batterie (utile
-           seulement si du solaire produit un surplus, cf. slot toit) et
-           chauffe-eau. L'autosuffisance du jour vit déjà dans le coin Énergie,
-           pas de doublon ici. #}
+           seulement si du solaire produit un surplus, cf. slot toit) et kit
+           solaire (plug-and-play, posé au sol/jardin — pas sur le toit).
+           L'autosuffisance du jour vit déjà dans le coin Énergie, pas de
+           doublon ici. #}
         <div class="row">
             <span class="key">Équipement actuel</span>
-            <span><strong>{{ game.batteryCapacityKwh > 0 ? game.batteryCapacityKwh|number_format(0, ',', ' ') ~ ' kWh batterie' : 'Pas de batterie' }}</strong>{% if game.waterHeaterLabel is not empty %} · {{ game.waterHeaterLabel }}{% endif %}</span>
+            <span><strong>{{ game.batteryCapacityKwh > 0 ? game.batteryCapacityKwh|number_format(0, ',', ' ') ~ ' kWh batterie' : 'Pas de batterie' }}</strong>{% if scene.solarState == 'kit' %} · {{ game.solarKindLabel }}{% endif %}</span>
         </div>
         {% if game.batteryCapacityKwh > 0 %}
             <div class="row"><span class="key">Batterie → maison ce soir</span><span>{{ game.batteryDischargedKwh|number_format(1, ',', ' ') }} kWh</span></div>

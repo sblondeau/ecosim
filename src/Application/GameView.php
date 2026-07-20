@@ -145,12 +145,11 @@ final readonly class GameView
          * The installed solar setup's kind and size ('Kit solaire · 0,9 kWc',
          * 'Panneaux solaires · 3 kWc'). Empty when no solar is installed yet —
          * distinct from the scene's plain kWc label, this names the *kind* of
-         * install (plug-and-play kit vs full) for the roof drawer's decision
-         * context (arbre travaux, Tranche 5).
+         * install (plug-and-play kit vs full) for the roof drawer's (full
+         * install only) and garage drawer's (kit only) decision-context rows,
+         * gated on `scene.solarState` (arbre travaux, Tranche 5/7).
          */
         public string $solarKindLabel = '',
-        /** Water-heater label, only when upgraded (thermodynamic) — empty on the baseline electric tank. */
-        public string $waterHeaterLabel = '',
         /**
          * Per-slot "done" chips, keyed by SceneSlot value ('walls', 'heating'…),
          * each a list of French state phrases from the catalogue's
