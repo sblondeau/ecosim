@@ -1,0 +1,17 @@
+{# Modale 2/2 : les quatre axes et comment agir. La situation a été posée par
+   l'intro (modale 1) ; ici, la mécanique. En fermer celle-ci lance le jeu ET
+   redémarre l'horloge (ScenarioBriefingEvent::restartsClockOnAcknowledge). #}
+<div class="intro-overlay">
+    <div class="intro-card">
+        <h2>🎛️ Vos leviers</h2>
+        <p class="intro-goal">Vivez-y un an. <strong>Il n'y a pas de partie perdue</strong> : à vous d'équilibrer vos quatre axes, à votre main.</p>
+        <ul class="intro-axes">
+            <li><span class="ax">💶</span> <span><strong>Finances</strong> — épargne, factures d'énergie, aides et prêt.</span></li>
+            <li><span class="ax">🛋️</span> <span><strong>Confort</strong> — la température <em>ressentie</em> chez vous.</span></li>
+            <li><span class="ax">⚡</span> <span><strong>Énergie &amp; climat</strong> — votre consommation et le <em>CO₂ réellement émis</em>.</span></li>
+            <li><span class="ax">🏠</span> <span><strong>Patrimoine</strong> — la classe DPE et la valeur du bien.</span></li>
+        </ul>
+        <p class="intro-how">Cliquez le <strong>toit</strong>, la <strong>chaudière</strong>, le <strong>garage</strong> ou le <strong>séjour</strong> pour agir, et les <strong>quatre coins</strong> pour vos indicateurs. Le temps avance seul — <strong>⏸</strong> pour réfléchir. <strong>Des imprévus peuvent survenir.</strong> <em>Repère : en rénovation, on isole avant de changer le chauffage.</em></p>
+        <twig:Button label="Commencer →" action="acknowledgeEvent" :params="{id: pendingEvent.id}" class="btn-primary" />
+    </div>
+</div>

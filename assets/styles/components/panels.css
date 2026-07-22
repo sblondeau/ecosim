@@ -158,9 +158,41 @@ details.card[open]>summary {
     box-shadow: 0 20px 60px rgba(0, 0, 0, .45);
 }
 
+/* Modale 1 (immersive) : plus large pour laisser respirer l'illustration. */
+.intro-card--wide {
+    max-width: 620px;
+}
+
+/* Illustration hero (<twig:IntroHero>) : pleine largeur en tête de carte, elle
+   déborde le padding pour toucher les bords, coins hauts arrondis comme la
+   carte. `image` absente → cadre neutre thémable (dégradé) sans SVG composé. */
+.intro-hero {
+    margin: calc(-1 * var(--space-3xl)) calc(-1 * var(--space-3xl)) var(--space-xl);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    background: var(--card);
+}
+
+.intro-hero-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.intro-hero--empty {
+    background: linear-gradient(160deg, var(--line), var(--card));
+}
+
 .intro-card h2 {
     margin: 0 0 var(--space-sm);
     font-size: var(--text-2xl);
+}
+
+.intro-card .intro-story {
+    margin: 0 0 var(--space-xl);
+    color: var(--muted);
 }
 
 .intro-card .lead {

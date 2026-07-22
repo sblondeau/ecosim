@@ -68,20 +68,28 @@ final class GameDashboardTest extends KernelTestCase
         self::assertStringContainsString('acknowledgeEvent', $html, 'The close button triggers the action.');
     }
 
-    public function testWelcomeOverlayShowsOnAFreshGameThenDismisses(): void
+    public function testOnboardingChainsTheImmersiveIntroThenTheBriefingThenReleasesTheGame(): void
     {
         $component = $this->createLiveComponent(GameDashboard::class);
 
-        // A brand-new game (day 1) greets the player with the welcome overlay.
-        self::assertStringContainsString('Bienvenue chez vous', (string) $component->render());
+        // A brand-new game (day 1) greets the player with the immersive intro —
+        // pure situation, and it names the starting DPE correctly (G, not F).
+        $intro = (string) $component->render();
+        self::assertStringContainsString('Bienvenue chez vous', $intro);
+        self::assertStringNotContainsString('DPE&nbsp;F', $intro, 'The starting home is DPE G — the old copy mislabelled it F.');
 
-        $html = (string) $component->call('acknowledgeEvent', ['id' => 'intro'])->render();
-
+        // Acknowledging the intro reveals the briefing (axes + how-to), NOT the game.
+        $briefing = (string) $component->call('acknowledgeEvent', ['id' => 'intro'])->render();
         self::assertSame(['intro'], $component->component()->acknowledgedEvents);
-        self::assertStringNotContainsString('intro-overlay', $html);
+        self::assertStringContainsString('Énergie &amp; climat', $briefing, 'The briefing lists the fourth axis the old intro omitted.');
+        self::assertStringContainsString('data-live-id-param="briefing"', $briefing, 'The briefing is what the intro dismisses to.');
+
+        // Acknowledging the briefing dismisses the last modal and starts play.
+        $game = (string) $component->call('acknowledgeEvent', ['id' => 'briefing'])->render();
+        self::assertStringNotContainsString('intro-overlay', $game);
     }
 
-    public function testAcknowledgingTheIntroShowsTheNextPendingEventImmediately(): void
+    public function testAcknowledgingEachOnboardingModalRevealsTheNextPendingEventImmediately(): void
     {
         $component = $this->createLiveComponent(GameDashboard::class);
 
@@ -90,18 +98,21 @@ final class GameDashboardTest extends KernelTestCase
             $component->call('step');
         }
 
-        // Both the intro and the breakdown modal have occurred; only the intro shows first.
+        // Intro, briefing and the breakdown have all occurred; the intro shows first.
         self::assertStringContainsString('Bienvenue chez vous', (string) $component->render());
 
-        $html = (string) $component->call('acknowledgeEvent', ['id' => 'intro'])->render();
+        // Closing the intro reveals the briefing, same render.
+        $briefing = (string) $component->call('acknowledgeEvent', ['id' => 'intro'])->render();
+        self::assertStringContainsString('data-live-id-param="briefing"', $briefing);
 
-        // Closing the intro immediately reveals the breakdown modal, same render.
-        self::assertStringContainsString('Panne de chaudière', $html);
+        // Closing the briefing reveals the breakdown modal, same render.
+        $breakdown = (string) $component->call('acknowledgeEvent', ['id' => 'briefing'])->render();
+        self::assertStringContainsString('Panne de chaudière', $breakdown);
 
         // The close button's LiveArg wire name must be lowercase — a camelCase
         // data-live-*-param gets folded to lowercase by the HTML parser before
         // Stimulus ever reads it, silently breaking argument resolution.
-        self::assertStringContainsString('data-live-id-param="boiler_breakdown"', $html);
+        self::assertStringContainsString('data-live-id-param="boiler_breakdown"', $breakdown);
     }
 
     public function testPatrimoineCornerRendersTheOfficialDualDpeLabel(): void

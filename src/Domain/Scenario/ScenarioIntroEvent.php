@@ -26,6 +26,9 @@ final readonly class ScenarioIntroEvent implements ExplainedEvent
 
     public function restartsClockOnAcknowledge(): bool
     {
-        return true;
+        // The briefing shown right after this one is the last modal before
+        // play, and it re-anchors the clock — doing it here too would be
+        // redundant. Reading both screens still burns no game days.
+        return false;
     }
 }
