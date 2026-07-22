@@ -11,27 +11,29 @@ use App\Domain\Building\Household;
 use App\Domain\Building\WallInsulation;
 use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
-use App\Domain\Scenario\ScenarioIntroEvent;
+use App\Domain\Scenario\ScenarioBriefingEvent;
 use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\PeriodTotals;
 use PHPUnit\Framework\TestCase;
 
-final class ScenarioIntroEventTest extends TestCase
+final class ScenarioBriefingEventTest extends TestCase
 {
+    public function testIsIdentifiedByItsOwnPartialName(): void
+    {
+        self::assertSame('briefing', new ScenarioBriefingEvent()->id());
+    }
+
     public function testAlwaysHasOccurredSinceItIsRelevantFromTheFirstRender(): void
     {
         $household = new Household(0.0, 0.0, new EnvelopeState(false, WallInsulation::None, Glazing::Single), HeatingSystem::FuelOilBoiler);
-        $event = new ScenarioIntroEvent();
+        $event = new ScenarioBriefingEvent();
 
         self::assertTrue($event->hasOccurred(new GameState(0, $household, 0.0, Money::zero(), Loan::none(), new PeriodTotals())));
         self::assertTrue($event->hasOccurred(new GameState(50, $household, 0.0, Money::zero(), Loan::none(), new PeriodTotals())), 'Only acknowledgement, not the day, retires it.');
     }
 
-    public function testDoesNotRestartTheClockSinceTheBriefingBehindItWill(): void
+    public function testRestartsTheClockOnAcknowledgeSinceItIsTheLastModalBeforePlay(): void
     {
-        // The intro is chained ahead of ScenarioBriefingEvent; only the last
-        // modal before play re-anchors the clock, so reading both screens burns
-        // no game days.
-        self::assertFalse(new ScenarioIntroEvent()->restartsClockOnAcknowledge());
+        self::assertTrue(new ScenarioBriefingEvent()->restartsClockOnAcknowledge());
     }
 }

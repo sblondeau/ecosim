@@ -107,9 +107,15 @@ Persistance   src/Entity/ + src/Repository/  (Doctrine, entités anémiques = é
   uniquement. Tests d'intégration LiveComponent (`tests/Integration/`,
   `InteractsWithLiveComponents`). **La boucle §15 est complète.** Météo
   recalibrée (variabilité réaliste, DJU ~2275, vraies vagues de froid — fix du
-  mapping de bruit `SeededNoise::smoothUnit`). Reste côté MVP : **onboarding /
-  cadrage de l'objectif** (trou pédagogique : le joueur atterrit sans contexte
-  ni but). **Persistance Doctrine : reportée à une étape méta-jeu dédiée**
+  mapping de bruit `SeededNoise::smoothUnit`). **Onboarding / cadrage de
+  l'objectif : fait** (juillet 2026) — l'accueil est découpé en deux
+  `ExplainedEvent` enchaînés (`ScenarioIntroEvent` récit immersif illustré +
+  `ScenarioBriefingEvent` les 4 axes & mode d'emploi ; seul le briefing, dernier
+  écran, redémarre l'horloge), les 4 coins/axes et le DPE G de départ y sont
+  corrects. **La boucle MVP est complète, cadrage compris.** Prochaines
+  directions = post-MVP/V1.x (cf. `docs/backlog.md` : dynamisme du gameplay,
+  cycle de vie des équipements, réalisme des délais). **Persistance Doctrine :
+  reportée à une étape méta-jeu dédiée**
   (comptes, reprise, parties multiples, historique, stats — cf. backlog
   « Persistance & méta-jeu » ; à faire en bloc, pas en portage session→DB
   invisible).

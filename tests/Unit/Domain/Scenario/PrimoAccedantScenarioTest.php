@@ -11,6 +11,7 @@ use App\Domain\Finance\RenovationQuoter;
 use App\Domain\Finance\Work\HeatPumpWork;
 use App\Domain\Scenario\BoilerBreakdownEvent;
 use App\Domain\Scenario\PrimoAccedantScenario;
+use App\Domain\Scenario\ScenarioBriefingEvent;
 use App\Domain\Scenario\ScenarioIntroEvent;
 use PHPUnit\Framework\TestCase;
 
@@ -70,12 +71,13 @@ final class PrimoAccedantScenarioTest extends TestCase
         );
     }
 
-    public function testExplainedEventsIncludeTheIntroAheadOfTheScriptedBreakdown(): void
+    public function testExplainedEventsChainTheTwoOnboardingModalsAheadOfTheScriptedBreakdown(): void
     {
         $explained = new PrimoAccedantScenario()->explainedEvents();
 
-        self::assertCount(2, $explained, 'The intro is not a ScriptedEvent, so it does not show up in events().');
-        self::assertInstanceOf(ScenarioIntroEvent::class, $explained[0], 'The intro comes first: it is relevant from day 0.');
-        self::assertInstanceOf(BoilerBreakdownEvent::class, $explained[1]);
+        self::assertCount(3, $explained, 'Two onboarding modals then the scripted breakdown; none is a ScriptedEvent that shows up in events().');
+        self::assertInstanceOf(ScenarioIntroEvent::class, $explained[0], 'The intro comes first: pure situation, relevant from day 0.');
+        self::assertInstanceOf(ScenarioBriefingEvent::class, $explained[1], 'The briefing (axes + how-to) chains right after the intro.');
+        self::assertInstanceOf(BoilerBreakdownEvent::class, $explained[2]);
     }
 }

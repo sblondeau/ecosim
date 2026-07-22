@@ -1,15 +1,13 @@
-{# Écran de bienvenue (premier lancement) : contexte du scénario, day 1. #}
+{# Modale 1/2 (premier lancement) : la SITUATION, immersive. Le récit d'abord ;
+   la mécanique (axes + mode d'emploi) vit dans le briefing (modale 2). Fermer
+   cette modale enchaîne sur le briefing, sans redémarrer l'horloge. #}
 <div class="intro-overlay">
-    <div class="intro-card">
+    <div class="intro-card intro-card--wide">
+        <twig:IntroHero image="images/scenario/intro.jpg"
+                        alt="Votre maison ancienne, un matin d'hiver" />
         <h2>🏠 Bienvenue chez vous</h2>
-        <p class="lead">Vous êtes primo-accédant. Vous venez d'emménager dans une <strong>maison ancienne chauffée au fioul, classée DPE&nbsp;F</strong>, avec une épargne modeste.</p>
-        <p class="intro-goal">Vivez-y un an. <strong>Il n'y a pas de partie perdue</strong> : à vous d'équilibrer vos trois axes.</p>
-        <ul class="intro-axes">
-            <li><span class="ax">💶</span> <span><strong>Finances</strong> — épargne, factures d'énergie, aides et prêt.</span></li>
-            <li><span class="ax">🏠</span> <span><strong>Patrimoine</strong> — la classe DPE et la valeur du bien.</span></li>
-            <li><span class="ax">🛋️</span> <span><strong>Confort</strong> — la température <em>ressentie</em> chez vous.</span></li>
-        </ul>
-        <p class="intro-how">Cliquez le <strong>toit</strong>, la <strong>chaudière</strong>, le <strong>garage</strong> ou le <strong>séjour</strong> pour agir, et les <strong>quatre coins</strong> pour vos indicateurs. Le temps avance seul — <strong>⏸</strong> pour réfléchir. <strong>Des imprévus peuvent survenir.</strong> <em>Repère : en rénovation, on isole avant de changer le chauffage.</em></p>
-        <twig:Button label="Commencer →" action="acknowledgeEvent" :params="{id: pendingEvent.id}" class="btn-primary" />
+        <p class="lead">Vous venez d'emménager. C'est votre première maison : une <strong>bâtisse ancienne</strong>, chauffée au <strong>fioul</strong>, classée <strong>DPE&nbsp;G</strong>. L'hiver approche.</p>
+        <p class="intro-story">Vous le sentez déjà : le froid qui tombe des murs, la vieille chaudière qui gronde, les premières factures qui arrivent. Vous avez une épargne modeste et <strong>une année</strong> pour faire de cette passoire un vrai chez-vous.</p>
+        <twig:Button label="Continuer →" action="acknowledgeEvent" :params="{id: pendingEvent.id}" class="btn-primary" />
     </div>
 </div>

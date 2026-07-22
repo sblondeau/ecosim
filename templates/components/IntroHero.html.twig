@@ -1,0 +1,12 @@
+{# Illustration de la modale d'accueil immersive. Une vraie image raster
+   (assets/images/scenario/*.jpg) est le visuel principal ; quand `image` est
+   absente, un cadre neutre thémable prend le relais — on ne compose PAS de
+   scène SVG ici (l'image fait le travail). La prop `image` est l'unique point
+   de bascule : déposer un fichier dans assets/images/scenario/ et passer son
+   chemin d'asset suffit à le remplacer. #}
+{% props image = null, alt = '' %}
+<div class="intro-hero{{ image ? '' : ' intro-hero--empty' }}">
+    {% if image %}
+        <img class="intro-hero-img" src="{{ asset(image) }}" alt="{{ alt }}">
+    {% endif %}
+</div>
