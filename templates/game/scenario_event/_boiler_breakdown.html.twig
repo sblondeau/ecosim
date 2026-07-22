@@ -1,0 +1,5 @@
+{# Panne de chaudière : modale one-shot, puis l'état « en panne » de la scène suffit. #}
+<twig:Modal title="🚨 Panne de chaudière" closeAction="acknowledgeEvent" :params="{id: pendingEvent.id}" closeLabel="Compris — je décide">
+    <p>Votre chaudière fioul vient de <strong>tomber en panne</strong>. Le temps est en <strong>pause</strong> : décidez sans précipitation.</p>
+    <p>En attendant, des convecteurs électriques d'appoint tiennent péniblement ~16 °C — et l'électricité <strong>flambe</strong> (effet Joule, le pire des chauffages). Fermez cette fenêtre, puis cliquez la <strong>chaudière</strong> pour la <strong>réparer</strong> (rapide, mais toujours au fioul) ou la <strong>remplacer par une PAC</strong>.</p>
+</twig:Modal>

@@ -9,6 +9,7 @@ use App\Application\GameStore;
 use App\Application\GameView;
 use App\Application\GameViewFactory;
 use App\Application\RenovationHandler;
+use App\Application\ScenarioEventView;
 use App\Application\TimeKeeper;
 use App\Domain\Building\BuildingCalibration;
 use App\Domain\Finance\SceneSlot;
@@ -19,6 +20,7 @@ use function array_map;
 
 use DateTimeImmutable;
 
+use function in_array;
 use function max;
 use function min;
 
@@ -49,27 +51,18 @@ final class GameDashboard
     public ?string $selectedSlot = null;
 
     /** Transient message shown after an action (persists across polls, cleared on the next action). */
-    #[LiveProp(writable: true)]
-    public string $notice = '';
-
-    #[LiveProp(writable: true)]
-    public bool $noticeIsError = false;
+    #[LiveProp(writable: true, useSerializerForHydration: true)]
+    public ?Notice $notice = null;
 
     /**
-     * The welcome overlay shows on a brand-new game (day 1) until dismissed.
-     * A LiveProp, so it survives polls; it naturally reappears only for a fresh
-     * game (the template also gates on day 1), never mid-run once you've played.
+     * Ids of the scenario events ({@see ScenarioEventView}) whose one-shot
+     * modal the player has already closed. A LiveProp, so it survives polls;
+     * reset on a new game so a fresh playthrough shows them again.
+     *
+     * @var list<string>
      */
     #[LiveProp(writable: true)]
-    public bool $introDismissed = false;
-
-    /**
-     * A scripted pause event (boiler breakdown) shows a one-shot modal, dismissed
-     * into the persistent "en panne" scene state. A LiveProp so it survives polls;
-     * reset on a new game so a fresh breakdown pops the modal again.
-     */
-    #[LiveProp(writable: true)]
-    public bool $breakdownSeen = false;
+    public array $acknowledgedEvents = [];
 
     private ?Game $game = null;
     private ?GameView $view = null;
@@ -86,7 +79,7 @@ final class GameDashboard
     #[LiveAction]
     public function selectSlot(#[LiveArg] string $slot): void
     {
-        $this->notice = '';
+        $this->notice = null;
 
         if (null === SceneSlot::tryFrom($slot) && null === AxisPanel::tryFrom($slot)) {
             return;
@@ -99,42 +92,40 @@ final class GameDashboard
     #[LiveAction]
     public function closePanel(): void
     {
-        $this->notice = '';
+        $this->notice = null;
         $this->selectedSlot = null;
     }
 
     /**
-     * Dismiss the welcome overlay and start playing. The real-time clock is
-     * restarted from now, so the seconds spent reading the intro don't burn
-     * game days (polling was paused while the overlay was up).
+     * Close a scenario event's one-shot modal. Some events (the intro) want
+     * the real-time clock restarted from now, so time spent reading doesn't
+     * burn game days — others (the boiler breakdown) leave it as is, already
+     * paused by {@see TimeKeeper}.
      */
     #[LiveAction]
-    public function dismissIntro(): void
+    public function acknowledgeEvent(#[LiveArg('id')] string $eventId): void
     {
-        $this->introDismissed = true;
-        $game = $this->store->current();
-        $this->commit($game->withProgression($game->progression->withSpeed($game->progression->speed, new DateTimeImmutable())));
-    }
+        $this->acknowledgedEvents[] = $eventId;
 
-    /** Acknowledge the breakdown modal; the game stays paused, the scene keeps the "en panne" state. */
-    #[LiveAction]
-    public function acknowledgeBreakdown(): void
-    {
-        $this->breakdownSeen = true;
+        $event = $this->scenarioEvent($eventId);
+        if (null !== $event && $event->restartsClockOnAcknowledge) {
+            $game = $this->store->current();
+            $this->commit($game->withProgression($game->progression->withSpeed($game->progression->speed, new DateTimeImmutable())));
+        }
     }
 
     /** Manual step: live the current day now, restarting the real-time clock. */
     #[LiveAction]
     public function step(): void
     {
-        $this->notice = '';
+        $this->notice = null;
         $this->commit($this->timeKeeper->step($this->store->current(), new DateTimeImmutable()));
     }
 
     #[LiveAction]
     public function setSpeed(#[LiveArg] int $speed): void
     {
-        $this->notice = '';
+        $this->notice = null;
         $chosen = TickSpeed::tryFrom($speed);
         if (null === $chosen) {
             return;
@@ -148,7 +139,7 @@ final class GameDashboard
     #[LiveAction]
     public function adjustSetpoint(#[LiveArg] int $delta): void
     {
-        $this->notice = '';
+        $this->notice = null;
         $game = $this->timeKeeper->catchUp($this->store->current(), new DateTimeImmutable());
         $household = $game->state->household;
 
@@ -164,7 +155,7 @@ final class GameDashboard
     #[LiveAction]
     public function order(#[LiveArg] string $work, #[LiveArg] string $financing): void
     {
-        $this->notice = '';
+        $this->notice = null;
 
         $game = $this->timeKeeper->catchUp($this->store->current(), new DateTimeImmutable());
         $result = $this->renovations->order($game->state, $work, $financing);
@@ -177,16 +168,15 @@ final class GameDashboard
         }
 
         $this->commit($game->withState($result));
-        $this->notice = 'Travaux réalisés !';
-        $this->noticeIsError = false;
+        $this->notice = Notice::success('Travaux réalisés !');
     }
 
     #[LiveAction]
     public function reset(): void
     {
         $this->selectedSlot = null;
-        $this->notice = '';
-        $this->breakdownSeen = false;
+        $this->notice = null;
+        $this->acknowledgedEvents = [];
         $this->game = $this->store->reset();
         $this->view = null;
     }
@@ -194,6 +184,18 @@ final class GameDashboard
     public function getGame(): GameView
     {
         return $this->view ??= $this->viewFactory->build($this->loaded()->config, $this->loaded()->state);
+    }
+
+    /** The next scenario event still awaiting its one-shot modal, if any. */
+    public function getPendingScenarioEvent(): ?ScenarioEventView
+    {
+        foreach ($this->getGame()->occurredScenarioEvents as $event) {
+            if (!in_array($event->id, $this->acknowledgedEvents, true)) {
+                return $event;
+            }
+        }
+
+        return null;
     }
 
     public function getSpeedValue(): int
@@ -227,8 +229,18 @@ final class GameDashboard
 
     private function fail(string $message): void
     {
-        $this->notice = $message;
-        $this->noticeIsError = true;
+        $this->notice = Notice::error($message);
+    }
+
+    private function scenarioEvent(string $eventId): ?ScenarioEventView
+    {
+        foreach ($this->getGame()->occurredScenarioEvents as $event) {
+            if ($event->id === $eventId) {
+                return $event;
+            }
+        }
+
+        return null;
     }
 
     /** Persist the mutated game and make it the render source (skips a re-catch-up). */

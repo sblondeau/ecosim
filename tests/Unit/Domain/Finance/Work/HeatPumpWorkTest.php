@@ -43,7 +43,7 @@ final class HeatPumpWorkTest extends TestCase
 
         self::assertSame('heat_pump', $work->slug());
         self::assertSame(SceneSlot::Heating, $work->slot());
-        self::assertTrue($work->isEnergyPerformanceWork());
+        self::assertTrue($work->qualifiesForEnergyAid());
     }
 
     public function testOffersAHeatPumpToAFuelOilHouse(): void
@@ -91,15 +91,26 @@ final class HeatPumpWorkTest extends TestCase
         self::assertSame('Bon rendement attendu : la maison est suffisamment isolée pour une PAC efficace.', $advice->message);
     }
 
-    public function testDoneLabelAndSceneLayerAppearOnlyOnceInstalled(): void
+    public function testDoneLabelAppearsOnlyOnceInstalled(): void
     {
         $work = new HeatPumpWork();
         $installed = self::barePassoire()->withHeatingSystem(HeatingSystem::HeatPump);
 
         self::assertNull($work->doneLabelFor(self::barePassoire()));
-        self::assertNull($work->sceneLayerFor(self::barePassoire()));
         self::assertSame('Pompe à chaleur', $work->doneLabelFor($installed));
-        self::assertSame('heating-heat-pump', $work->sceneLayerFor($installed));
+    }
+
+    /**
+     * Equipment has no envelope CSS layer: its visual is a whole scene
+     * component selected by HouseSceneView from the household's equipment
+     * state (heatingState), not by a house--* gate. So sceneLayerFor is null.
+     */
+    public function testHasNoEnvelopeLayer(): void
+    {
+        $installed = self::barePassoire()->withHeatingSystem(HeatingSystem::HeatPump);
+
+        self::assertNull(new HeatPumpWork()->sceneLayerFor(self::barePassoire()));
+        self::assertNull(new HeatPumpWork()->sceneLayerFor($installed));
     }
 
     public function testIconAssetPointsAtARealFile(): void

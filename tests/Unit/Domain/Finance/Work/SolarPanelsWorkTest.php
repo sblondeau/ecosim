@@ -32,7 +32,7 @@ final class SolarPanelsWorkTest extends TestCase
 
         self::assertSame('solar_panels', $work->slug());
         self::assertSame(SceneSlot::Roof, $work->slot());
-        self::assertFalse($work->isEnergyPerformanceWork(), 'Production equipment is not covered by the prime.');
+        self::assertFalse($work->qualifiesForEnergyAid(), 'Production equipment is not covered by the prime.');
     }
 
     public function testOffersTheFullInstallFromABareRoof(): void
@@ -84,16 +84,27 @@ final class SolarPanelsWorkTest extends TestCase
         self::assertStringContainsString('kit', $advice->message);
     }
 
-    public function testDoneLabelAndSceneLayerAppearOnlyOnceTheFullInstallIsDone(): void
+    public function testDoneLabelAppearsOnlyOnceTheFullInstallIsDone(): void
     {
         $work = new SolarPanelsWork();
 
         self::assertNull($work->doneLabelFor(self::household(0.0)));
-        self::assertNull($work->sceneLayerFor(self::household(0.0)));
         self::assertNull($work->doneLabelFor(self::household(0.9)), 'A kit alone is not the full install.');
-        self::assertNull($work->sceneLayerFor(self::household(0.9)));
         self::assertSame('Panneaux solaires · 3 kWc', $work->doneLabelFor(self::household(3.0)));
-        self::assertSame('solar-full', $work->sceneLayerFor(self::household(3.0)));
+    }
+
+    /**
+     * Equipment has no envelope CSS layer: its visual is a whole scene
+     * component selected by HouseSceneView from the household's equipment
+     * state (solar state), not by a house--* gate. So sceneLayerFor is null.
+     */
+    public function testHasNoEnvelopeLayer(): void
+    {
+        $work = new SolarPanelsWork();
+
+        self::assertNull($work->sceneLayerFor(self::household(0.0)));
+        self::assertNull($work->sceneLayerFor(self::household(0.9)));
+        self::assertNull($work->sceneLayerFor(self::household(3.0)));
     }
 
     public function testIconAssetPointsAtARealFile(): void

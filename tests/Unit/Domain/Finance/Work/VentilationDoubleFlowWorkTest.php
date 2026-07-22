@@ -43,7 +43,7 @@ final class VentilationDoubleFlowWorkTest extends TestCase
 
         self::assertSame('ventilation_double_flow', $work->slug());
         self::assertSame(SceneSlot::Walls, $work->slot());
-        self::assertTrue($work->isEnergyPerformanceWork());
+        self::assertTrue($work->qualifiesForEnergyAid());
     }
 
     public function testOffersDoubleFlowVentilationWhenNoneInstalled(): void

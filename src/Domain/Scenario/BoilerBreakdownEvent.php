@@ -14,7 +14,7 @@ use App\Domain\Simulation\GameState;
  * repaired boiler holds for the rest of the game (strict day equality: the
  * event fires once, it is a scene, not a wear model).
  */
-final readonly class BoilerBreakdownEvent implements ScriptedEvent
+final readonly class BoilerBreakdownEvent implements ScriptedEvent, ExplainedEvent
 {
     public function __construct(
         /** Day index of the breakdown morning. */
@@ -32,5 +32,21 @@ final readonly class BoilerBreakdownEvent implements ScriptedEvent
     public function fire(GameState $state): GameState
     {
         return $state->withHousehold($state->household->withBoilerBroken(true));
+    }
+
+    public function id(): string
+    {
+        return 'boiler_breakdown';
+    }
+
+    public function hasOccurred(GameState $state): bool
+    {
+        return $state->household->boilerBroken;
+    }
+
+    public function restartsClockOnAcknowledge(): bool
+    {
+        // The game is already paused by TimeKeeper when the boiler breaks down.
+        return false;
     }
 }

@@ -1,0 +1,5 @@
+{# Bandeau de feedback transitoire (composant Twig anonyme). Prend le
+   Notice tel quel (VO texte + NoticeSeverity) : icône et classe viennent
+   de la sévérité, pas d'un bool local. #}
+{% props notice %}
+<div class="stage-banner banner {{ notice.severity.cssClass }}">{{ notice.severity.icon }} {{ notice.text }}</div>

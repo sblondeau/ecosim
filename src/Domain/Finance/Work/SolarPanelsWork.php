@@ -83,7 +83,7 @@ final readonly class SolarPanelsWork implements RenovationDefinition
         );
     }
 
-    public function isEnergyPerformanceWork(): bool
+    public function qualifiesForEnergyAid(): bool
     {
         return false;
     }
@@ -100,7 +100,9 @@ final readonly class SolarPanelsWork implements RenovationDefinition
 
     public function sceneLayerFor(Household $household): ?string
     {
-        return $household->solarKwc >= $this->energy->defaultSolarPeakPowerKwc()->value ? 'solar-full' : null;
+        // Equipment: drawn as a <twig:scene:*> component selected from the
+        // household's equipment state, not via an envelope house--* gate.
+        return null;
     }
 
     public function iconAsset(): string

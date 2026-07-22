@@ -51,7 +51,7 @@ final readonly class RenovationHandler
         $net = $quote->netCost();
 
         if (self::FINANCING_LOAN === $financing) {
-            if (!$work->isEnergyPerformanceWork()) {
+            if (!$work->qualifiesForEnergyAid()) {
                 return 'L\'éco-PTZ ne finance que les travaux de performance énergétique (isolation, pompe à chaleur).';
             }
 

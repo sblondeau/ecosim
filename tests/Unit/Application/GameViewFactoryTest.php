@@ -193,6 +193,13 @@ final class GameViewFactoryTest extends TestCase
         self::assertArrayHasKey('roof_insulation', $view->actions, 'A bare passoire is quoted for roof insulation.');
     }
 
+    public function testEachActionCarriesItsCatalogueIcon(): void
+    {
+        $view = new GameViewFactory()->build(self::config(), GameState::start(self::passoire(), Money::fromEuros(8000.0)));
+
+        self::assertSame('game/scene/assets/heat-pump.svg', $view->actions['heat_pump']->iconAsset);
+    }
+
     public function testEnvelopeActionsCarryAdvice(): void
     {
         $bare = new Household(0.0, 0.0, self::original(), HeatingSystem::FuelOilBoiler);
@@ -208,18 +215,25 @@ final class GameViewFactoryTest extends TestCase
         $bare = new Household(0.0, 0.0, self::original(), HeatingSystem::FuelOilBoiler);
         $view = new GameViewFactory()->build(self::config(), GameState::start($bare, Money::fromEuros(4000.0)));
 
-        self::assertFalse($view->roofInsulated);
-        self::assertSame('', $view->wallInsulationLabel);
-        self::assertSame('', $view->glazingLabel);
+        self::assertSame([], $view->doneChipsBySlot['walls'], 'A bare envelope has no walls-drawer done chip.');
         self::assertFalse($view->glazingMaxed);
 
         $best = new Household(0.0, 0.0, self::bestEnvelope(), HeatingSystem::HeatPump);
         $bestView = new GameViewFactory()->build(self::config(), GameState::start($best, Money::fromEuros(4000.0)));
 
-        self::assertTrue($bestView->roofInsulated);
-        self::assertSame('Extérieure (ITE)', $bestView->wallInsulationLabel);
-        self::assertSame('Triple vitrage', $bestView->glazingLabel);
+        self::assertContains('Combles isolés', $bestView->doneChipsBySlot['walls']);
+        self::assertContains('Murs — Extérieure (ITE)', $bestView->doneChipsBySlot['walls']);
+        self::assertContains('Triple vitrage', $bestView->doneChipsBySlot['walls']);
         self::assertTrue($bestView->glazingMaxed);
+    }
+
+    public function testDoneChipsComeFromTheCatalogue(): void
+    {
+        $household = self::passoire()->withEnvelope(self::original()->withRoofInsulated(true));
+
+        $view = new GameViewFactory()->build(self::config(), GameState::start($household, Money::fromEuros(8000.0)));
+
+        self::assertContains('Combles isolés', $view->doneChipsBySlot['walls']);
     }
 
     public function testTheSceneModelSpeaksInSemanticStates(): void
@@ -265,12 +279,12 @@ final class GameViewFactoryTest extends TestCase
         $bare = new Household(0.0, 0.0, self::original(), HeatingSystem::FuelOilBoiler);
         $s = $factory->build($config, GameState::start($bare, Money::fromEuros(4000.0)))->scene;
 
-        self::assertFalse($s->roofInsulated);
-        self::assertSame('none', $s->wallInsulation);
-        self::assertSame('single', $s->glazing);
-        self::assertSame('none', $s->ventilation);
-        self::assertFalse($s->thermalCurtains);
-        self::assertFalse($s->draughtProofed);
+        self::assertNotContains('roof-ins', $s->envelopeLayers);
+        self::assertNotContains('walls-exterior', $s->envelopeLayers);
+        self::assertNotContains('glazing-double', $s->envelopeLayers);
+        self::assertNotContains('vmc-double-flow', $s->envelopeLayers);
+        self::assertNotContains('curtains', $s->envelopeLayers);
+        self::assertNotContains('draughtproofed', $s->envelopeLayers);
         self::assertSame('fioul', $s->heatingState);
         self::assertSame('empty', $s->solarState);
         self::assertFalse($s->waterHeaterThermo, 'The plain electric tank is the starting equipment.');
@@ -280,14 +294,14 @@ final class GameViewFactoryTest extends TestCase
         $renovated = new Household(1.5, 0.0, self::perSurfaceRenovatedEnvelope(), HeatingSystem::PelletBoiler, waterHeater: WaterHeater::Thermodynamic);
         $s = $factory->build($config, GameState::start($renovated, Money::fromEuros(4000.0)))->scene;
 
-        self::assertTrue($s->roofInsulated);
-        self::assertSame('exterior', $s->wallInsulation);
-        self::assertSame('double', $s->glazing);
-        self::assertSame('double-flow', $s->ventilation);
+        self::assertContains('roof-ins', $s->envelopeLayers);
+        self::assertContains('walls-exterior', $s->envelopeLayers);
+        self::assertContains('glazing-double', $s->envelopeLayers);
+        self::assertContains('vmc-double-flow', $s->envelopeLayers);
         self::assertSame('pellet', $s->heatingState);
         self::assertSame('kit', $s->solarState);
-        self::assertTrue($s->thermalCurtains);
-        self::assertFalse($s->draughtProofed, 'perSurfaceRenovatedEnvelope explicitly leaves draught-proofing undone.');
+        self::assertContains('curtains', $s->envelopeLayers);
+        self::assertNotContains('draughtproofed', $s->envelopeLayers, 'perSurfaceRenovatedEnvelope explicitly leaves draught-proofing undone.');
         self::assertTrue($s->waterHeaterThermo);
         self::assertTrue($s->chimneySmoking, 'Burning wood pellets smokes the flue just as fuel oil did.');
 
@@ -296,8 +310,23 @@ final class GameViewFactoryTest extends TestCase
         $draughtProofed = new Household(0.0, 0.0, self::draughtProofedEnvelope(), HeatingSystem::FuelOilBoiler);
         $s = $factory->build($config, GameState::start($draughtProofed, Money::fromEuros(4000.0)))->scene;
 
-        self::assertTrue($s->draughtProofed);
-        self::assertSame('single', $s->glazing);
+        self::assertContains('draughtproofed', $s->envelopeLayers);
+        self::assertNotContains('glazing-double', $s->envelopeLayers);
+    }
+
+    public function testSceneEnvelopeLayersComeFromTheCatalogue(): void
+    {
+        $household = self::passoire()->withEnvelope(
+            self::original()->withRoofInsulated(true)->withGlazing(Glazing::Double),
+        );
+
+        $scene = new GameViewFactory()
+            ->build(self::config(), GameState::start($household, Money::fromEuros(8000.0)))
+            ->scene;
+
+        self::assertContains('roof-ins', $scene->envelopeLayers);
+        self::assertContains('glazing-double', $scene->envelopeLayers);
+        self::assertNotContains('walls-interior', $scene->envelopeLayers, 'walls untouched → no layer');
     }
 
     public function testGroundSnowAccumulatesAndMeltsGradually(): void

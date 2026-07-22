@@ -58,7 +58,7 @@ final readonly class LowTempEmittersWork implements RenovationDefinition
             : new RenovationAdvice(AdviceLevel::Info, 'Utile surtout avec une pompe à chaleur (améliore fortement son rendement) ; sans effet sur une chaudière.');
     }
 
-    public function isEnergyPerformanceWork(): bool
+    public function qualifiesForEnergyAid(): bool
     {
         return true;
     }

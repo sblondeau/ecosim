@@ -41,32 +41,6 @@ final readonly class HouseSceneView
         /** solar (roof PV): empty|kit|full — no panels, a small kit, or the full install. */
         public string $solarState,
         public string $roofLabel,
-        // Envelope, one field per renovable surface (arbre travaux T1/T5/T6) —
-        // per-surface so each can get its own visual, unlike the old single
-        // coarse tier this replaces.
-        public bool $roofInsulated,
-        /** walls: none|interior|exterior. */
-        public string $wallInsulation,
-        /** glazing: single|double|triple. */
-        public string $glazing,
-        /** ventilation: none|double-flow. */
-        public string $ventilation,
-        public bool $thermalCurtains,
-        /**
-         * Draught-proofing done (window seals, door sweeps). Drives the
-         * window's red band — but only while still single-glazed; new
-         * double/triple-glazed frames are assumed to already seal (Tranche 7
-         * window-coherence follow-up), even though the underlying gesture
-         * mechanically still applies (it also covers doors).
-         */
-        public bool $draughtProofed,
-        /**
-         * Underfloor low-temperature emitters (arbre travaux). Reverses the
-         * tranche 7 "hors coupe" exception: drawn as a discreet serpentine
-         * under the living-room floor rather than skipped, since the slab
-         * itself is already in frame there.
-         */
-        public bool $lowTempEmitters,
         public string $insulationLabel,
         /** heating: fioul|fioul-broken|heat-pump|pellet. */
         public string $heatingState,
@@ -82,6 +56,15 @@ final readonly class HouseSceneView
         public bool $waterHeaterThermo,
         /** Indoor feel bucket: cold|cool|warm — drives the living-room tint. */
         public string $comfortState,
+        /**
+         * The active envelope CSS layers for the cutaway (game-design §17):
+         * the house--* gates HouseShell emits, sourced from the catalogue's
+         * sceneLayerFor(). Equipment visuals are NOT here — they are selected
+         * from the equipment states above (heatingState, solarState…).
+         *
+         * @var list<string>
+         */
+        public array $envelopeLayers,
     ) {
     }
 }

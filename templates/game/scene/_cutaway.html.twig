@@ -91,15 +91,7 @@
     {# ===== LA MAISON (coupe) + ses emplacements cliquables ===== #}
     <ellipse cx="521" cy="474" rx="285" ry="16" fill="#4a5866" opacity=".35"/>
     <g transform="translate(240 88)">
-        <twig:scene:HouseShell
-            :roofInsulated="scene.roofInsulated"
-            wallInsulation="{{ scene.wallInsulation }}"
-            glazing="{{ scene.glazing }}"
-            ventilation="{{ scene.ventilation }}"
-            :thermalCurtains="scene.thermalCurtains"
-            :draughtProofed="scene.draughtProofed"
-            :lowTempEmitters="scene.lowTempEmitters"
-        />
+        <twig:scene:HouseShell :layers="scene.envelopeLayers" />
 
         {# slot toit : panneaux posés (rendus uniquement si installés). Les
            tuiles (hTiles dans house-cutaway.svg) ne suivent PAS la pente

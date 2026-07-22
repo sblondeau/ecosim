@@ -32,7 +32,7 @@ final class DraughtProofingWorkTest extends TestCase
 
         self::assertSame('draught_proofing', $work->slug());
         self::assertSame(SceneSlot::Living, $work->slot());
-        self::assertFalse($work->isEnergyPerformanceWork(), 'Too small a gesture to qualify for public money.');
+        self::assertFalse($work->qualifiesForEnergyAid(), 'Too small a gesture to qualify for public money.');
     }
 
     public function testOffersDraughtProofingWhenNotDone(): void
@@ -74,17 +74,19 @@ final class DraughtProofingWorkTest extends TestCase
     }
 
     /**
-     * The only work with no visual at all: window seals are invisible at this
-     * scale. A deliberate exception, identified in tranche 7 — not a gap.
+     * The draught-proofing red band was added to the scene in tranche 7
+     * (fenêtre-cohérence), after this work first shipped with no visual — so
+     * it DOES activate the 'draughtproofed' layer once done. CSS hides the
+     * band once the frames are replaced; the layer key is emitted regardless.
      */
-    public function testHasNoSceneLayer(): void
+    public function testActivatesTheDraughtproofedLayerOnceDone(): void
     {
-        $done = self::barePassoire()->withEnvelope(
-            self::barePassoire()->envelope->withDraughtProofed(true),
-        );
+        $work = new DraughtProofingWork();
+        $bare = self::barePassoire();
+        $done = $bare->withEnvelope($bare->envelope->withDraughtProofed(true));
 
-        self::assertNull(new DraughtProofingWork()->sceneLayerFor($done));
-        self::assertNotNull(new DraughtProofingWork()->doneLabelFor($done), 'but the drawer still shows the chip');
+        self::assertNull($work->sceneLayerFor($bare));
+        self::assertSame('draughtproofed', $work->sceneLayerFor($done));
     }
 
     public function testIconAssetPointsAtARealFile(): void

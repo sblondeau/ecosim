@@ -36,7 +36,7 @@ final readonly class RenovationQuoter
             workSlug: $work->slug(),
             title: $offer->title,
             cost: $offer->cost,
-            subsidy: $work->isEnergyPerformanceWork()
+            subsidy: $work->qualifiesForEnergyAid()
                 ? $this->subsidy->subsidyFor($offer->cost)
                 : Money::zero(),
             resultingHousehold: $offer->resultingHousehold,

@@ -32,7 +32,7 @@ final class PelletBoilerWorkTest extends TestCase
 
         self::assertSame('pellet_boiler', $work->slug());
         self::assertSame(SceneSlot::Heating, $work->slot());
-        self::assertTrue($work->isEnergyPerformanceWork());
+        self::assertTrue($work->qualifiesForEnergyAid());
     }
 
     public function testOffersAPelletBoilerToAFuelOilHouse(): void
@@ -58,14 +58,25 @@ final class PelletBoilerWorkTest extends TestCase
         self::assertSame('Combustible bon marché et bas carbone (~30 g/kWh), mais manuel : stockage et chargement du silo.', $advice->message);
     }
 
-    public function testDoneLabelAndSceneLayerAppearOnlyOnceInstalled(): void
+    public function testDoneLabelAppearsOnlyOnceInstalled(): void
     {
         $work = new PelletBoilerWork();
 
         self::assertNull($work->doneLabelFor(self::household(HeatingSystem::FuelOilBoiler)));
-        self::assertNull($work->sceneLayerFor(self::household(HeatingSystem::FuelOilBoiler)));
         self::assertSame('Chaudière à granulés', $work->doneLabelFor(self::household(HeatingSystem::PelletBoiler)));
-        self::assertSame('heating-pellet', $work->sceneLayerFor(self::household(HeatingSystem::PelletBoiler)));
+    }
+
+    /**
+     * Equipment has no envelope CSS layer: its visual is a whole scene
+     * component selected by HouseSceneView from the household's equipment
+     * state (heatingState), not by a house--* gate. So sceneLayerFor is null.
+     */
+    public function testHasNoEnvelopeLayer(): void
+    {
+        $work = new PelletBoilerWork();
+
+        self::assertNull($work->sceneLayerFor(self::household(HeatingSystem::FuelOilBoiler)));
+        self::assertNull($work->sceneLayerFor(self::household(HeatingSystem::PelletBoiler)));
     }
 
     public function testIconAssetPointsAtARealFile(): void

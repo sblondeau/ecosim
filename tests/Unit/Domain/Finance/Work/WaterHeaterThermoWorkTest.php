@@ -34,7 +34,7 @@ final class WaterHeaterThermoWorkTest extends TestCase
 
         self::assertSame('water_heater_thermo', $work->slug());
         self::assertSame(SceneSlot::Heating, $work->slot());
-        self::assertTrue($work->isEnergyPerformanceWork());
+        self::assertTrue($work->qualifiesForEnergyAid());
     }
 
     public function testOffersAThermodynamicTankWhenElectric(): void
@@ -60,14 +60,26 @@ final class WaterHeaterThermoWorkTest extends TestCase
         self::assertSame('L\'eau chaude = ~15 % de l\'énergie, souvent oubliée : le thermodynamique divise sa conso par ~3.', $advice->message);
     }
 
-    public function testDoneLabelAndSceneLayerAppearOnlyOnceInstalled(): void
+    public function testDoneLabelAppearsOnlyOnceInstalled(): void
     {
         $work = new WaterHeaterThermoWork();
 
         self::assertNull($work->doneLabelFor(self::household(WaterHeater::ElectricTank)));
-        self::assertNull($work->sceneLayerFor(self::household(WaterHeater::ElectricTank)));
         self::assertSame('Chauffe-eau thermodynamique', $work->doneLabelFor(self::household(WaterHeater::Thermodynamic)));
-        self::assertSame('water-heater-thermo', $work->sceneLayerFor(self::household(WaterHeater::Thermodynamic)));
+    }
+
+    /**
+     * Equipment has no envelope CSS layer: its visual is a whole scene
+     * component selected by HouseSceneView from the household's equipment
+     * state (waterHeaterThermo), not by a house--* gate. So sceneLayerFor is
+     * null.
+     */
+    public function testHasNoEnvelopeLayer(): void
+    {
+        $work = new WaterHeaterThermoWork();
+
+        self::assertNull($work->sceneLayerFor(self::household(WaterHeater::ElectricTank)));
+        self::assertNull($work->sceneLayerFor(self::household(WaterHeater::Thermodynamic)));
     }
 
     public function testIconAssetPointsAtARealFile(): void

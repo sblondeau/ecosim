@@ -317,6 +317,37 @@ ADEME) ; l'entretien devient une **ligne de charge périodique** (l'écart
 d'entretien fioul/PAC fait partie de la comparaison honnête §13, même s'il est
 faible ~150 € devant l'écart de facture énergie ~3 000 €/an).
 
+### Va-et-vient entre générateurs — la prime se re-cumule (réalisme des aides, juillet 2026)
+
+**Observé.** Rien n'empêche d'alterner PAC ↔ chaudière granulés à volonté (les
+gardes d'offre ne bloquent que « déjà ce système-là »). À chaque pose, la
+**prime est re-accordée** (`RenovationQuoter` n'a aucune mémoire) et l'éco-PTZ
+s'accumule vers le plafond.
+
+**Laissé tel quel au MVP — décision assumée.** Deux freins réalistes existent
+déjà : le **coût d'installation plein** payé à chaque swap (l'ancien générateur
+= argent jeté) et le **plafond éco-PTZ** (50 000 €). Le churn se punit donc tout
+seul dans l'axe Finances — conséquence factuelle, pas de game-over. Poser un
+**verrou** (« interdit de revenir en arrière ») trahirait le §1 (levier = coût
+d'accès, jamais un verrou artificiel ; conseil non bloquant). Le seul bout
+vraiment irréaliste — la **prime qui se re-cumule** — relève de la simplification
+d'aides que le **§18 a volontairement reportée** (« sans simuler le stacking
+réel »).
+
+**Raffinement réaliste, phase future.** **Prime une fois par poste** de travaux
+(les aides ne repaient pas un même poste) → re-poser un générateur se fait à
+**prix plein**, ce qui tue le cycle **sans verrou** (c'est un levier de coût
+d'accès, pas une interdiction). Exige un **état d'historique** (quels postes ont
+déjà été subventionnés) — donc **croise la couture Work/Equipment** (un
+équipement porterait son historique d'aide, cf. §« Cycle de vie » ci-dessus et
+l'entrée Work/Equipment). **Déclencheur** : ouverture du réalisme d'aides (§18),
+ou extraction d'`Equipment` (qui porterait naturellement cet historique).
+Variante plus douce et **stateless** si on veut un signal plus tôt : une
+**mise en garde non bloquante** de l'advisor quand on propose un générateur
+alors qu'on en a déjà un récent (« remplacer un générateur récent en jette la
+valeur — rarement justifié ») — pédagogie au moment du choix, sans toucher au
+modèle d'aides.
+
 ## Interface / pédagogie (retours de la première partie complète, juillet 2026)
 
 Constat après une partie d'un an jouée en entier : le tableau de bord est

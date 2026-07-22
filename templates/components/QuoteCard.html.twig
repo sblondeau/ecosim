@@ -1,41 +1,14 @@
 {# Devis de travaux (composant Twig anonyme) : coût, prime, reste à charge,
    effets estimés, et les deux financements en <twig:Button>. `action` =
-   l'ActionView. L'aperçu (icône) est le même asset SVG que la scène quand il
-   existe (solaire/PAC/chaudière/batterie) ; l'isolation n'a pas d'équipement
-   posable dans la scène donc son icône est un petit swatch dédié. #}
+   l'ActionView. L'icône vient du catalogue (RenovationDefinition::iconAsset(),
+   mappée dans ActionView.iconAsset) : le même asset SVG que la scène quand il
+   existe (solaire/PAC/chaudière/batterie), sinon un petit swatch dédié
+   (isolation…). Ajouter un travail ne touche plus ce template. #}
 {% props action %}
 <div class="card quote">
     <p class="quote-eyebrow">Travaux disponibles</p>
     <div class="quote-head">
-        <div class="quote-icon">
-            {% if action.work == 'solar_panels' %}
-                {{ include('game/scene/assets/solar-panels.svg') }}
-            {% elseif action.work == 'heat_pump' %}
-                {{ include('game/scene/assets/heat-pump.svg') }}
-            {% elseif action.work == 'boiler_repair' %}
-                {{ include('game/scene/assets/boiler-fioul.svg') }}
-            {% elseif action.work == 'pellet_boiler' %}
-                {{ include('game/scene/assets/boiler-pellet.svg') }}
-            {% elseif action.work == 'low_temp_emitters' %}
-                {{ include('game/scene/assets/icons/low-temp-emitters.svg') }}
-            {% elseif action.work == 'home_battery' %}
-                {{ include('game/scene/assets/battery.svg') }}
-            {% elseif action.work in ['roof_insulation', 'wall_insulation_interior', 'wall_insulation_exterior'] %}
-                {{ include('game/scene/assets/icons/insulation.svg') }}
-            {% elseif action.work == 'glazing' %}
-                {{ include('game/scene/assets/icons/glazing.svg') }}
-            {% elseif action.work == 'ventilation_double_flow' %}
-                {{ include('game/scene/assets/icons/ventilation-double-flow.svg') }}
-            {% elseif action.work == 'solar_kit' %}
-                {{ include('game/scene/assets/solar-kit.svg') }}
-            {% elseif action.work == 'draught_proofing' %}
-                {{ include('game/scene/assets/icons/draught-proofing.svg') }}
-            {% elseif action.work == 'thermal_curtains' %}
-                {{ include('game/scene/assets/icons/thermal-curtains.svg') }}
-            {% elseif action.work == 'water_heater_thermo' %}
-                {{ include('game/scene/assets/water-heater-thermo.svg') }}
-            {% endif %}
-        </div>
+        <div class="quote-icon">{{ include(action.iconAsset) }}</div>
         <h2>{{ action.title }}</h2>
     </div>
     <div class="row"><span class="key">Coût</span><span>{{ action.costLabel }}</span></div>
