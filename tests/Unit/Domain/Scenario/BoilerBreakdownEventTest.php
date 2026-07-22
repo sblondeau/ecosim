@@ -63,4 +63,17 @@ final class BoilerBreakdownEventTest extends TestCase
         self::assertSame($state->currentDay, $after->currentDay);
         self::assertSame($state->savings->cents, $after->savings->cents, 'Breaking down is free — deciding what next is the game.');
     }
+
+    public function testHasOccurredReadsTheDomainFlagDirectly(): void
+    {
+        $event = new BoilerBreakdownEvent(19);
+
+        self::assertFalse($event->hasOccurred(self::stateAt(19, self::fioulHome())));
+        self::assertTrue($event->hasOccurred(self::stateAt(30, self::fioulHome(broken: true))));
+    }
+
+    public function testDoesNotRestartTheClockOnAcknowledge(): void
+    {
+        self::assertFalse(new BoilerBreakdownEvent(19)->restartsClockOnAcknowledge(), 'TimeKeeper already pauses the game on breakdown.');
+    }
 }

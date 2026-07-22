@@ -55,6 +55,11 @@ final readonly class PrimoAccedantScenario implements Scenario
         return [new BoilerBreakdownEvent(self::BOILER_BREAKDOWN_DAY)];
     }
 
+    public function explainedEvents(): array
+    {
+        return [new ScenarioIntroEvent(), new BoilerBreakdownEvent(self::BOILER_BREAKDOWN_DAY)];
+    }
+
     public function initialHousehold(): Household
     {
         return new Household(

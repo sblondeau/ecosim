@@ -182,6 +182,14 @@ final readonly class GameView
         public array $actions = [],
         /** The factual per-axis report — only once the horizon is reached. */
         public ?EndReportView $endReport = null,
+        /**
+         * Scenario events that have occurred, in the scenario's declared
+         * order — the presentation decides which (if any) is still pending
+         * acknowledgement (game-design §15).
+         *
+         * @var list<ScenarioEventView>
+         */
+        public array $occurredScenarioEvents = [],
     ) {
     }
 }

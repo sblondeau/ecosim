@@ -7,9 +7,11 @@
    SceneSlot/AxisPanel (PHP), the single source of truth for both lists. #}
 {% set slots = this.zoneSlots %}
 {% set panelPos = this.panelPositions %}
-{# Welcome overlay: a brand-new game (day 1), until dismissed. Freezes the clock. #}
-{% set showIntro = not this.introDismissed and game.dayNumber == 1 and not game.finished %}
-<div{{ attributes }} class="game{{ game.finished ? ' is-finished' }}" {% if not game.finished and not showIntro %}data-poll="delay(4000)|$render"{% endif %}>
+{# A fired-but-unacknowledged scenario event (intro, boiler breakdown…) blocks
+   polling the same way the welcome overlay used to: no point re-rendering
+   while the player hasn't closed the modal in front of them. #}
+{% set pendingEvent = this.pendingScenarioEvent %}
+<div{{ attributes }} class="game{{ game.finished ? ' is-finished' }}" {% if not game.finished and not pendingEvent %}data-poll="delay(4000)|$render"{% endif %}>
     <div class="stage">
         {{ include('game/scene/_cutaway.html.twig') }}
 
@@ -18,17 +20,16 @@
                 data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="weather">{{ game.seasonLabel }} · 🌡️{{ game.temperatureC|number_format(1, ',', ' ') }}° · ☁{{ game.cloudPct }}%</button>
 
         {# bandeaux transitoires, centrés au-dessus de la scène #}
-        {% if this.notice is not empty %}
-            <div class="stage-banner banner {{ this.noticeIsError ? '' : 'banner-ok' }}">{{ this.noticeIsError ? '⚠️' : '✅' }} {{ this.notice }}</div>
+        {% if this.notice %}
+            <twig:Alert :notice="this.notice" />
         {% endif %}
 
-        {# événement scripté (panne) : modale one-shot, puis l'état « en panne »
-           de la scène suffit — plus de bannière permanente (doublon) #}
-        {% if game.boilerBroken and not this.breakdownSeen and not game.finished %}
-            <twig:Modal title="🚨 Panne de chaudière" closeAction="acknowledgeBreakdown" closeLabel="Compris — je décide">
-                <p>Votre chaudière fioul vient de <strong>tomber en panne</strong>. Le temps est en <strong>pause</strong> : décidez sans précipitation.</p>
-                <p>En attendant, des convecteurs électriques d'appoint tiennent péniblement ~16 °C — et l'électricité <strong>flambe</strong> (effet Joule, le pire des chauffages). Fermez cette fenêtre, puis cliquez la <strong>chaudière</strong> pour la <strong>réparer</strong> (rapide, mais toujours au fioul) ou la <strong>remplacer par une PAC</strong>.</p>
-            </twig:Modal>
+        {# événement de scénario en attente (intro, panne…) : un seul à la
+           fois — en fermer un réaffiche immédiatement le suivant s'il y en
+           avait un. Le contenu vit dans son propre partial, pas ici (il va y
+           en avoir beaucoup à terme, cf. ExplainedEvent). #}
+        {% if pendingEvent and not game.finished %}
+            {{ include('game/scenario_event/_' ~ pendingEvent.id ~ '.html.twig') }}
         {% endif %}
 
         {# ===== 4 coins = 4 axes (clic → panneau focalisé) ===== #}
@@ -67,24 +68,6 @@
                 <span class="dpe-chip dpe-g-{{ game.dpeClimateLetter|lower }}">GES {{ game.dpeClimateLetter }}</span>
             </div>
         </div>
-
-        {# ===== écran de bienvenue (premier lancement) ===== #}
-        {% if showIntro %}
-            <div class="intro-overlay">
-                <div class="intro-card">
-                    <h2>🏠 Bienvenue chez vous</h2>
-                    <p class="lead">Vous êtes primo-accédant. Vous venez d'emménager dans une <strong>maison ancienne chauffée au fioul, classée DPE&nbsp;F</strong>, avec une épargne modeste.</p>
-                    <p class="intro-goal">Vivez-y un an. <strong>Il n'y a pas de partie perdue</strong> : à vous d'équilibrer vos trois axes.</p>
-                    <ul class="intro-axes">
-                        <li><span class="ax">💶</span> <span><strong>Finances</strong> — épargne, factures d'énergie, aides et prêt.</span></li>
-                        <li><span class="ax">🏠</span> <span><strong>Patrimoine</strong> — la classe DPE et la valeur du bien.</span></li>
-                        <li><span class="ax">🛋️</span> <span><strong>Confort</strong> — la température <em>ressentie</em> chez vous.</span></li>
-                    </ul>
-                    <p class="intro-how">Cliquez le <strong>toit</strong>, la <strong>chaudière</strong>, le <strong>garage</strong> ou le <strong>séjour</strong> pour agir, et les <strong>quatre coins</strong> pour vos indicateurs. Le temps avance seul — <strong>⏸</strong> pour réfléchir. <strong>Des imprévus peuvent survenir.</strong> <em>Repère : en rénovation, on isole avant de changer le chauffage.</em></p>
-                    <twig:Button label="Commencer →" action="dismissIntro" class="btn-primary" />
-                </div>
-            </div>
-        {% endif %}
 
         {# bandeau de contrôle bas-centre : date · saison · météo · vitesse · jour+ #}
         {% if not game.finished %}

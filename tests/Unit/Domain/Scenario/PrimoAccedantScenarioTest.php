@@ -11,6 +11,7 @@ use App\Domain\Finance\RenovationQuoter;
 use App\Domain\Finance\Work\HeatPumpWork;
 use App\Domain\Scenario\BoilerBreakdownEvent;
 use App\Domain\Scenario\PrimoAccedantScenario;
+use App\Domain\Scenario\ScenarioIntroEvent;
 use PHPUnit\Framework\TestCase;
 
 final class PrimoAccedantScenarioTest extends TestCase
@@ -67,5 +68,14 @@ final class PrimoAccedantScenarioTest extends TestCase
             PrimoAccedantScenario::BOILER_BREAKDOWN_DAY,
             'A scripted event beyond the horizon would never happen.',
         );
+    }
+
+    public function testExplainedEventsIncludeTheIntroAheadOfTheScriptedBreakdown(): void
+    {
+        $explained = new PrimoAccedantScenario()->explainedEvents();
+
+        self::assertCount(2, $explained, 'The intro is not a ScriptedEvent, so it does not show up in events().');
+        self::assertInstanceOf(ScenarioIntroEvent::class, $explained[0], 'The intro comes first: it is relevant from day 0.');
+        self::assertInstanceOf(BoilerBreakdownEvent::class, $explained[1]);
     }
 }

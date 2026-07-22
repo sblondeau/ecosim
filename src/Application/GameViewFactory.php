@@ -224,7 +224,21 @@ final readonly class GameViewFactory
             help: $this->helpTexts(),
             actions: $this->actionsFor($state, $currentAnnual),
             endReport: $this->engine->isFinished($config, $state) ? $this->endReport($state) : null,
+            occurredScenarioEvents: $this->occurredScenarioEvents($state),
         );
+    }
+
+    /** @return list<ScenarioEventView> */
+    private function occurredScenarioEvents(GameState $state): array
+    {
+        $occurred = [];
+        foreach ($this->scenario->explainedEvents() as $event) {
+            if ($event->hasOccurred($state)) {
+                $occurred[] = new ScenarioEventView($event->id(), $event->restartsClockOnAcknowledge());
+            }
+        }
+
+        return $occurred;
     }
 
     /**

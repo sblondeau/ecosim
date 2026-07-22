@@ -1,13 +1,13 @@
 {# Modale centrée (composant Twig anonyme) pour un événement scripté qui met le
    jeu en pause (ex. panne de chaudière). Le corps de la balise remplit le
    contenu ; la fermeture déclenche `closeAction` (LiveAction). #}
-{% props title, closeAction = 'closePanel', closeLabel = 'Compris' %}
+{% props title, closeAction = 'closePanel', closeLabel = 'Compris', params = {} %}
 <div class="modal-scrim">
     <div class="modal-card" role="dialog" aria-modal="true">
         <h2 class="modal-title">{{ title }}</h2>
         <div class="modal-body">{% block content %}{% endblock %}</div>
         <div class="modal-actions">
-            <twig:Button :label="closeLabel" :action="closeAction" class="btn-primary" />
+            <twig:Button :label="closeLabel" :action="closeAction" :params="params" class="btn-primary" />
         </div>
     </div>
 </div>

@@ -34,4 +34,13 @@ interface Scenario
      * @return list<ScriptedEvent>
      */
     public function events(): array;
+
+    /**
+     * This scenario's events that earn a one-shot modal (game-design §15) —
+     * a superset of `events()` in spirit: some explained events (the intro)
+     * have nothing to fire, and not every fired event needs explaining.
+     *
+     * @return list<ExplainedEvent>
+     */
+    public function explainedEvents(): array;
 }

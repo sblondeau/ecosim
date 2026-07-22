@@ -6,6 +6,7 @@ namespace App\Tests\Integration;
 
 use App\Domain\Scenario\PrimoAccedantScenario;
 use App\Twig\Components\GameDashboard;
+use App\Twig\Components\NoticeSeverity;
 
 use function str_contains;
 
@@ -60,11 +61,11 @@ final class GameDashboardTest extends KernelTestCase
         self::assertInstanceOf(\Twig\Environment::class, $twig);
 
         $html = $twig->createTemplate(
-            '<twig:Modal title="Panne" closeAction="acknowledgeBreakdown" closeLabel="OK"><p>corps de la modale</p></twig:Modal>',
+            '<twig:Modal title="Panne" closeAction="acknowledgeEvent" closeLabel="OK"><p>corps de la modale</p></twig:Modal>',
         )->render();
 
         self::assertStringContainsString('corps de la modale', $html, 'The slot body renders.');
-        self::assertStringContainsString('acknowledgeBreakdown', $html, 'The close button triggers the action.');
+        self::assertStringContainsString('acknowledgeEvent', $html, 'The close button triggers the action.');
     }
 
     public function testWelcomeOverlayShowsOnAFreshGameThenDismisses(): void
@@ -74,10 +75,33 @@ final class GameDashboardTest extends KernelTestCase
         // A brand-new game (day 1) greets the player with the welcome overlay.
         self::assertStringContainsString('Bienvenue chez vous', (string) $component->render());
 
-        $html = (string) $component->call('dismissIntro')->render();
+        $html = (string) $component->call('acknowledgeEvent', ['id' => 'intro'])->render();
 
-        self::assertTrue($component->component()->introDismissed);
+        self::assertSame(['intro'], $component->component()->acknowledgedEvents);
         self::assertStringNotContainsString('intro-overlay', $html);
+    }
+
+    public function testAcknowledgingTheIntroShowsTheNextPendingEventImmediately(): void
+    {
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        // Fast-forward straight to the boiler breakdown morning.
+        for ($day = 0; $day < 20; ++$day) {
+            $component->call('step');
+        }
+
+        // Both the intro and the breakdown modal have occurred; only the intro shows first.
+        self::assertStringContainsString('Bienvenue chez vous', (string) $component->render());
+
+        $html = (string) $component->call('acknowledgeEvent', ['id' => 'intro'])->render();
+
+        // Closing the intro immediately reveals the breakdown modal, same render.
+        self::assertStringContainsString('Panne de chaudière', $html);
+
+        // The close button's LiveArg wire name must be lowercase — a camelCase
+        // data-live-*-param gets folded to lowercase by the HTML parser before
+        // Stimulus ever reads it, silently breaking argument resolution.
+        self::assertStringContainsString('data-live-id-param="boiler_breakdown"', $html);
     }
 
     public function testPatrimoineCornerRendersTheOfficialDualDpeLabel(): void
@@ -101,8 +125,8 @@ final class GameDashboardTest extends KernelTestCase
         // Solar panels are not éco-PTZ eligible (energy-performance works only) — refused.
         $component->call('order', ['work' => 'solar_panels', 'financing' => 'loan']);
 
-        self::assertTrue($component->component()->noticeIsError);
-        self::assertStringContainsString('éco-PTZ', $component->component()->notice);
+        self::assertSame(NoticeSeverity::Error, $component->component()->notice->severity);
+        self::assertStringContainsString('éco-PTZ', $component->component()->notice->text);
     }
 
     public function testSelectingWallsSlotOffersTheFourEnvelopeWorks(): void
@@ -367,8 +391,8 @@ final class GameDashboardTest extends KernelTestCase
         // Solar panels cost 7 500 € — affordable in cash with the 7 750 € savings.
         $html = (string) $component->call('order', ['work' => 'solar_panels', 'financing' => 'cash'])->render();
 
-        self::assertFalse($component->component()->noticeIsError);
-        self::assertStringContainsString('réalisés', $component->component()->notice);
+        self::assertSame(NoticeSeverity::Success, $component->component()->notice->severity);
+        self::assertStringContainsString('réalisés', $component->component()->notice->text);
         self::assertTrue(str_contains($html, 'class="solar solar--full"'), 'The full roof array now renders — not the ground-mounted kit.');
     }
 }
