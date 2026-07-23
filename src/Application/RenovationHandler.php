@@ -7,6 +7,7 @@ namespace App\Application;
 use App\Domain\Finance\FinanceCalibration;
 use App\Domain\Finance\Money;
 use App\Domain\Finance\RenovationCatalog;
+use App\Domain\Finance\RenovationDelays;
 use App\Domain\Finance\RenovationQuoter;
 use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\ScheduledWork;
@@ -31,6 +32,7 @@ final readonly class RenovationHandler
         private RenovationQuoter $quoter = new RenovationQuoter(),
         private FinanceCalibration $finance = new FinanceCalibration(),
         private RenovationCatalog $catalog = new RenovationCatalog(),
+        private RenovationDelays $delays = new RenovationDelays(),
     ) {
     }
 
@@ -56,7 +58,7 @@ final readonly class RenovationHandler
         }
 
         $net = $quote->netCost();
-        $chantier = $this->schedule($state, $workSlug);
+        $chantier = $this->schedule($state, $workSlug, $financing);
 
         if (self::FINANCING_LOAN === $financing) {
             if (!$work->qualifiesForEnergyAid()) {
@@ -80,16 +82,16 @@ final readonly class RenovationHandler
 
     /**
      * The chantier window for a work ordered on the current day: the artisan
-     * arrives after the lead time, the work is done after the pose. Uniform
-     * delays for now (§ backbone) — per-work, sourced values and the éco-PTZ
-     * funds delay land in the next step.
+     * arrives after the lead time, the work is done after the pose. When
+     * financed by the éco-PTZ, the funds-release delay stacks BEFORE the lead —
+     * so the loan is not mobilisable for an emergency (§ délais, la panne).
      */
-    private function schedule(GameState $state, string $workSlug): ScheduledWork
+    private function schedule(GameState $state, string $workSlug, string $financing): ScheduledWork
     {
-        $lead = max(0, (int) $this->finance->chantierLeadDelayDays()->value);
-        $build = max(0, (int) $this->finance->chantierBuildDelayDays()->value);
-        $start = $state->currentDay + $lead;
+        $delay = $this->delays->for($workSlug);
+        $funds = self::FINANCING_LOAN === $financing ? $this->delays->ptzFundsReleaseDays() : 0;
+        $start = $state->currentDay + $funds + $delay->leadDays;
 
-        return new ScheduledWork($workSlug, $start, $start + $build);
+        return new ScheduledWork($workSlug, $start, $start + $delay->buildDays);
     }
 }

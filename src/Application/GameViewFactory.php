@@ -22,6 +22,8 @@ use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
 use App\Domain\Finance\PropertyValuator;
 use App\Domain\Finance\RenovationCatalog;
+use App\Domain\Finance\RenovationDefinition;
+use App\Domain\Finance\RenovationDelays;
 use App\Domain\Finance\RenovationQuoter;
 use App\Domain\Finance\SceneSlot;
 use App\Domain\Math\SeasonalCycle;
@@ -77,6 +79,7 @@ final readonly class GameViewFactory
         private DpeCertifier $dpeCertifier = new DpeCertifier(),
         private CarbonAccountant $carbon = new CarbonAccountant(),
         private RenovationCatalog $catalog = new RenovationCatalog(),
+        private RenovationDelays $delays = new RenovationDelays(),
     ) {
     }
 
@@ -568,7 +571,6 @@ final readonly class GameViewFactory
     private function actionsFor(GameState $state, AnnualOutcome $before): array
     {
         $loanCap = Money::fromEuros($this->finance->loanCap()->value);
-        $delayLabel = $this->chantierDelayLabel();
         $completionBySlug = [];
         foreach ($state->scheduledWorks as $chantier) {
             $completionBySlug[$chantier->workSlug] = $chantier->completionDay;
@@ -603,7 +605,7 @@ final readonly class GameViewFactory
                 adviceLevel: $advice->level->value,
                 adviceMessage: $advice->message,
                 iconAsset: $work->iconAsset(),
-                delayLabel: $delayLabel,
+                delayLabel: $this->chantierDelayLabel($work),
                 inProgress: $inProgress,
                 progressLabel: $inProgress ? $this->progressLabel($completionBySlug[$work->slug()] - $state->currentDay) : '',
             );
@@ -612,13 +614,29 @@ final readonly class GameViewFactory
         return $actions;
     }
 
-    /** How long a chantier takes once ordered — uniform for now (§ délais backbone). */
-    private function chantierDelayLabel(): string
+    /**
+     * How long this work's chantier takes once ordered (lead + pose), with the
+     * éco-PTZ funds delay called out for loan-eligible works — the « délai »
+     * shown before the player commits.
+     */
+    private function chantierDelayLabel(RenovationDefinition $work): string
     {
-        $days = max(0, (int) $this->finance->chantierLeadDelayDays()->value)
-            + max(0, (int) $this->finance->chantierBuildDelayDays()->value);
+        $delay = $this->delays->for($work->slug());
+        $label = sprintf('Posé ~%s après la commande', $this->humanDelay($delay->totalDays()));
 
-        return sprintf('Posé ~%d j après la commande', $days);
+        if ($work->qualifiesForEnergyAid()) {
+            $label .= sprintf(' (+ ~%s si éco-PTZ)', $this->humanDelay($this->delays->ptzFundsReleaseDays()));
+        }
+
+        return $label;
+    }
+
+    /** Days below a fortnight read as days; beyond, as rounded weeks. */
+    private function humanDelay(int $days): string
+    {
+        return $days < 14
+            ? sprintf('%d j', $days)
+            : sprintf('%d sem.', (int) round($days / 7));
     }
 
     private function progressLabel(int $daysLeft): string

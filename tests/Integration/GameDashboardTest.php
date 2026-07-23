@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration;
 
+use App\Application\GameStore;
+use App\Application\InMemoryGameStore;
+use App\Domain\Finance\RenovationCatalog;
 use App\Domain\Scenario\PrimoAccedantScenario;
 use App\Twig\Components\GameDashboard;
 use App\Twig\Components\NoticeSeverity;
 
+use function sprintf;
 use function str_contains;
 
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -22,6 +26,13 @@ use Symfony\UX\LiveComponent\Test\InteractsWithLiveComponents;
 final class GameDashboardTest extends KernelTestCase
 {
     use InteractsWithLiveComponents;
+
+    protected function setUp(): void
+    {
+        // The test env binds GameStore to the process-memory store; clear it so
+        // each test starts on a fresh game (the static survives kernel reboots).
+        InMemoryGameStore::clear();
+    }
 
     public function testAdjustSetpointMovesTheWallThermostat(): void
     {
@@ -193,7 +204,7 @@ final class GameDashboardTest extends KernelTestCase
 
         // Éco-PTZ covers the heat pump within its cap — no cash needed. The
         // chantier must land before the advice reads the installed heat pump.
-        $this->installViaChantier($component, 'loan', 'heat_pump');
+        $this->seedInstalled('heat_pump');
         $html = (string) $component->call('selectSlot', ['slot' => 'heating'])->render();
 
         self::assertStringContainsString('SCOP', $html, 'The low-temp-emitters advice quotes the heat pump\'s SCOP once a heat pump is installed.');
@@ -262,7 +273,7 @@ final class GameDashboardTest extends KernelTestCase
 
         // The 800 € plug-and-play kit is affordable in cash from the 7 750 €
         // starting savings; the chantier lands after its short delay.
-        $this->installViaChantier($component, 'cash', 'solar_kit');
+        $this->seedInstalled('solar_kit');
 
         $garage = (string) $component->call('selectSlot', ['slot' => 'garage'])->render();
         self::assertStringContainsString(
@@ -288,7 +299,7 @@ final class GameDashboardTest extends KernelTestCase
     {
         $component = $this->createLiveComponent(GameDashboard::class);
 
-        $this->installViaChantier($component, 'cash', 'solar_kit');
+        $this->seedInstalled('solar_kit');
 
         $roof = (string) $component->call('selectSlot', ['slot' => 'roof'])->render();
         self::assertMatchesRegularExpression(
@@ -308,7 +319,7 @@ final class GameDashboardTest extends KernelTestCase
     {
         $component = $this->createLiveComponent(GameDashboard::class);
 
-        $this->installViaChantier($component, 'cash', 'solar_kit', 'water_heater_thermo');
+        $this->seedInstalled('solar_kit', 'water_heater_thermo');
 
         $garage = (string) $component->call('selectSlot', ['slot' => 'garage'])->render();
 
@@ -341,7 +352,7 @@ final class GameDashboardTest extends KernelTestCase
 
         // 3 500 €, affordable in cash from the 7 750 € starting savings; the
         // chantier lands after its short delay.
-        $this->installViaChantier($component, 'cash', 'water_heater_thermo');
+        $this->seedInstalled('water_heater_thermo');
 
         $heating = (string) $component->call('selectSlot', ['slot' => 'heating'])->render();
         self::assertStringContainsString(
@@ -426,18 +437,26 @@ final class GameDashboardTest extends KernelTestCase
     }
 
     /**
-     * Orders one or more works and fast-forwards past the (short, placeholder)
-     * chantier delay so they land — staying well before the scripted breakdown
-     * (day 19). Manual `step`s, wall-clock independent (TimeKeeper::step()).
+     * Seeds the store with one or more works ALREADY installed, bypassing the
+     * chantier timeline — so "given an installed household, the drawer renders
+     * X" is tested independently of the délais (whose realistic values would
+     * push completion past the scripted breakdown). Works only in the test env,
+     * where GameStore is the process-memory {@see InMemoryGameStore}.
      */
-    private function installViaChantier(object $component, string $financing, string ...$works): void
+    private function seedInstalled(string ...$works): void
     {
-        foreach ($works as $work) {
-            $component->call('order', ['work' => $work, 'financing' => $financing]);
+        $store = self::getContainer()->get(GameStore::class);
+        self::assertInstanceOf(GameStore::class, $store);
+
+        $game = $store->current();
+        $household = $game->state->household;
+        $catalog = new RenovationCatalog();
+        foreach ($works as $slug) {
+            $offer = $catalog->get($slug)->offerFor($household);
+            self::assertNotNull($offer, sprintf('Work "%s" is not offered for the household being seeded.', $slug));
+            $household = $offer->resultingHousehold;
         }
 
-        for ($day = 0; $day < 6; ++$day) {
-            $component->call('step');
-        }
+        $store->save($game->withState($game->state->withHousehold($household)));
     }
 }

@@ -403,39 +403,6 @@ final class FinanceCalibration
         );
     }
 
-    /**
-     * Days between ordering a chantier and the artisan showing up (lead time:
-     * contact, devis, carnet de commandes). Uniform placeholder for the délais
-     * backbone — per-work, sourced values arrive next (ADEME / guides pro).
-     */
-    public function chantierLeadDelayDays(): Coefficient
-    {
-        return new Coefficient(
-            value: 3.0,
-            unit: 'jours',
-            min: 1.0,
-            max: 60.0,
-            source: 'Placeholder uniforme COURT (backbone délais) — valeurs réalistes par travaux (semaines/mois) à sourcer (ADEME/guides pro) à l\'étape suivante',
-            reviewedOn: '2026-07-23',
-        );
-    }
-
-    /**
-     * Days the chantier itself takes (pose). Uniform placeholder for the délais
-     * backbone — per-work, sourced values arrive next.
-     */
-    public function chantierBuildDelayDays(): Coefficient
-    {
-        return new Coefficient(
-            value: 2.0,
-            unit: 'jours',
-            min: 1.0,
-            max: 21.0,
-            source: 'Placeholder uniforme (backbone délais) — valeurs par travaux à sourcer à l\'étape suivante',
-            reviewedOn: '2026-07-23',
-        );
-    }
-
     /** Annual income ceiling of the "très modeste" prime bracket (couple, hors IdF). */
     public function veryModestIncomeCeiling(): Coefficient
     {
