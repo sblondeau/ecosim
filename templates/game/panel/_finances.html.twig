@@ -27,5 +27,6 @@
     {% endif %}
     {% if game.loanActive %}
         <div class="row"><span class="key">Dette éco-PTZ restante · ~{{ game.loanRemainingYears }} an{{ game.loanRemainingYears > 1 ? 's' }}</span><span>{{ game.loanRemainingLabel }}</span></div>
+        <div class="row"><span class="key">Éco-PTZ mobilisé</span><span>{{ game.loanBorrowedLabel }} <span class="muted">/ {{ game.loanCapLabel }} max</span></span></div>
     {% endif %}
 </div>

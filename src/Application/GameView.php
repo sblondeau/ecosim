@@ -70,6 +70,10 @@ final readonly class GameView
         public bool $loanActive,
         public string $loanMonthlyPaymentLabel,
         public string $loanRemainingLabel,
+        /** Total ever borrowed on the éco-PTZ, checked against the cap. */
+        public string $loanBorrowedLabel,
+        /** The regulatory éco-PTZ ceiling (50 000 €), for the "X / cap" cue. */
+        public string $loanCapLabel,
         /** Full duration of the éco-PTZ, in years (20). */
         public int $loanTermYears,
         /** Whole years of payments still ahead on the active loan. */

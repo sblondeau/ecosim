@@ -167,6 +167,8 @@ final readonly class GameViewFactory
             loanActive: $state->loan->isActive(),
             loanMonthlyPaymentLabel: $state->loan->monthlyPayment->format(),
             loanRemainingLabel: $state->loan->remaining->format(),
+            loanBorrowedLabel: $state->loan->borrowedTotal->format(),
+            loanCapLabel: Money::fromEuros($this->finance->loanCap()->value)->format(),
             loanTermYears: intdiv(Loan::TERM_MONTHS, 12),
             loanRemainingYears: (int) ceil($state->loan->remainingMonths() / 12),
             heatingLabel: $household->heatingSystem->label(),
