@@ -168,7 +168,7 @@ final class GameDashboard
         }
 
         $this->commit($game->withState($result));
-        $this->notice = Notice::success('Travaux réalisés !');
+        $this->notice = Notice::success('Chantier commandé !');
     }
 
     #[LiveAction]

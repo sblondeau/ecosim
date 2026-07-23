@@ -24,15 +24,29 @@ final class RenovationHandlerTest extends TestCase
         );
     }
 
-    public function testCashPurchaseDebitsTheSavings(): void
+    public function testCashPurchaseDebitsTheSavingsNowButSchedulesTheChantier(): void
     {
         $result = new RenovationHandler()->order(self::bareState(), 'solar_panels', RenovationHandler::FINANCING_CASH);
 
         self::assertInstanceOf(GameState::class, $result);
-        self::assertSame(3.0, $result->household->solarKwc);
-        self::assertSame(500_00, $result->savings->cents, '8000 − 7500 of panels.');
+        self::assertSame(0.0, $result->household->solarKwc, 'The household is untouched at order — the chantier is scheduled.');
+        self::assertSame(500_00, $result->savings->cents, 'Money is committed now: 8000 − 7500 of panels.');
         self::assertFalse($result->loan->isActive());
-        self::assertSame(0, $result->currentDay, 'Deciding does not advance the day.');
+        self::assertSame(0, $result->currentDay, 'Ordering does not advance the day.');
+        self::assertCount(1, $result->scheduledWorks);
+        self::assertSame('solar_panels', $result->scheduledWorks[0]->workSlug);
+        self::assertLessThan($result->scheduledWorks[0]->completionDay, $result->scheduledWorks[0]->chantierStartDay, 'The chantier window: start before completion.');
+    }
+
+    public function testAChantierAlreadyInProgressCannotBeReordered(): void
+    {
+        $handler = new RenovationHandler();
+        $ordered = $handler->order(self::bareState(), 'solar_panels', RenovationHandler::FINANCING_CASH);
+        self::assertInstanceOf(GameState::class, $ordered);
+
+        $again = $handler->order($ordered, 'solar_panels', RenovationHandler::FINANCING_CASH);
+        self::assertIsString($again, 'A work whose chantier is already scheduled cannot be ordered twice.');
+        self::assertStringContainsString('déjà en cours', $again);
     }
 
     public function testCashIsRefusedWhenSavingsAreInsufficient(): void
@@ -43,14 +57,16 @@ final class RenovationHandlerTest extends TestCase
         self::assertStringContainsString('Épargne insuffisante', $result);
     }
 
-    public function testLoanFinancesTheNetCostWithoutTouchingSavings(): void
+    public function testLoanFinancesTheNetCostNowButSchedulesTheChantier(): void
     {
         $result = new RenovationHandler()->order(self::bareState(), 'heat_pump', RenovationHandler::FINANCING_LOAN);
 
         self::assertInstanceOf(GameState::class, $result);
-        self::assertSame(HeatingSystem::HeatPump, $result->household->heatingSystem);
+        self::assertSame(HeatingSystem::FuelOilBoiler, $result->household->heatingSystem, 'Heating is untouched at order — the chantier is scheduled.');
         self::assertSame(8000_00, $result->savings->cents, 'Savings untouched.');
-        self::assertSame(7800_00, $result->loan->remaining->cents, 'Net cost (13000 − 5200 prime) borrowed.');
+        self::assertSame(7800_00, $result->loan->remaining->cents, 'Net cost (13000 − 5200 prime) borrowed now.');
+        self::assertCount(1, $result->scheduledWorks);
+        self::assertSame('heat_pump', $result->scheduledWorks[0]->workSlug);
     }
 
     public function testLoanIsRefusedForProductionEquipment(): void
@@ -90,8 +106,10 @@ final class RenovationHandlerTest extends TestCase
         $result = new RenovationHandler()->order($broken, 'boiler_repair', RenovationHandler::FINANCING_CASH);
 
         self::assertInstanceOf(GameState::class, $result);
-        self::assertFalse($result->household->boilerBroken);
-        self::assertSame(6250_00, $result->savings->cents, '7750 − 1500 of repair.');
+        self::assertTrue($result->household->boilerBroken, 'Still broken at order — the repair chantier is scheduled (fast, but not instant).');
+        self::assertSame(6250_00, $result->savings->cents, '7750 − 1500 of repair, committed now.');
+        self::assertCount(1, $result->scheduledWorks);
+        self::assertSame('boiler_repair', $result->scheduledWorks[0]->workSlug);
     }
 
     public function testTheRepairCannotBeFinancedWithTheLoan(): void
@@ -120,13 +138,10 @@ final class RenovationHandlerTest extends TestCase
             $state = $result;
         }
 
-        self::assertTrue($state->household->envelope->roofInsulated);
-        self::assertSame(WallInsulation::Interior, $state->household->envelope->walls);
-        self::assertSame(Glazing::Double, $state->household->envelope->glazing);
-        self::assertSame(HeatingSystem::HeatPump, $state->household->heatingSystem);
+        self::assertCount(4, $state->scheduledWorks, 'The four loan-financed chantiers are all scheduled.');
         // Net costs at the "intermédiaire" 40 % rate: 2400 (roof) + 5400 (ITI)
         // + 4800 (glazing) + 7800 (heat pump) = 20 400 €, comfortably under the
-        // 50 000 € éco-PTZ cap.
+        // 50 000 € éco-PTZ cap — borrowed at order time.
         self::assertSame(20400_00, $state->loan->borrowedTotal->cents);
     }
 
@@ -137,12 +152,11 @@ final class RenovationHandlerTest extends TestCase
 
         $withEmitters = $handler->order($state, 'low_temp_emitters', RenovationHandler::FINANCING_LOAN);
         self::assertInstanceOf(GameState::class, $withEmitters);
-        self::assertTrue($withEmitters->household->lowTempEmitters);
-        self::assertSame(3900_00, $withEmitters->loan->borrowedTotal->cents, 'Net cost (6500 − 2600 prime) borrowed.');
+        self::assertSame(3900_00, $withEmitters->loan->borrowedTotal->cents, 'Net cost (6500 − 2600 prime) borrowed now.');
 
         $withPellet = $handler->order($withEmitters, 'pellet_boiler', RenovationHandler::FINANCING_LOAN);
         self::assertInstanceOf(GameState::class, $withPellet);
-        self::assertSame(HeatingSystem::PelletBoiler, $withPellet->household->heatingSystem);
+        self::assertCount(2, $withPellet->scheduledWorks, 'Both chantiers scheduled.');
         // 3900 (emitters) + 8400 (14000 − 5600 prime, pellet boiler) = 12 300 €.
         self::assertSame(12300_00, $withPellet->loan->borrowedTotal->cents);
     }

@@ -9,6 +9,7 @@ use App\Domain\Finance\Money;
 use App\Domain\Finance\RenovationCatalog;
 use App\Domain\Finance\RenovationQuoter;
 use App\Domain\Simulation\GameState;
+use App\Domain\Simulation\ScheduledWork;
 
 use function sprintf;
 
@@ -48,7 +49,14 @@ final readonly class RenovationHandler
             return 'Ces travaux ne sont pas (ou plus) disponibles.';
         }
 
+        foreach ($state->scheduledWorks as $pending) {
+            if ($pending->workSlug === $workSlug) {
+                return 'Ce chantier est déjà en cours.';
+            }
+        }
+
         $net = $quote->netCost();
+        $chantier = $this->schedule($state, $workSlug);
 
         if (self::FINANCING_LOAN === $financing) {
             if (!$work->qualifiesForEnergyAid()) {
@@ -60,13 +68,28 @@ final readonly class RenovationHandler
                 return sprintf('Plafond de l\'éco-PTZ dépassé (%s au total).', $cap->format());
             }
 
-            return $state->renovated($quote->resultingHousehold, $state->savings, $state->loan->borrow($net));
+            return $state->scheduling($state->savings, $state->loan->borrow($net), $chantier);
         }
 
         if ($state->savings->cents < $net->cents) {
             return sprintf('Épargne insuffisante pour payer comptant (%s nécessaires).', $net->format());
         }
 
-        return $state->renovated($quote->resultingHousehold, $state->savings->minus($net), $state->loan);
+        return $state->scheduling($state->savings->minus($net), $state->loan, $chantier);
+    }
+
+    /**
+     * The chantier window for a work ordered on the current day: the artisan
+     * arrives after the lead time, the work is done after the pose. Uniform
+     * delays for now (§ backbone) — per-work, sourced values and the éco-PTZ
+     * funds delay land in the next step.
+     */
+    private function schedule(GameState $state, string $workSlug): ScheduledWork
+    {
+        $lead = max(0, (int) $this->finance->chantierLeadDelayDays()->value);
+        $build = max(0, (int) $this->finance->chantierBuildDelayDays()->value);
+        $start = $state->currentDay + $lead;
+
+        return new ScheduledWork($workSlug, $start, $start + $build);
     }
 }

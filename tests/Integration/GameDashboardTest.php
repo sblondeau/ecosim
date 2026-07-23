@@ -191,8 +191,9 @@ final class GameDashboardTest extends KernelTestCase
     {
         $component = $this->createLiveComponent(GameDashboard::class);
 
-        // Éco-PTZ covers the heat pump within its cap — no cash needed.
-        $component->call('order', ['work' => 'heat_pump', 'financing' => 'loan']);
+        // Éco-PTZ covers the heat pump within its cap — no cash needed. The
+        // chantier must land before the advice reads the installed heat pump.
+        $this->installViaChantier($component, 'loan', 'heat_pump');
         $html = (string) $component->call('selectSlot', ['slot' => 'heating'])->render();
 
         self::assertStringContainsString('SCOP', $html, 'The low-temp-emitters advice quotes the heat pump\'s SCOP once a heat pump is installed.');
@@ -260,8 +261,8 @@ final class GameDashboardTest extends KernelTestCase
         $component = $this->createLiveComponent(GameDashboard::class);
 
         // The 800 € plug-and-play kit is affordable in cash from the 7 750 €
-        // starting savings.
-        $component->call('order', ['work' => 'solar_kit', 'financing' => 'cash']);
+        // starting savings; the chantier lands after its short delay.
+        $this->installViaChantier($component, 'cash', 'solar_kit');
 
         $garage = (string) $component->call('selectSlot', ['slot' => 'garage'])->render();
         self::assertStringContainsString(
@@ -287,7 +288,7 @@ final class GameDashboardTest extends KernelTestCase
     {
         $component = $this->createLiveComponent(GameDashboard::class);
 
-        $component->call('order', ['work' => 'solar_kit', 'financing' => 'cash']);
+        $this->installViaChantier($component, 'cash', 'solar_kit');
 
         $roof = (string) $component->call('selectSlot', ['slot' => 'roof'])->render();
         self::assertMatchesRegularExpression(
@@ -307,8 +308,7 @@ final class GameDashboardTest extends KernelTestCase
     {
         $component = $this->createLiveComponent(GameDashboard::class);
 
-        $component->call('order', ['work' => 'solar_kit', 'financing' => 'cash']);
-        $component->call('order', ['work' => 'water_heater_thermo', 'financing' => 'cash']);
+        $this->installViaChantier($component, 'cash', 'solar_kit', 'water_heater_thermo');
 
         $garage = (string) $component->call('selectSlot', ['slot' => 'garage'])->render();
 
@@ -339,8 +339,9 @@ final class GameDashboardTest extends KernelTestCase
     {
         $component = $this->createLiveComponent(GameDashboard::class);
 
-        // 3 500 €, affordable in cash from the 7 750 € starting savings.
-        $component->call('order', ['work' => 'water_heater_thermo', 'financing' => 'cash']);
+        // 3 500 €, affordable in cash from the 7 750 € starting savings; the
+        // chantier lands after its short delay.
+        $this->installViaChantier($component, 'cash', 'water_heater_thermo');
 
         $heating = (string) $component->call('selectSlot', ['slot' => 'heating'])->render();
         self::assertStringContainsString(
@@ -395,7 +396,7 @@ final class GameDashboardTest extends KernelTestCase
         self::assertStringContainsString('VMC double flux', $html);
     }
 
-    public function testSuccessfulRenovationInstallsAndNotifies(): void
+    public function testOrderingSchedulesAChantierAndNotifiesWithoutInstallingYet(): void
     {
         $component = $this->createLiveComponent(GameDashboard::class);
 
@@ -403,7 +404,23 @@ final class GameDashboardTest extends KernelTestCase
         $html = (string) $component->call('order', ['work' => 'solar_panels', 'financing' => 'cash'])->render();
 
         self::assertSame(NoticeSeverity::Success, $component->component()->notice->severity);
-        self::assertStringContainsString('réalisés', $component->component()->notice->text);
-        self::assertTrue(str_contains($html, 'class="solar solar--full"'), 'The full roof array now renders — not the ground-mounted kit.');
+        self::assertStringContainsString('commandé', $component->component()->notice->text, 'A chantier is ordered, not instantly done.');
+        self::assertStringNotContainsString('class="solar solar--full"', $html, 'The panels are scheduled — the roof array does not render before the chantier lands.');
+    }
+
+    /**
+     * Orders one or more works and fast-forwards past the (short, placeholder)
+     * chantier delay so they land — staying well before the scripted breakdown
+     * (day 19). Manual `step`s, wall-clock independent (TimeKeeper::step()).
+     */
+    private function installViaChantier(object $component, string $financing, string ...$works): void
+    {
+        foreach ($works as $work) {
+            $component->call('order', ['work' => $work, 'financing' => $financing]);
+        }
+
+        for ($day = 0; $day < 6; ++$day) {
+            $component->call('step');
+        }
     }
 }

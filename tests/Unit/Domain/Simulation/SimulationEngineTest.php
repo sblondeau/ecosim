@@ -15,6 +15,7 @@ use App\Domain\Finance\Money;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\PeriodTotals;
+use App\Domain\Simulation\ScheduledWork;
 use App\Domain\Simulation\SimulationEngine;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
@@ -129,6 +130,33 @@ final class SimulationEngineTest extends TestCase
 
         self::assertGreaterThan(0.0, $fioul->heating->fuelOilLitres, 'January in a passoire burns fuel oil.');
         self::assertSame(0.0, $fioul->heating->electricityKwh);
+    }
+
+    public function testAScheduledWorkLandsOnItsCompletionDayNotBefore(): void
+    {
+        $engine = new SimulationEngine();
+        $config = self::config(horizonDays: 10);
+
+        // Roof insulation ordered on day 0, chantier lands on day 2.
+        $state = new GameState(
+            0,
+            self::passoire(),
+            0.0,
+            Money::fromEuros(8000.0),
+            Loan::none(),
+            new PeriodTotals(),
+            [new ScheduledWork('roof_insulation', 1, 2)],
+        );
+
+        // Day 1 (before completion): nothing changes, the chantier still pends.
+        $day1 = $engine->advance($config, $state);
+        self::assertFalse($day1->household->envelope->roofInsulated, 'Nothing before the completion day.');
+        self::assertCount(1, $day1->scheduledWorks);
+
+        // Day 2 (completion): the work lands and leaves the schedule.
+        $day2 = $engine->advance($config, $day1);
+        self::assertTrue($day2->household->envelope->roofInsulated, 'The work lands on its completion day.');
+        self::assertCount(0, $day2->scheduledWorks);
     }
 
     public function testHeatPumpHeatingFlowsIntoTheElectricDemand(): void
