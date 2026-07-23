@@ -44,6 +44,7 @@ use function array_map;
 use function ceil;
 use function count;
 use function implode;
+use function in_array;
 use function intdiv;
 use function max;
 use function min;
@@ -138,7 +139,7 @@ final readonly class GameViewFactory
             cloudPct: (int) round($snapshot->weather->cloudCover * 100),
             temperatureC: $snapshot->weather->temperatureC,
             weatherSparkline: $this->weatherSparkline($config, $state),
-            scene: $this->houseScene($snapshot, $household, $this->snowAccumulationPct($config, $state)),
+            scene: $this->houseScene($snapshot, $household, $this->snowAccumulationPct($config, $state), $this->activeChantierSlots($state)),
             productionKwh: $balance->productionKwh,
             demandKwh: $balance->demandKwh,
             selfSufficiencyPct: (int) round($balance->selfSufficiencyRatio() * 100),
@@ -391,7 +392,35 @@ final readonly class GameViewFactory
      * Translates the simulation facts into the semantic scene model — states
      * and buckets only, never geometry (game-design §17).
      */
-    private function houseScene(DailySnapshot $snapshot, Household $household, int $snowDepthPct): HouseSceneView
+    /**
+     * The scene slots with a chantier currently ON SITE — the artisan has
+     * arrived (currentDay past the lead) but the work is not posed yet. The
+     * marker shows only in this window, never during the (possibly months-long)
+     * lead when there is nothing to see on the house.
+     *
+     * @return list<string>
+     */
+    private function activeChantierSlots(GameState $state): array
+    {
+        $slots = [];
+        foreach ($state->scheduledWorks as $chantier) {
+            if ($state->currentDay < $chantier->chantierStartDay) {
+                continue;
+            }
+
+            $slot = $this->catalog->get($chantier->workSlug)->slot()->value;
+            if (!in_array($slot, $slots, true)) {
+                $slots[] = $slot;
+            }
+        }
+
+        return $slots;
+    }
+
+    /**
+     * @param list<string> $activeChantierSlots
+     */
+    private function houseScene(DailySnapshot $snapshot, Household $household, int $snowDepthPct, array $activeChantierSlots): HouseSceneView
     {
         $envelopeLayers = [];
         foreach ($this->catalog->all() as $work) {
@@ -442,6 +471,7 @@ final readonly class GameViewFactory
                 default => 'warm',
             },
             envelopeLayers: $envelopeLayers,
+            activeChantierSlots: $activeChantierSlots,
         );
     }
 

@@ -48,6 +48,17 @@
 .slot:hover .hit, .slot:focus-visible .hit { stroke: var(--accent); stroke-dasharray: 7 5; }
 .slot.is-selected .hit { stroke: var(--accent); stroke-dasharray: none; }
 
+/* A chantier on site (§ délais): the zone wears a marching-ants warn outline
+   and a faint fill until the work is posed — "travaux en cours ici". */
+.slot--chantier .hit {
+    fill: color-mix(in srgb, var(--warn) 16%, transparent);
+    stroke: var(--warn);
+    stroke-dasharray: 7 5;
+    animation: sc-chantier 1.4s linear infinite;
+}
+.slot--chantier:hover .hit, .slot--chantier:focus-visible .hit { stroke: var(--warn); }
+@keyframes sc-chantier { to { stroke-dashoffset: -24; } }
+
 /* --- ciel par saison (les stops du dégradé sont stylés en CSS) --- */
 .scene .sky-top { stop-color: #3d5a7a; }
 .scene .sky-bottom { stop-color: #c8d3dc; }

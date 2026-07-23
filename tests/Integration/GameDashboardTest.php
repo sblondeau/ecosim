@@ -8,6 +8,8 @@ use App\Application\GameStore;
 use App\Application\InMemoryGameStore;
 use App\Domain\Finance\RenovationCatalog;
 use App\Domain\Scenario\PrimoAccedantScenario;
+use App\Domain\Simulation\GameState;
+use App\Domain\Simulation\ScheduledWork;
 use App\Twig\Components\GameDashboard;
 use App\Twig\Components\NoticeSeverity;
 
@@ -443,6 +445,42 @@ final class GameDashboardTest extends KernelTestCase
      * push completion past the scripted breakdown). Works only in the test env,
      * where GameStore is the process-memory {@see InMemoryGameStore}.
      */
+    public function testSteppingOntoAChantiersStartDayNotifiesThatWorkBegan(): void
+    {
+        // A chantier whose artisan arrives on the very next day.
+        $this->seedChantier(currentDay: 4, slug: 'roof_insulation', start: 5, completion: 30);
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        $component->call('step'); // day 4 -> 5: the chantier starts
+
+        self::assertSame(NoticeSeverity::Success, $component->component()->notice->severity);
+        self::assertStringContainsString('commencé', $component->component()->notice->text);
+    }
+
+    public function testSteppingOntoAChantiersCompletionDayNotifiesThatItIsPosed(): void
+    {
+        // A chantier landing on the very next day.
+        $this->seedChantier(currentDay: 5, slug: 'roof_insulation', start: 5, completion: 6);
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        $component->call('step'); // day 5 -> 6: the chantier is posed
+
+        self::assertSame(NoticeSeverity::Success, $component->component()->notice->severity);
+        self::assertStringContainsString('terminé', $component->component()->notice->text);
+    }
+
+    /** Seeds the store with a single scheduled chantier and the current day. */
+    private function seedChantier(int $currentDay, string $slug, int $start, int $completion): void
+    {
+        $store = self::getContainer()->get(GameStore::class);
+        self::assertInstanceOf(GameStore::class, $store);
+
+        $game = $store->current();
+        $s = $game->state;
+        $seeded = new GameState($currentDay, $s->household, $s->batteryLevelKwh, $s->savings, $s->loan, $s->totals, [new ScheduledWork($slug, $start, $completion)]);
+        $store->save($game->withState($seeded));
+    }
+
     private function seedInstalled(string ...$works): void
     {
         $store = self::getContainer()->get(GameStore::class);

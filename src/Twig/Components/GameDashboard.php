@@ -14,15 +14,20 @@ use App\Application\TimeKeeper;
 use App\Domain\Building\BuildingCalibration;
 use App\Domain\Finance\SceneSlot;
 use App\Domain\Simulation\GameState;
+use App\Domain\Simulation\ScheduledWork;
 use App\Domain\Time\TickSpeed;
 
+use function array_diff;
 use function array_map;
+use function array_values;
+use function count;
 
 use DateTimeImmutable;
 
 use function in_array;
 use function max;
 use function min;
+use function sprintf;
 
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
@@ -118,8 +123,11 @@ final class GameDashboard
     #[LiveAction]
     public function step(): void
     {
+        $before = $this->store->current();
+        $after = $this->timeKeeper->step($before, new DateTimeImmutable());
         $this->notice = null;
-        $this->commit($this->timeKeeper->step($this->store->current(), new DateTimeImmutable()));
+        $this->noticeChantierTransitions($before, $after);
+        $this->commit($after);
     }
 
     #[LiveAction]
@@ -254,10 +262,42 @@ final class GameDashboard
     private function loaded(): Game
     {
         if (null === $this->game) {
-            $this->game = $this->timeKeeper->catchUp($this->store->current(), new DateTimeImmutable());
-            $this->store->save($this->game);
+            $before = $this->store->current();
+            $game = $this->timeKeeper->catchUp($before, new DateTimeImmutable());
+            $this->noticeChantierTransitions($before, $game);
+            $this->store->save($game);
+            $this->game = $game;
         }
 
         return $this->game;
+    }
+
+    /**
+     * Surfaces a notice when a chantier crosses a milestone between two states
+     * (a day-advance, whether polled or stepped): started (the artisan arrives)
+     * or posed (the work lands). Time-driven, so it lives here rather than in a
+     * LiveAction. A completion is the headline — it wins over a same-tick start.
+     */
+    private function noticeChantierTransitions(Game $before, Game $after): void
+    {
+        $beforeSlugs = array_map(static fn (ScheduledWork $c): string => $c->workSlug, $before->state->scheduledWorks);
+        $afterSlugs = array_map(static fn (ScheduledWork $c): string => $c->workSlug, $after->state->scheduledWorks);
+
+        $posed = array_values(array_diff($beforeSlugs, $afterSlugs));
+        if ([] !== $posed) {
+            $this->notice = Notice::success(
+                1 === count($posed) ? 'Chantier terminé — travaux posés !' : sprintf('%d chantiers terminés !', count($posed)),
+            );
+
+            return;
+        }
+
+        foreach ($after->state->scheduledWorks as $chantier) {
+            if ($before->state->currentDay < $chantier->chantierStartDay && $after->state->currentDay >= $chantier->chantierStartDay) {
+                $this->notice = Notice::success('Les travaux ont commencé.');
+
+                return;
+            }
+        }
     }
 }

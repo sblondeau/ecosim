@@ -65,6 +65,13 @@ final readonly class HouseSceneView
          * @var list<string>
          */
         public array $envelopeLayers,
+        /**
+         * Scene slots with a chantier on site right now (§ délais) — the zone
+         * wears a "travaux" marker only during the pose window, not the lead.
+         *
+         * @var list<string>
+         */
+        public array $activeChantierSlots = [],
     ) {
     }
 }

@@ -47,6 +47,20 @@ final class GameViewFactoryTest extends TestCase
         self::assertNotSame('', $view->actions['roof_insulation']->delayLabel, 'An orderable work announces its chantier delay up front.');
     }
 
+    public function testTheSceneMarksAZoneUnderConstructionOnlyDuringThePoseWindow(): void
+    {
+        $bare = new Household(0.0, 0.0, self::original(), HeatingSystem::FuelOilBoiler);
+        // A heat-pump chantier on site from day 35 (artisan arrives) to 37 (posed).
+        $chantier = [new ScheduledWork('heat_pump', 35, 37)];
+        $factory = new GameViewFactory();
+
+        $duringLead = new GameState(10, $bare, 0.0, Money::fromEuros(8000.0), Loan::none(), new PeriodTotals(), $chantier);
+        self::assertNotContains('heating', $factory->build(self::config(), $duringLead)->scene->activeChantierSlots, 'During the lead there is nothing on the house to mark.');
+
+        $onSite = new GameState(36, $bare, 0.0, Money::fromEuros(8000.0), Loan::none(), new PeriodTotals(), $chantier);
+        self::assertContains('heating', $factory->build(self::config(), $onSite)->scene->activeChantierSlots, 'Once the artisan is on site the heating zone is under construction.');
+    }
+
     public function testASecondHeatingGeneratorIsHiddenWhileOneIsBeingBuilt(): void
     {
         $bare = new Household(0.0, 0.0, self::original(), HeatingSystem::FuelOilBoiler);

@@ -104,7 +104,7 @@
            que les tuiles, cohérent visuellement, posé bien à plat dans le
            versant gauche (translate choisi pour rester dans le triangle,
            entre le faîtage et l'égout). #}
-        <g class="slot slot-roof{{ selected == 'roof' ? ' is-selected' }}" tabindex="0" role="button"
+        <g class="slot slot-roof{{ selected == 'roof' ? ' is-selected' }}{{ 'roof' in scene.activeChantierSlots ? ' slot--chantier' }}" tabindex="0" role="button"
            data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="roof">
             <title>Toit — {{ scene.roofLabel }}</title>
             {% if scene.solarState == 'full' %}
@@ -114,7 +114,7 @@
         </g>
 
         {# slot isolation : les tranches de murs #}
-        <g class="slot slot-walls{{ selected == 'walls' ? ' is-selected' }}" tabindex="0" role="button"
+        <g class="slot slot-walls{{ selected == 'walls' ? ' is-selected' }}{{ 'walls' in scene.activeChantierSlots ? ' slot--chantier' }}" tabindex="0" role="button"
            data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="walls">
             <title>Isolation — {{ scene.insulationLabel }}</title>
             {# large jusqu'au nu extérieur : en ITE le doublage déborde en façade
@@ -125,7 +125,7 @@
         </g>
 
         {# slot séjour : l'occupant incarne le confort ressenti (clic = détails) #}
-        <g class="slot slot-living{{ selected == 'living' ? ' is-selected' }}" tabindex="0" role="button"
+        <g class="slot slot-living{{ selected == 'living' ? ' is-selected' }}{{ 'living' in scene.activeChantierSlots ? ' slot--chantier' }}" tabindex="0" role="button"
            data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="living">
             <title>Séjour — ressenti {{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C</title>
             <twig:scene:Occupant tier="{{ scene.comfortState }}" :pose="game.dayNumber % 7" transform="translate(140 208) scale(.29)" />
@@ -148,7 +148,7 @@
         </g>
 
         {# slot chauffage : chaudière (marche/panne) ou PAC #}
-        <g class="slot slot-heating{{ selected == 'heating' ? ' is-selected' }}" tabindex="0" role="button"
+        <g class="slot slot-heating{{ selected == 'heating' ? ' is-selected' }}{{ 'heating' in scene.activeChantierSlots ? ' slot--chantier' }}" tabindex="0" role="button"
            data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="heating">
             <title>Chauffage — {{ scene.heatingLabel }}</title>
             {% if scene.heatingState == 'heat-pump' %}
@@ -171,7 +171,7 @@
     {# ===== LE GARAGE : slot batterie ===== #}
     <g transform="translate(800 216)">
         <twig:scene:Garage />
-        <g class="slot slot-garage{{ selected == 'garage' ? ' is-selected' }}" tabindex="0" role="button"
+        <g class="slot slot-garage{{ selected == 'garage' ? ' is-selected' }}{{ 'garage' in scene.activeChantierSlots ? ' slot--chantier' }}" tabindex="0" role="button"
            data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="garage">
             <title>Garage — {{ scene.garageLabel }}</title>
             {% if scene.garageState == 'installed' %}
