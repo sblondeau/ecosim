@@ -257,6 +257,37 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
   Phase 0-1 ») et l'entrée **délai éco-PTZ** ci-dessus (à unifier : les deux
   délais se composent — obtention du prêt PUIS chantier).
 
+- **Taux d'endettement + crédit immo explicite (le vrai frein réaliste au « PTZ
+  gratuit »)** (déclencheur : **juste après la phase délais**, 1ᵉʳ volet « poids
+  financier » si les délais ne suffisent pas à tuer la sensation de rénover sans
+  douleur — réflexion joueur, juillet 2026). Constat mesuré : l'horizon 1 an ≪
+  terme éco-PTZ 20 ans + 0 % rend le prêt quasi-gratuit *dans la fenêtre scorée*
+  (on ne paie que ~12 mensualités sur 240). Le vrai frein réaliste n'est PAS le
+  plafond 50 k€ : c'est la **solvabilité** (taux d'effort ≤ **35 %**, règle HCSF
+  contraignante depuis 2021, assurance incluse ; 15,3 % des prêts seulement
+  au-delà, marge de flexibilité). L'éco-PTZ **compte** dans ce taux (le 0 %
+  n'exempte pas — c'est la mensualité qui pèse) → un foyer déjà au plafond ne
+  peut PAS empiler les PTZ à volonté. **Prérequis** : sortir le **crédit
+  immobilier** du forfait « dépenses courantes » (`FinanceCalibration::
+  monthlyLivingExpenses`, où il est aujourd'hui fondu) et le modéliser comme
+  charge explicite. **Calibration sourcée** : taux d'effort moyen à l'octroi
+  **≈ 30 %** (ACPR *Le financement de l'habitat en 2024* : ~30,7 % début 2024 ;
+  primo-accédants plutôt au-dessus), fourchette 30-33 %. Sur le revenu du
+  scénario (2 800 €/mois) : mensualité immo ≈ **840 €/mois**, mur 35 % = 980 €
+  → **~140 €/mois** de capacité PTZ → **~34 k€ de PTZ effectif max** (≈ 20 k€ si
+  32 %). **Effet de jeu** : le taux d'endettement plafonne le PTZ **bien avant**
+  50 k€ et donne du poids à chaque euro de dette — plus réaliste que le cap plat,
+  et c'est un levier de **coût d'accès** (§1 : la banque ne prête pas si
+  sur-endetté, pas un verrou artificiel). **Gate de solvabilité** : refuser (ou
+  avertir) un PTZ qui pousserait au-delà de 35 %. **UI demandée (joueur)** :
+  (1) à côté du bouton de déclenchement du prêt, montrer l'**évolution du taux
+  d'endettement s'il prend le prêt** (avant → après) ; (2) dans le panneau
+  Finances, afficher le **taux d'endettement avec code couleur** (rouge = très
+  endetté). Garder le cap 50 k€ plat en parallèle (simplification actée ; une
+  infobulle pourra expliquer le tiéré réel 15/25/30/50 k plus tard). Sources à
+  citer au moment du codage : ACPR *Financement de l'habitat*, HCSF (règle 35 %),
+  service-public.fr/ANIL (éco-PTZ).
+
 Le **cycle de vie des équipements** (usure, entretien, panne, dégradation
 batterie) est un système à part entière, décrit dans sa section dédiée plus bas.
 
