@@ -408,6 +408,23 @@ final class GameDashboardTest extends KernelTestCase
         self::assertStringNotContainsString('class="solar solar--full"', $html, 'The panels are scheduled — the roof array does not render before the chantier lands.');
     }
 
+    public function testAQuoteAnnouncesItsDelayThenFlipsToInProgressOnceOrdered(): void
+    {
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        // Before ordering, the roof-insulation quote (walls drawer) announces
+        // how long the chantier takes.
+        $before = (string) $component->call('selectSlot', ['slot' => 'walls'])->render();
+        self::assertStringContainsString('après la commande', $before, 'The quote shows the chantier delay up front.');
+
+        // Once ordered, the same card flips to the in-progress state with a
+        // countdown — and drops its order buttons. The walls drawer stays open
+        // (ordering does not toggle the selected slot), so we re-render as is.
+        $after = (string) $component->call('order', ['work' => 'roof_insulation', 'financing' => 'loan'])->render();
+        self::assertStringContainsString('Chantier en cours', $after);
+        self::assertStringContainsString('posé dans', $after);
+    }
+
     /**
      * Orders one or more works and fast-forwards past the (short, placeholder)
      * chantier delay so they land — staying well before the scripted breakdown

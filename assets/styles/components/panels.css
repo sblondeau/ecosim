@@ -254,6 +254,30 @@ details.card[open]>summary {
     color: var(--accent);
 }
 
+/* Chantier delay announced on the quote before ordering (§ délais). */
+.quote-delay {
+    margin: 0 0 var(--space-sm);
+    font-size: var(--text-md);
+    color: var(--muted);
+}
+
+/* A work whose chantier is ordered and pending: no order buttons, a status. */
+.quote--in-progress {
+    border-left-color: var(--warn);
+    background: color-mix(in srgb, var(--warn) 7%, var(--card));
+}
+
+.quote--in-progress .quote-eyebrow {
+    color: var(--warn);
+}
+
+.quote-progress {
+    margin: var(--space-sm) 0 0;
+    font-size: var(--text-md);
+    font-weight: 600;
+    color: var(--warn);
+}
+
 .quote-head {
     display: flex;
     align-items: center;

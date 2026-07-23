@@ -37,6 +37,12 @@ final readonly class ActionView
         public string $adviceMessage = '',
         /** Template path of the drawer icon (the scene asset). @see RenovationDefinition::iconAsset() */
         public string $iconAsset = '',
+        /** How long the chantier takes once ordered (« Posé ~4 j après commande ») — shown before ordering. */
+        public string $delayLabel = '',
+        /** Whether this work's chantier is already ordered and pending (§ délais). */
+        public bool $inProgress = false,
+        /** When in progress: the pose countdown (« Chantier en cours · posé dans 3 j »). */
+        public string $progressLabel = '',
     ) {
     }
 }

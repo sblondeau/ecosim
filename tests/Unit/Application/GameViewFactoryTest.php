@@ -18,11 +18,35 @@ use App\Domain\Finance\Money;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\PeriodTotals;
+use App\Domain\Simulation\ScheduledWork;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
 final class GameViewFactoryTest extends TestCase
 {
+    public function testAScheduledWorkShowsAsAChantierInProgressWhileOthersAnnounceTheirDelay(): void
+    {
+        // A bare household (no solar) so solar_panels is actually offered.
+        $bare = new Household(0.0, 0.0, self::original(), HeatingSystem::FuelOilBoiler);
+        $state = new GameState(
+            0,
+            $bare,
+            0.0,
+            Money::fromEuros(8000.0),
+            Loan::none(),
+            new PeriodTotals(),
+            [new ScheduledWork('solar_panels', 3, 4)],
+        );
+
+        $view = new GameViewFactory()->build(self::config(), $state);
+
+        self::assertTrue($view->actions['solar_panels']->inProgress, 'An ordered work is shown as a chantier in progress, not orderable again.');
+        self::assertStringContainsString('4', $view->actions['solar_panels']->progressLabel, 'It names the days left until it lands (completion day 4, current day 0).');
+
+        self::assertFalse($view->actions['roof_insulation']->inProgress, 'A work not yet ordered stays orderable.');
+        self::assertNotSame('', $view->actions['roof_insulation']->delayLabel, 'An orderable work announces its chantier delay up front.');
+    }
+
     private static function config(): GameConfig
     {
         return new GameConfig(

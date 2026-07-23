@@ -568,6 +568,11 @@ final readonly class GameViewFactory
     private function actionsFor(GameState $state, AnnualOutcome $before): array
     {
         $loanCap = Money::fromEuros($this->finance->loanCap()->value);
+        $delayLabel = $this->chantierDelayLabel();
+        $completionBySlug = [];
+        foreach ($state->scheduledWorks as $chantier) {
+            $completionBySlug[$chantier->workSlug] = $chantier->completionDay;
+        }
         $actions = [];
 
         foreach ($this->catalog->all() as $work) {
@@ -575,6 +580,8 @@ final readonly class GameViewFactory
             if (null === $quote) {
                 continue;
             }
+
+            $inProgress = isset($completionBySlug[$work->slug()]);
 
             // The current house's reference year is shared; each work gets its own.
             $after = $this->estimator->estimate($quote->resultingHousehold);
@@ -596,10 +603,31 @@ final readonly class GameViewFactory
                 adviceLevel: $advice->level->value,
                 adviceMessage: $advice->message,
                 iconAsset: $work->iconAsset(),
+                delayLabel: $delayLabel,
+                inProgress: $inProgress,
+                progressLabel: $inProgress ? $this->progressLabel($completionBySlug[$work->slug()] - $state->currentDay) : '',
             );
         }
 
         return $actions;
+    }
+
+    /** How long a chantier takes once ordered — uniform for now (§ délais backbone). */
+    private function chantierDelayLabel(): string
+    {
+        $days = max(0, (int) $this->finance->chantierLeadDelayDays()->value)
+            + max(0, (int) $this->finance->chantierBuildDelayDays()->value);
+
+        return sprintf('Posé ~%d j après la commande', $days);
+    }
+
+    private function progressLabel(int $daysLeft): string
+    {
+        $daysLeft = max(0, $daysLeft);
+
+        return 0 === $daysLeft
+            ? 'Chantier en cours · posé aujourd\'hui'
+            : sprintf('Chantier en cours · posé dans %d j', $daysLeft);
     }
 
     /**
