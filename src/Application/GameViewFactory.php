@@ -22,6 +22,7 @@ use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
 use App\Domain\Finance\PropertyValuator;
 use App\Domain\Finance\RenovationCatalog;
+use App\Domain\Finance\RenovationConflicts;
 use App\Domain\Finance\RenovationDefinition;
 use App\Domain\Finance\RenovationDelays;
 use App\Domain\Finance\RenovationQuoter;
@@ -80,6 +81,7 @@ final readonly class GameViewFactory
         private CarbonAccountant $carbon = new CarbonAccountant(),
         private RenovationCatalog $catalog = new RenovationCatalog(),
         private RenovationDelays $delays = new RenovationDelays(),
+        private RenovationConflicts $conflicts = new RenovationConflicts(),
     ) {
     }
 
@@ -584,6 +586,12 @@ final readonly class GameViewFactory
             }
 
             $inProgress = isset($completionBySlug[$work->slug()]);
+
+            // A work conflicting with an in-progress chantier (a second heating
+            // generator) is not offerable while that chantier is being built.
+            if (!$inProgress && $this->conflicts->conflictsWithInProgress($work->slug(), array_keys($completionBySlug))) {
+                continue;
+            }
 
             // The current house's reference year is shared; each work gets its own.
             $after = $this->estimator->estimate($quote->resultingHousehold);

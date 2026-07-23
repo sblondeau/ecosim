@@ -49,6 +49,24 @@ final class RenovationHandlerTest extends TestCase
         self::assertStringContainsString('déjà en cours', $again);
     }
 
+    public function testASecondHeatingGeneratorCannotBeOrderedWhileOneIsInProgress(): void
+    {
+        $handler = new RenovationHandler();
+        $withPacPending = $handler->order(self::bareState(), 'heat_pump', RenovationHandler::FINANCING_LOAN);
+        self::assertInstanceOf(GameState::class, $withPacPending);
+
+        // A pellet boiler conflicts with the pending heat-pump chantier: you do
+        // not queue two generators.
+        $refused = $handler->order($withPacPending, 'pellet_boiler', RenovationHandler::FINANCING_LOAN);
+        self::assertIsString($refused);
+        self::assertStringContainsString('chauffage', $refused);
+
+        // Low-temp emitters share the heating slot but are not a generator —
+        // still orderable alongside the pending heat pump.
+        $emitters = $handler->order($withPacPending, 'low_temp_emitters', RenovationHandler::FINANCING_LOAN);
+        self::assertInstanceOf(GameState::class, $emitters);
+    }
+
     public function testCashIsRefusedWhenSavingsAreInsufficient(): void
     {
         $result = new RenovationHandler()->order(self::bareState(5000.0), 'solar_panels', RenovationHandler::FINANCING_CASH);

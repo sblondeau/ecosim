@@ -47,6 +47,26 @@ final class GameViewFactoryTest extends TestCase
         self::assertNotSame('', $view->actions['roof_insulation']->delayLabel, 'An orderable work announces its chantier delay up front.');
     }
 
+    public function testASecondHeatingGeneratorIsHiddenWhileOneIsBeingBuilt(): void
+    {
+        $bare = new Household(0.0, 0.0, self::original(), HeatingSystem::FuelOilBoiler);
+        $state = new GameState(
+            0,
+            $bare,
+            0.0,
+            Money::fromEuros(8000.0),
+            Loan::none(),
+            new PeriodTotals(),
+            [new ScheduledWork('heat_pump', 35, 37)],
+        );
+
+        $view = new GameViewFactory()->build(self::config(), $state);
+
+        self::assertTrue($view->actions['heat_pump']->inProgress, 'The heat pump chantier shows as in progress.');
+        self::assertArrayNotHasKey('pellet_boiler', $view->actions, 'A second generator is not offered while one is being built.');
+        self::assertArrayHasKey('low_temp_emitters', $view->actions, 'Non-generator heating works stay offered.');
+    }
+
     private static function config(): GameConfig
     {
         return new GameConfig(

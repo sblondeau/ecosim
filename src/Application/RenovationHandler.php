@@ -7,11 +7,14 @@ namespace App\Application;
 use App\Domain\Finance\FinanceCalibration;
 use App\Domain\Finance\Money;
 use App\Domain\Finance\RenovationCatalog;
+use App\Domain\Finance\RenovationConflicts;
 use App\Domain\Finance\RenovationDelays;
 use App\Domain\Finance\RenovationQuoter;
 use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\ScheduledWork;
 
+use function array_map;
+use function in_array;
 use function sprintf;
 
 /**
@@ -33,6 +36,7 @@ final readonly class RenovationHandler
         private FinanceCalibration $finance = new FinanceCalibration(),
         private RenovationCatalog $catalog = new RenovationCatalog(),
         private RenovationDelays $delays = new RenovationDelays(),
+        private RenovationConflicts $conflicts = new RenovationConflicts(),
     ) {
     }
 
@@ -51,10 +55,12 @@ final readonly class RenovationHandler
             return 'Ces travaux ne sont pas (ou plus) disponibles.';
         }
 
-        foreach ($state->scheduledWorks as $pending) {
-            if ($pending->workSlug === $workSlug) {
-                return 'Ce chantier est déjà en cours.';
-            }
+        $inProgressSlugs = array_map(static fn (ScheduledWork $pending): string => $pending->workSlug, $state->scheduledWorks);
+        if (in_array($workSlug, $inProgressSlugs, true)) {
+            return 'Ce chantier est déjà en cours.';
+        }
+        if ($this->conflicts->conflictsWithInProgress($workSlug, $inProgressSlugs)) {
+            return 'Un chantier de chauffage est déjà en cours — attendez sa pose avant d\'en commander un autre.';
         }
 
         $net = $quote->netCost();
