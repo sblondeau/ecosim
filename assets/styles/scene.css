@@ -48,15 +48,24 @@
 .slot:hover .hit, .slot:focus-visible .hit { stroke: var(--accent); stroke-dasharray: 7 5; }
 .slot.is-selected .hit { stroke: var(--accent); stroke-dasharray: none; }
 
-/* A chantier on site (§ délais): the zone wears a marching-ants warn outline
-   and a faint fill until the work is posed — "travaux en cours ici". */
-.slot--chantier .hit {
+/* A chantier attached to a zone (§ délais), two phases:
+   - planned (during the lead): a discreet "a chantier is coming here" cue —
+     also why some tree choices are blocked — faint dashed, no motion;
+   - active (the pose window): a marching-ants warn outline + fill, "ça bosse". */
+.slot--chantier-planned .hit {
+    fill: color-mix(in srgb, var(--warn) 6%, transparent);
+    stroke: color-mix(in srgb, var(--warn) 55%, transparent);
+    stroke-width: 2;
+    stroke-dasharray: 3 7;
+}
+.slot--chantier-active .hit {
     fill: color-mix(in srgb, var(--warn) 16%, transparent);
     stroke: var(--warn);
     stroke-dasharray: 7 5;
     animation: sc-chantier 1.4s linear infinite;
 }
-.slot--chantier:hover .hit, .slot--chantier:focus-visible .hit { stroke: var(--warn); }
+.slot--chantier-planned:hover .hit, .slot--chantier-planned:focus-visible .hit,
+.slot--chantier-active:hover .hit, .slot--chantier-active:focus-visible .hit { stroke: var(--warn); }
 @keyframes sc-chantier { to { stroke-dashoffset: -24; } }
 
 /* --- ciel par saison (les stops du dégradé sont stylés en CSS) --- */

@@ -44,7 +44,6 @@ use function array_map;
 use function ceil;
 use function count;
 use function implode;
-use function in_array;
 use function intdiv;
 use function max;
 use function min;
@@ -139,7 +138,7 @@ final readonly class GameViewFactory
             cloudPct: (int) round($snapshot->weather->cloudCover * 100),
             temperatureC: $snapshot->weather->temperatureC,
             weatherSparkline: $this->weatherSparkline($config, $state),
-            scene: $this->houseScene($snapshot, $household, $this->snowAccumulationPct($config, $state), $this->activeChantierSlots($state)),
+            scene: $this->houseScene($snapshot, $household, $this->snowAccumulationPct($config, $state), $this->chantierZones($state)),
             productionKwh: $balance->productionKwh,
             demandKwh: $balance->demandKwh,
             selfSufficiencyPct: (int) round($balance->selfSufficiencyRatio() * 100),
@@ -393,34 +392,41 @@ final readonly class GameViewFactory
      * and buckets only, never geometry (game-design §17).
      */
     /**
-     * The scene slots with a chantier currently ON SITE — the artisan has
-     * arrived (currentDay past the lead) but the work is not posed yet. The
-     * marker shows only in this window, never during the (possibly months-long)
-     * lead when there is nothing to see on the house.
+     * The scene zones touched by a chantier, keyed by VISUAL zone → phase:
+     * 'planned' while the artisan is still awaited (a discreet "coming here"
+     * cue during the lead), 'active' once on site (the pose window). 'active'
+     * wins over 'planned' if two chantiers share a zone.
      *
-     * @return list<string>
+     * @return array<string, string>
      */
-    private function activeChantierSlots(GameState $state): array
+    private function chantierZones(GameState $state): array
     {
-        $slots = [];
+        $zones = [];
         foreach ($state->scheduledWorks as $chantier) {
-            if ($state->currentDay < $chantier->chantierStartDay) {
-                continue;
-            }
-
-            $slot = $this->catalog->get($chantier->workSlug)->slot()->value;
-            if (!in_array($slot, $slots, true)) {
-                $slots[] = $slot;
+            $zone = $this->chantierZone($this->catalog->get($chantier->workSlug));
+            $phase = $state->currentDay >= $chantier->chantierStartDay ? 'active' : 'planned';
+            if ('active' === $phase || !isset($zones[$zone])) {
+                $zones[$zone] = $phase;
             }
         }
 
-        return $slots;
+        return $zones;
     }
 
     /**
-     * @param list<string> $activeChantierSlots
+     * The scene zone a work's chantier marker sits on — its VISUAL location, not
+     * the drawer it is ordered from. Only roof insulation differs: it lives in
+     * the envelope (walls) drawer but shows on the roof.
      */
-    private function houseScene(DailySnapshot $snapshot, Household $household, int $snowDepthPct, array $activeChantierSlots): HouseSceneView
+    private function chantierZone(RenovationDefinition $work): string
+    {
+        return 'roof_insulation' === $work->slug() ? 'roof' : $work->slot()->value;
+    }
+
+    /**
+     * @param array<string, string> $chantierZones
+     */
+    private function houseScene(DailySnapshot $snapshot, Household $household, int $snowDepthPct, array $chantierZones): HouseSceneView
     {
         $envelopeLayers = [];
         foreach ($this->catalog->all() as $work) {
@@ -471,7 +477,7 @@ final readonly class GameViewFactory
                 default => 'warm',
             },
             envelopeLayers: $envelopeLayers,
-            activeChantierSlots: $activeChantierSlots,
+            chantierZones: $chantierZones,
         );
     }
 
