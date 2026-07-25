@@ -48,6 +48,23 @@
 .slot:hover .hit, .slot:focus-visible .hit { stroke: var(--accent); stroke-dasharray: 7 5; }
 .slot.is-selected .hit { stroke: var(--accent); stroke-dasharray: none; }
 
+/* A chantier is shown by its barricade (<twig:scene:Chantier>) alone — the old
+   dashed zone outline was redundant with it (and lingered after completion), so
+   it is gone. The barricade never eats clicks (the zone stays selectable) and
+   stays planted (no bob — a moving sign reads as floating). planned is fully
+   static; active adds a flashing amber beacon + amber caption (the artisan is on
+   site). Both phases are fully opaque. */
+.chantier-marker { pointer-events: none; }
+.chantier-marker .cm-legs { stroke: #3a4450; stroke-width: 4; stroke-linecap: round; fill: none; }
+.chantier-marker .cm-board { fill: url(#scWipStripes); stroke: #14181d; stroke-width: 2; }
+.chantier-marker .cm-plate { fill: #131a22; }
+.chantier-marker .cm-beacon { fill: var(--warn); opacity: 0; }
+/* Caption on the sign's dark centre plate — no halo needed, the plate backs it. */
+.chantier-marker .cm-label { font-size: 7px; font-weight: 700; fill: #eef3f8; }
+.chantier-marker--active .cm-label { fill: var(--warn); }
+.chantier-marker--active .cm-beacon { animation: sc-chantier-flash 1s steps(1, end) infinite; }
+@keyframes sc-chantier-flash { 0%, 49% { opacity: 1; } 50%, 100% { opacity: .12; } }
+
 /* --- ciel par saison (les stops du dégradé sont stylés en CSS) --- */
 .scene .sky-top { stop-color: #3d5a7a; }
 .scene .sky-bottom { stop-color: #c8d3dc; }

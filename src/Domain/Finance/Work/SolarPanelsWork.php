@@ -7,6 +7,8 @@ namespace App\Domain\Finance\Work;
 use App\Domain\Building\Household;
 use App\Domain\Energy\EnergyCalibration;
 use App\Domain\Finance\AdviceLevel;
+use App\Domain\Finance\ChantierDelay;
+use App\Domain\Finance\ExclusivityGroup;
 use App\Domain\Finance\FinanceCalibration;
 use App\Domain\Finance\Money;
 use App\Domain\Finance\RenovationAdvice;
@@ -108,5 +110,15 @@ final readonly class SolarPanelsWork implements RenovationDefinition
     public function iconAsset(): string
     {
         return 'game/scene/assets/solar-panels.svg';
+    }
+
+    public function delay(): ChantierDelay
+    {
+        return new ChantierDelay(45, 2);
+    }
+
+    public function exclusivityGroup(): ?ExclusivityGroup
+    {
+        return null;
     }
 }

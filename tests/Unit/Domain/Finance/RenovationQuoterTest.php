@@ -123,4 +123,14 @@ final readonly class StubDefinition implements RenovationDefinition
     {
         return 'game/scene/assets/battery.svg';
     }
+
+    public function delay(): \App\Domain\Finance\ChantierDelay
+    {
+        return new \App\Domain\Finance\ChantierDelay(1, 1);
+    }
+
+    public function exclusivityGroup(): ?\App\Domain\Finance\ExclusivityGroup
+    {
+        return null;
+    }
 }

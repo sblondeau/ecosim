@@ -18,11 +18,72 @@ use App\Domain\Finance\Money;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\PeriodTotals;
+use App\Domain\Simulation\ScheduledWork;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
 final class GameViewFactoryTest extends TestCase
 {
+    public function testAScheduledWorkShowsAsAChantierInProgressWhileOthersAnnounceTheirDelay(): void
+    {
+        // A bare household (no solar) so solar_panels is actually offered.
+        $bare = new Household(0.0, 0.0, self::original(), HeatingSystem::FuelOilBoiler);
+        $state = new GameState(
+            0,
+            $bare,
+            0.0,
+            Money::fromEuros(8000.0),
+            Loan::none(),
+            new PeriodTotals(),
+            [new ScheduledWork('solar_panels', 3, 4)],
+        );
+
+        $view = new GameViewFactory()->build(self::config(), $state);
+
+        self::assertTrue($view->actions['solar_panels']->inProgress, 'An ordered work is shown as a chantier in progress, not orderable again.');
+        self::assertStringContainsString('4', $view->actions['solar_panels']->progressLabel, 'It names the days left until it lands (completion day 4, current day 0).');
+
+        self::assertFalse($view->actions['roof_insulation']->inProgress, 'A work not yet ordered stays orderable.');
+        self::assertNotSame('', $view->actions['roof_insulation']->delayLabel, 'An orderable work announces its chantier delay up front.');
+    }
+
+    public function testASceneZoneIsPlannedDuringTheLeadThenActiveDuringThePoseOnItsVisualZone(): void
+    {
+        $bare = new Household(0.0, 0.0, self::original(), HeatingSystem::FuelOilBoiler);
+        // Roof insulation: ordered day 0, lead → start day 21, posed day 22. Its
+        // DRAWER slot is walls, but it SHOWS on the roof — the marker follows the
+        // visual zone, not the drawer.
+        $chantier = [new ScheduledWork('roof_insulation', 21, 22)];
+        $factory = new GameViewFactory();
+
+        $duringLead = $factory->build(self::config(), new GameState(10, $bare, 0.0, Money::fromEuros(8000.0), Loan::none(), new PeriodTotals(), $chantier));
+        self::assertSame('planned', $duringLead->scene->chantierZones['roof'] ?? null, 'During the lead the roof zone is planned — a chantier is coming.');
+
+        $onSite = $factory->build(self::config(), new GameState(21, $bare, 0.0, Money::fromEuros(8000.0), Loan::none(), new PeriodTotals(), $chantier));
+        self::assertSame('active', $onSite->scene->chantierZones['roof'] ?? null, 'On the pose day the roof zone is active — the artisan is on site.');
+        self::assertArrayNotHasKey('walls', $onSite->scene->chantierZones, 'The marker follows the visual roof, not the walls drawer slot.');
+    }
+
+    public function testASecondHeatingGeneratorIsHiddenWhileOneIsBeingBuilt(): void
+    {
+        $bare = new Household(0.0, 0.0, self::original(), HeatingSystem::FuelOilBoiler);
+        $state = new GameState(
+            0,
+            $bare,
+            0.0,
+            Money::fromEuros(8000.0),
+            Loan::none(),
+            new PeriodTotals(),
+            [new ScheduledWork('heat_pump', 35, 37)],
+        );
+
+        $view = new GameViewFactory()->build(self::config(), $state);
+
+        self::assertTrue($view->actions['heat_pump']->inProgress, 'The heat pump chantier shows as in progress.');
+        self::assertArrayNotHasKey('pellet_boiler', $view->actions, 'A second generator is not offered while one is being built.');
+        self::assertArrayHasKey('low_temp_emitters', $view->actions, 'Non-generator heating works stay offered.');
+    }
+
     private static function config(): GameConfig
     {
         return new GameConfig(

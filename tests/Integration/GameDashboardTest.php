@@ -4,10 +4,16 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration;
 
+use App\Application\GameStore;
+use App\Application\InMemoryGameStore;
+use App\Domain\Finance\RenovationCatalog;
 use App\Domain\Scenario\PrimoAccedantScenario;
+use App\Domain\Simulation\GameState;
+use App\Domain\Simulation\ScheduledWork;
 use App\Twig\Components\GameDashboard;
 use App\Twig\Components\NoticeSeverity;
 
+use function sprintf;
 use function str_contains;
 
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -22,6 +28,13 @@ use Symfony\UX\LiveComponent\Test\InteractsWithLiveComponents;
 final class GameDashboardTest extends KernelTestCase
 {
     use InteractsWithLiveComponents;
+
+    protected function setUp(): void
+    {
+        // The test env binds GameStore to the process-memory store; clear it so
+        // each test starts on a fresh game (the static survives kernel reboots).
+        InMemoryGameStore::clear();
+    }
 
     public function testAdjustSetpointMovesTheWallThermostat(): void
     {
@@ -87,6 +100,21 @@ final class GameDashboardTest extends KernelTestCase
         // Acknowledging the briefing dismisses the last modal and starts play.
         $game = (string) $component->call('acknowledgeEvent', ['id' => 'briefing'])->render();
         self::assertStringNotContainsString('intro-overlay', $game);
+    }
+
+    public function testAcknowledgedOnboardingModalsStayDismissedAcrossARefresh(): void
+    {
+        $first = $this->createLiveComponent(GameDashboard::class);
+        $first->call('acknowledgeEvent', ['id' => 'intro']);
+        $first->call('acknowledgeEvent', ['id' => 'briefing']);
+
+        // A page refresh = a fresh mount, which must restore the dismissals from
+        // the persisted game rather than reset them to [] and re-show the modals.
+        $refreshed = $this->createLiveComponent(GameDashboard::class);
+        self::assertSame(['intro', 'briefing'], $refreshed->component()->acknowledgedEvents, 'Acknowledgements are restored from the persisted game.');
+
+        $html = (string) $refreshed->render();
+        self::assertStringNotContainsString('intro-overlay', $html, 'Neither onboarding modal re-appears after a refresh.');
     }
 
     public function testAcknowledgingEachOnboardingModalRevealsTheNextPendingEventImmediately(): void
@@ -191,8 +219,9 @@ final class GameDashboardTest extends KernelTestCase
     {
         $component = $this->createLiveComponent(GameDashboard::class);
 
-        // Éco-PTZ covers the heat pump within its cap — no cash needed.
-        $component->call('order', ['work' => 'heat_pump', 'financing' => 'loan']);
+        // Éco-PTZ covers the heat pump within its cap — no cash needed. The
+        // chantier must land before the advice reads the installed heat pump.
+        $this->seedInstalled('heat_pump');
         $html = (string) $component->call('selectSlot', ['slot' => 'heating'])->render();
 
         self::assertStringContainsString('SCOP', $html, 'The low-temp-emitters advice quotes the heat pump\'s SCOP once a heat pump is installed.');
@@ -260,8 +289,8 @@ final class GameDashboardTest extends KernelTestCase
         $component = $this->createLiveComponent(GameDashboard::class);
 
         // The 800 € plug-and-play kit is affordable in cash from the 7 750 €
-        // starting savings.
-        $component->call('order', ['work' => 'solar_kit', 'financing' => 'cash']);
+        // starting savings; the chantier lands after its short delay.
+        $this->seedInstalled('solar_kit');
 
         $garage = (string) $component->call('selectSlot', ['slot' => 'garage'])->render();
         self::assertStringContainsString(
@@ -287,7 +316,7 @@ final class GameDashboardTest extends KernelTestCase
     {
         $component = $this->createLiveComponent(GameDashboard::class);
 
-        $component->call('order', ['work' => 'solar_kit', 'financing' => 'cash']);
+        $this->seedInstalled('solar_kit');
 
         $roof = (string) $component->call('selectSlot', ['slot' => 'roof'])->render();
         self::assertMatchesRegularExpression(
@@ -307,8 +336,7 @@ final class GameDashboardTest extends KernelTestCase
     {
         $component = $this->createLiveComponent(GameDashboard::class);
 
-        $component->call('order', ['work' => 'solar_kit', 'financing' => 'cash']);
-        $component->call('order', ['work' => 'water_heater_thermo', 'financing' => 'cash']);
+        $this->seedInstalled('solar_kit', 'water_heater_thermo');
 
         $garage = (string) $component->call('selectSlot', ['slot' => 'garage'])->render();
 
@@ -339,8 +367,9 @@ final class GameDashboardTest extends KernelTestCase
     {
         $component = $this->createLiveComponent(GameDashboard::class);
 
-        // 3 500 €, affordable in cash from the 7 750 € starting savings.
-        $component->call('order', ['work' => 'water_heater_thermo', 'financing' => 'cash']);
+        // 3 500 €, affordable in cash from the 7 750 € starting savings; the
+        // chantier lands after its short delay.
+        $this->seedInstalled('water_heater_thermo');
 
         $heating = (string) $component->call('selectSlot', ['slot' => 'heating'])->render();
         self::assertStringContainsString(
@@ -395,7 +424,7 @@ final class GameDashboardTest extends KernelTestCase
         self::assertStringContainsString('VMC double flux', $html);
     }
 
-    public function testSuccessfulRenovationInstallsAndNotifies(): void
+    public function testOrderingSchedulesAChantierAndNotifiesWithoutInstallingYet(): void
     {
         $component = $this->createLiveComponent(GameDashboard::class);
 
@@ -403,7 +432,120 @@ final class GameDashboardTest extends KernelTestCase
         $html = (string) $component->call('order', ['work' => 'solar_panels', 'financing' => 'cash'])->render();
 
         self::assertSame(NoticeSeverity::Success, $component->component()->notice->severity);
-        self::assertStringContainsString('réalisés', $component->component()->notice->text);
-        self::assertTrue(str_contains($html, 'class="solar solar--full"'), 'The full roof array now renders — not the ground-mounted kit.');
+        self::assertStringContainsString('commandé', $component->component()->notice->text, 'A chantier is ordered, not instantly done.');
+        self::assertStringNotContainsString('class="solar solar--full"', $html, 'The panels are scheduled — the roof array does not render before the chantier lands.');
+    }
+
+    public function testAQuoteAnnouncesItsDelayThenFlipsToInProgressOnceOrdered(): void
+    {
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        // Before ordering, the roof-insulation quote (walls drawer) announces
+        // how long the chantier takes.
+        $before = (string) $component->call('selectSlot', ['slot' => 'walls'])->render();
+        self::assertStringContainsString('après la commande', $before, 'The quote shows the chantier delay up front.');
+
+        // Once ordered, the same card flips to the in-progress state with a
+        // countdown — and drops its order buttons. The walls drawer stays open
+        // (ordering does not toggle the selected slot), so we re-render as is.
+        $after = (string) $component->call('order', ['work' => 'roof_insulation', 'financing' => 'loan'])->render();
+        self::assertStringContainsString('Chantier en cours', $after);
+        self::assertStringContainsString('posé dans', $after);
+    }
+
+    /**
+     * Seeds the store with one or more works ALREADY installed, bypassing the
+     * chantier timeline — so "given an installed household, the drawer renders
+     * X" is tested independently of the délais (whose realistic values would
+     * push completion past the scripted breakdown). Works only in the test env,
+     * where GameStore is the process-memory {@see InMemoryGameStore}.
+     */
+    public function testSteppingOntoAChantiersStartDayNotifiesThatWorkBegan(): void
+    {
+        // A chantier whose artisan arrives on the very next day.
+        $this->seedChantier(currentDay: 4, slug: 'roof_insulation', start: 5, completion: 30);
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        $component->call('step'); // day 4 -> 5: the chantier starts
+
+        self::assertSame(NoticeSeverity::Success, $component->component()->notice->severity);
+        self::assertStringContainsString('commencé', $component->component()->notice->text);
+    }
+
+    public function testSteppingOntoAChantiersCompletionDayNotifiesThatItIsPosed(): void
+    {
+        // A chantier landing on the very next day.
+        $this->seedChantier(currentDay: 5, slug: 'roof_insulation', start: 5, completion: 6);
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        $component->call('step'); // day 5 -> 6: the chantier is posed
+
+        self::assertSame(NoticeSeverity::Success, $component->component()->notice->severity);
+        self::assertStringContainsString('terminé', $component->component()->notice->text);
+    }
+
+    public function testAPlannedChantierPlantsAGhostedWorksSignOnItsZone(): void
+    {
+        // Ordered, but the artisan has not arrived yet — still in the lead window.
+        $this->seedChantier(currentDay: 4, slug: 'roof_insulation', start: 20, completion: 40);
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        $html = (string) $component->render();
+
+        self::assertStringContainsString('chantier-marker--planned', $html, 'During the lead, the zone plants the "travaux" barricade.');
+        self::assertStringContainsString('à venir</tspan>', $html, 'The barricade is captioned for the lead phase.');
+        self::assertStringNotContainsString('chantier-marker--active', $html, 'It is not the active state yet — the artisan is still awaited.');
+    }
+
+    public function testAnActiveChantierShowsASolidWorksSignOnItsZone(): void
+    {
+        // The pose window: the artisan is on site.
+        $this->seedChantier(currentDay: 25, slug: 'roof_insulation', start: 20, completion: 40);
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        $html = (string) $component->render();
+
+        self::assertStringContainsString('chantier-marker--active', $html, 'During the pose, the zone shows the active "travaux" barricade.');
+        self::assertStringContainsString('en cours</tspan>', $html, 'The barricade is captioned for the pose phase.');
+    }
+
+    public function testAPosedChantierLeavesNoMarkerBehindOnItsZone(): void
+    {
+        // Lands on the very next day; once posed it must be removed, marker and all.
+        $this->seedChantier(currentDay: 5, slug: 'roof_insulation', start: 5, completion: 6);
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        $html = (string) $component->call('step')->render(); // day 5 -> 6: the chantier is posed
+
+        self::assertStringNotContainsString('chantier-marker', $html, 'Once posed, the chantier is gone — no marker lingers on the zone.');
+    }
+
+    /** Seeds the store with a single scheduled chantier and the current day. */
+    private function seedChantier(int $currentDay, string $slug, int $start, int $completion): void
+    {
+        $store = self::getContainer()->get(GameStore::class);
+        self::assertInstanceOf(GameStore::class, $store);
+
+        $game = $store->current();
+        $s = $game->state;
+        $seeded = new GameState($currentDay, $s->household, $s->batteryLevelKwh, $s->savings, $s->loan, $s->totals, [new ScheduledWork($slug, $start, $completion)]);
+        $store->save($game->withState($seeded));
+    }
+
+    private function seedInstalled(string ...$works): void
+    {
+        $store = self::getContainer()->get(GameStore::class);
+        self::assertInstanceOf(GameStore::class, $store);
+
+        $game = $store->current();
+        $household = $game->state->household;
+        $catalog = new RenovationCatalog();
+        foreach ($works as $slug) {
+            $offer = $catalog->get($slug)->offerFor($household);
+            self::assertNotNull($offer, sprintf('Work "%s" is not offered for the household being seeded.', $slug));
+            $household = $offer->resultingHousehold;
+        }
+
+        $store->save($game->withState($game->state->withHousehold($household)));
     }
 }

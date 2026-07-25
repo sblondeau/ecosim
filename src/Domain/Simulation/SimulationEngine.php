@@ -16,6 +16,7 @@ use App\Domain\Energy\SolarProductionCalculator;
 use App\Domain\Finance\BillCalculator;
 use App\Domain\Finance\FinanceCalibration;
 use App\Domain\Finance\Money;
+use App\Domain\Finance\RenovationCatalog;
 use App\Domain\Scenario\PrimoAccedantScenario;
 use App\Domain\Scenario\ScriptedEvent;
 use App\Domain\Time\GameDate;
@@ -57,6 +58,7 @@ final readonly class SimulationEngine
         private BillCalculator $bill = new BillCalculator(),
         private EnergyCalibration $calibration = new EnergyCalibration(),
         private FinanceCalibration $finance = new FinanceCalibration(),
+        private RenovationCatalog $catalog = new RenovationCatalog(),
         ?array $events = null,
     ) {
         $this->events = $events ?? new PrimoAccedantScenario()->events();
@@ -133,7 +135,36 @@ final readonly class SimulationEngine
             return $state;
         }
 
-        return $this->withScriptedEvents($config, $state->advanced($this->snapshot($config, $state)));
+        $settled = $state->advanced($this->snapshot($config, $state));
+
+        return $this->withScriptedEvents($config, $this->withCompletedChantiers($settled));
+    }
+
+    /**
+     * Applies the chantiers whose completion day has come: their household
+     * effect lands on the settled morning (re-derived from the catalogue, so
+     * several chantiers compose), and they leave the schedule. Runs before the
+     * scripted events, so an event reads the post-chantier household (a boiler
+     * breakdown does not fire on a house whose heat pump just landed).
+     */
+    private function withCompletedChantiers(GameState $state): GameState
+    {
+        $household = $state->household;
+        $pending = [];
+        foreach ($state->scheduledWorks as $chantier) {
+            if ($chantier->completionDay > $state->currentDay) {
+                $pending[] = $chantier;
+
+                continue;
+            }
+
+            $offer = $this->catalog->get($chantier->workSlug)->offerFor($household);
+            if (null !== $offer) {
+                $household = $offer->resultingHousehold;
+            }
+        }
+
+        return $state->withHousehold($household)->withScheduledWorks($pending);
     }
 
     /**

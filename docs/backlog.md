@@ -187,7 +187,16 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
   résiduelle se matérialise une seule fois, à l'échange (la reprise).
 - **Délai & conditions d'accès de l'éco-PTZ (le levier « délai » du §1, à
   modéliser)** (déclencheur : Phase 4 économie complète, ou passe réalisme des
-  aides). Aujourd'hui l'éco-PTZ est **instantané** au clic — irréaliste. Réel
+  aides).
+  > ✅ **Délai fait (PR #15, juillet 2026).** Le déblocage des fonds est modélisé
+  > (`FinanceCalibration::ecoPtzFundsReleaseDays()`, ~42 j, ordre de grandeur
+  > assumé §13) et s'ajoute *avant* le lead du chantier quand le travaux est
+  > financé au PTZ → **non mobilisable pour la panne**, exactement la leçon
+  > visée. **Restent à faire** (volet réalisme des aides) : conditions d'accès
+  > (RGE obligatoire, logement > 2 ans), plafonds tiérés (15/25/30/50 k), durée
+  > réelle 15/20 ans — voir le volet **taux d'endettement** plus bas.
+
+  Aujourd'hui l'éco-PTZ est **instantané** au clic — irréaliste. Réel
   (sources : service-public.fr, ADEME, Ministère ; plafonds/durées exacts à
   revérifier avant codage) : **artisan RGE obligatoire**, logement > 2 ans,
   **aucune condition de revenus** (c'est un prêt, la banque évalue la
@@ -209,6 +218,20 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
 - **Durée des travaux (chantier + délais amont/aval, le levier « délai » du §1
   généralisé)** (déclencheur : Phase 4 économie complète, ou passe réalisme des
   aides — même chantier que le délai éco-PTZ ci-dessus, à traiter ensemble).
+  > ✅ **Fait (PR #15, juillet 2026 — cf. `docs/specs/2026-07-23-delais-travaux-design.md`).**
+  > Un travaux commandé est **programmé** (`ScheduledWork` : lead + pose,
+  > déterministe) au lieu d'être posé instantanément ; le délai per-work
+  > (`RenovationDefinition::delay(): ChantierDelay`, asymétrique — réparation
+  > rapide, générateurs/PV lents) ; la scène marque la zone « chantier prévu »
+  > puis « en pose », avec notices début/fin et **aucune pause auto** (feel).
+  > **Écart assumé vs design §5** : l'exclusivité d'un générateur de chauffage
+  > est portée par un **groupe** (`ExclusivityGroup` sur le work +
+  > `RenovationConflicts`), **pas** par le « foyer projeté » du design initial
+  > (le `PelletBoilerWork::offerFor()` autorise le *switch* d'un générateur déjà
+  > posé, donc le projeté ne bloquait pas granulés-pendant-PAC). **Restent hors
+  > phase** : ③ saisonnalité des délais, ⑥ inconfort de chantier (jours sans
+  > chauffage), avance des aides / acomptes — voir §7 de la spec.
+
   Aujourd'hui un travaux est **instantané** : clic → équipement posé dans la
   seconde. Irréaliste et surtout ça **annule le levier délai** du §1 (le coût
   d'accès n'est pas que le prix). Un vrai travaux est une **chaîne de phases**,
@@ -256,6 +279,37 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
   en cours. Voir `RenovationQuoter`/`RenovationHandler` (« travaux instantanés en
   Phase 0-1 ») et l'entrée **délai éco-PTZ** ci-dessus (à unifier : les deux
   délais se composent — obtention du prêt PUIS chantier).
+
+- **Taux d'endettement + crédit immo explicite (le vrai frein réaliste au « PTZ
+  gratuit »)** (déclencheur : **juste après la phase délais**, 1ᵉʳ volet « poids
+  financier » si les délais ne suffisent pas à tuer la sensation de rénover sans
+  douleur — réflexion joueur, juillet 2026). Constat mesuré : l'horizon 1 an ≪
+  terme éco-PTZ 20 ans + 0 % rend le prêt quasi-gratuit *dans la fenêtre scorée*
+  (on ne paie que ~12 mensualités sur 240). Le vrai frein réaliste n'est PAS le
+  plafond 50 k€ : c'est la **solvabilité** (taux d'effort ≤ **35 %**, règle HCSF
+  contraignante depuis 2021, assurance incluse ; 15,3 % des prêts seulement
+  au-delà, marge de flexibilité). L'éco-PTZ **compte** dans ce taux (le 0 %
+  n'exempte pas — c'est la mensualité qui pèse) → un foyer déjà au plafond ne
+  peut PAS empiler les PTZ à volonté. **Prérequis** : sortir le **crédit
+  immobilier** du forfait « dépenses courantes » (`FinanceCalibration::
+  monthlyLivingExpenses`, où il est aujourd'hui fondu) et le modéliser comme
+  charge explicite. **Calibration sourcée** : taux d'effort moyen à l'octroi
+  **≈ 30 %** (ACPR *Le financement de l'habitat en 2024* : ~30,7 % début 2024 ;
+  primo-accédants plutôt au-dessus), fourchette 30-33 %. Sur le revenu du
+  scénario (2 800 €/mois) : mensualité immo ≈ **840 €/mois**, mur 35 % = 980 €
+  → **~140 €/mois** de capacité PTZ → **~34 k€ de PTZ effectif max** (≈ 20 k€ si
+  32 %). **Effet de jeu** : le taux d'endettement plafonne le PTZ **bien avant**
+  50 k€ et donne du poids à chaque euro de dette — plus réaliste que le cap plat,
+  et c'est un levier de **coût d'accès** (§1 : la banque ne prête pas si
+  sur-endetté, pas un verrou artificiel). **Gate de solvabilité** : refuser (ou
+  avertir) un PTZ qui pousserait au-delà de 35 %. **UI demandée (joueur)** :
+  (1) à côté du bouton de déclenchement du prêt, montrer l'**évolution du taux
+  d'endettement s'il prend le prêt** (avant → après) ; (2) dans le panneau
+  Finances, afficher le **taux d'endettement avec code couleur** (rouge = très
+  endetté). Garder le cap 50 k€ plat en parallèle (simplification actée ; une
+  infobulle pourra expliquer le tiéré réel 15/25/30/50 k plus tard). Sources à
+  citer au moment du codage : ACPR *Financement de l'habitat*, HCSF (règle 35 %),
+  service-public.fr/ANIL (éco-PTZ).
 
 Le **cycle de vie des équipements** (usure, entretien, panne, dégradation
 batterie) est un système à part entière, décrit dans sa section dédiée plus bas.

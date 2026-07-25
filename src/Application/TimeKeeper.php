@@ -71,6 +71,6 @@ final readonly class TimeKeeper
             }
         }
 
-        return new Game($game->config, $state, $progression);
+        return new Game($game->config, $state, $progression, $game->acknowledgedEvents);
     }
 }

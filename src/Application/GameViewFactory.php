@@ -22,6 +22,8 @@ use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
 use App\Domain\Finance\PropertyValuator;
 use App\Domain\Finance\RenovationCatalog;
+use App\Domain\Finance\RenovationConflicts;
+use App\Domain\Finance\RenovationDefinition;
 use App\Domain\Finance\RenovationQuoter;
 use App\Domain\Finance\SceneSlot;
 use App\Domain\Math\SeasonalCycle;
@@ -37,7 +39,10 @@ use App\Domain\Time\GameDate;
 use App\Domain\Weather\Weather;
 use App\Domain\Weather\WeatherGenerator;
 
+use function array_filter;
+use function array_keys;
 use function array_map;
+use function array_values;
 use function ceil;
 use function count;
 use function implode;
@@ -77,6 +82,7 @@ final readonly class GameViewFactory
         private DpeCertifier $dpeCertifier = new DpeCertifier(),
         private CarbonAccountant $carbon = new CarbonAccountant(),
         private RenovationCatalog $catalog = new RenovationCatalog(),
+        private RenovationConflicts $conflicts = new RenovationConflicts(),
     ) {
     }
 
@@ -133,7 +139,7 @@ final readonly class GameViewFactory
             cloudPct: (int) round($snapshot->weather->cloudCover * 100),
             temperatureC: $snapshot->weather->temperatureC,
             weatherSparkline: $this->weatherSparkline($config, $state),
-            scene: $this->houseScene($snapshot, $household, $this->snowAccumulationPct($config, $state)),
+            scene: $this->houseScene($snapshot, $household, $this->snowAccumulationPct($config, $state), $this->chantierZones($state)),
             productionKwh: $balance->productionKwh,
             demandKwh: $balance->demandKwh,
             selfSufficiencyPct: (int) round($balance->selfSufficiencyRatio() * 100),
@@ -162,6 +168,8 @@ final readonly class GameViewFactory
             loanActive: $state->loan->isActive(),
             loanMonthlyPaymentLabel: $state->loan->monthlyPayment->format(),
             loanRemainingLabel: $state->loan->remaining->format(),
+            loanBorrowedLabel: $state->loan->borrowedTotal->format(),
+            loanCapLabel: Money::fromEuros($this->finance->loanCap()->value)->format(),
             loanTermYears: intdiv(Loan::TERM_MONTHS, 12),
             loanRemainingYears: (int) ceil($state->loan->remainingMonths() / 12),
             heatingLabel: $household->heatingSystem->label(),
@@ -384,7 +392,42 @@ final readonly class GameViewFactory
      * Translates the simulation facts into the semantic scene model — states
      * and buckets only, never geometry (game-design §17).
      */
-    private function houseScene(DailySnapshot $snapshot, Household $household, int $snowDepthPct): HouseSceneView
+    /**
+     * The scene zones touched by a chantier, keyed by VISUAL zone → phase:
+     * 'planned' while the artisan is still awaited (a discreet "coming here"
+     * cue during the lead), 'active' once on site (the pose window). 'active'
+     * wins over 'planned' if two chantiers share a zone.
+     *
+     * @return array<string, string>
+     */
+    private function chantierZones(GameState $state): array
+    {
+        $zones = [];
+        foreach ($state->scheduledWorks as $chantier) {
+            $zone = $this->chantierZone($this->catalog->get($chantier->workSlug));
+            $phase = $state->currentDay >= $chantier->chantierStartDay ? 'active' : 'planned';
+            if ('active' === $phase || !isset($zones[$zone])) {
+                $zones[$zone] = $phase;
+            }
+        }
+
+        return $zones;
+    }
+
+    /**
+     * The scene zone a work's chantier marker sits on — its VISUAL location, not
+     * the drawer it is ordered from. Only roof insulation differs: it lives in
+     * the envelope (walls) drawer but shows on the roof.
+     */
+    private function chantierZone(RenovationDefinition $work): string
+    {
+        return 'roof_insulation' === $work->slug() ? 'roof' : $work->slot()->value;
+    }
+
+    /**
+     * @param array<string, string> $chantierZones
+     */
+    private function houseScene(DailySnapshot $snapshot, Household $household, int $snowDepthPct, array $chantierZones): HouseSceneView
     {
         $envelopeLayers = [];
         foreach ($this->catalog->all() as $work) {
@@ -435,6 +478,7 @@ final readonly class GameViewFactory
                 default => 'warm',
             },
             envelopeLayers: $envelopeLayers,
+            chantierZones: $chantierZones,
         );
     }
 
@@ -568,11 +612,28 @@ final readonly class GameViewFactory
     private function actionsFor(GameState $state, AnnualOutcome $before): array
     {
         $loanCap = Money::fromEuros($this->finance->loanCap()->value);
+        $completionBySlug = [];
+        foreach ($state->scheduledWorks as $chantier) {
+            $completionBySlug[$chantier->workSlug] = $chantier->completionDay;
+        }
         $actions = [];
+
+        $inProgressWorks = array_values(array_filter(array_map(
+            fn (string $slug): ?RenovationDefinition => $this->catalog->tryGet($slug),
+            array_keys($completionBySlug),
+        )));
 
         foreach ($this->catalog->all() as $work) {
             $quote = $this->quoter->quote($work, $state->household);
             if (null === $quote) {
+                continue;
+            }
+
+            $inProgress = isset($completionBySlug[$work->slug()]);
+
+            // A work conflicting with an in-progress chantier (a second heating
+            // generator) is not offerable while that chantier is being built.
+            if (!$inProgress && $this->conflicts->conflictsWithInProgress($work, $inProgressWorks)) {
                 continue;
             }
 
@@ -596,10 +657,47 @@ final readonly class GameViewFactory
                 adviceLevel: $advice->level->value,
                 adviceMessage: $advice->message,
                 iconAsset: $work->iconAsset(),
+                delayLabel: $this->chantierDelayLabel($work),
+                inProgress: $inProgress,
+                progressLabel: $inProgress ? $this->progressLabel($completionBySlug[$work->slug()] - $state->currentDay) : '',
             );
         }
 
         return $actions;
+    }
+
+    /**
+     * How long this work's chantier takes once ordered (lead + pose), with the
+     * éco-PTZ funds delay called out for loan-eligible works — the « délai »
+     * shown before the player commits.
+     */
+    private function chantierDelayLabel(RenovationDefinition $work): string
+    {
+        $delay = $work->delay();
+        $label = sprintf('Posé ~%s après la commande', $this->humanDelay($delay->totalDays()));
+
+        if ($work->qualifiesForEnergyAid()) {
+            $label .= sprintf(' (+ ~%s si éco-PTZ)', $this->humanDelay(max(0, (int) $this->finance->ecoPtzFundsReleaseDays()->value)));
+        }
+
+        return $label;
+    }
+
+    /** Days below a fortnight read as days; beyond, as rounded weeks. */
+    private function humanDelay(int $days): string
+    {
+        return $days < 14
+            ? sprintf('%d j', $days)
+            : sprintf('%d sem.', (int) round($days / 7));
+    }
+
+    private function progressLabel(int $daysLeft): string
+    {
+        $daysLeft = max(0, $daysLeft);
+
+        return 0 === $daysLeft
+            ? 'Chantier en cours · posé aujourd\'hui'
+            : sprintf('Chantier en cours · posé dans %d j', $daysLeft);
     }
 
     /**

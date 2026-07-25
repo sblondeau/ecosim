@@ -18,11 +18,13 @@ use App\Domain\Scenario\Scenario;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\PeriodTotals;
+use App\Domain\Simulation\ScheduledWork;
 use App\Domain\Time\TickSpeed;
 use App\Domain\Time\TimeProgression;
 use DateTimeImmutable;
 
 use function is_array;
+use function is_string;
 
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -44,7 +46,7 @@ final readonly class SessionGameStore implements GameStore
      * format is thrown away and the game restarts, instead of being silently
      * rebuilt into a valid-looking but absurd state by the hydrate fallbacks.
      */
-    private const int FORMAT_VERSION = 14;
+    private const int FORMAT_VERSION = 16;
 
     public function __construct(
         private RequestStack $requestStack,
@@ -149,6 +151,7 @@ final readonly class SessionGameStore implements GameStore
                 pelletKg: (float) ($data['totalPellet'] ?? 0.0),
                 pelletCost: Money::fromCents((int) ($data['pelletCostCents'] ?? 0)),
             ),
+            $this->hydrateScheduledWorks($data['scheduledWorks'] ?? []),
         );
 
         $lastTickAt = new DateTimeImmutable('@'.(int) ($data['lastTickAt'] ?? 0));
@@ -157,7 +160,51 @@ final readonly class SessionGameStore implements GameStore
             TickSpeed::tryFrom((int) ($data['speed'] ?? TickSpeed::Normal->value)) ?? TickSpeed::Normal,
         );
 
-        return new Game($config, $state, $progression);
+        return new Game($config, $state, $progression, $this->hydrateAcknowledgedEvents($data['acknowledgedEvents'] ?? []));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function hydrateAcknowledgedEvents(mixed $raw): array
+    {
+        if (!is_array($raw)) {
+            return [];
+        }
+
+        $ids = [];
+        foreach ($raw as $id) {
+            if (is_string($id)) {
+                $ids[] = $id;
+            }
+        }
+
+        return $ids;
+    }
+
+    /**
+     * @return list<ScheduledWork>
+     */
+    private function hydrateScheduledWorks(mixed $raw): array
+    {
+        if (!is_array($raw)) {
+            return [];
+        }
+
+        $works = [];
+        foreach ($raw as $entry) {
+            if (!is_array($entry) || !isset($entry['slug'])) {
+                continue;
+            }
+
+            $works[] = new ScheduledWork(
+                (string) $entry['slug'],
+                max(0, (int) ($entry['start'] ?? 0)),
+                max(0, (int) ($entry['done'] ?? 0)),
+            );
+        }
+
+        return $works;
     }
 
     /**
@@ -203,6 +250,15 @@ final readonly class SessionGameStore implements GameStore
             'daysLived' => $game->state->totals->days,
             'totalPellet' => $game->state->totals->pelletKg,
             'pelletCostCents' => $game->state->totals->pelletCost->cents,
+            'scheduledWorks' => array_map(
+                static fn (ScheduledWork $chantier): array => [
+                    'slug' => $chantier->workSlug,
+                    'start' => $chantier->chantierStartDay,
+                    'done' => $chantier->completionDay,
+                ],
+                $game->state->scheduledWorks,
+            ),
+            'acknowledgedEvents' => $game->acknowledgedEvents,
         ];
     }
 }

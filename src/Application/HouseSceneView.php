@@ -65,6 +65,17 @@ final readonly class HouseSceneView
          * @var list<string>
          */
         public array $envelopeLayers,
+        /**
+         * Scene zones with a chantier attached to them (§ délais), keyed by the
+         * zone's VISUAL slot (roof insulation shows on the roof, not the walls
+         * drawer it is ordered from). The value is the phase: 'planned' during
+         * the lead (a chantier is coming — a discreet cue, also explaining why
+         * some tree choices are blocked) or 'active' during the pose window (the
+         * artisan is on site). 'active' wins when both fall on one zone.
+         *
+         * @var array<string, string>
+         */
+        public array $chantierZones = [],
     ) {
     }
 }

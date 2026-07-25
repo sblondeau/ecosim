@@ -403,6 +403,26 @@ final class FinanceCalibration
         );
     }
 
+    /**
+     * Éco-PTZ funds-release delay, in game-days: devis RGE → dossier banque →
+     * délai de rétractation → déblocage. Cross-cutting (not per-work), so it
+     * lives here rather than on a work — it stacks BEFORE any chantier's lead
+     * when financed by the loan, which is what makes the éco-PTZ unusable for an
+     * emergency (§ délais, la panne). Honestly an assumed order of magnitude
+     * (§13), not a maquillé-en-chiffre-sourcé.
+     */
+    public function ecoPtzFundsReleaseDays(): Coefficient
+    {
+        return new Coefficient(
+            value: 42.0,
+            unit: 'jours',
+            min: 21.0,
+            max: 60.0,
+            source: 'Ordre de grandeur assumé (§13) : devis RGE → dossier banque → rétractation → déblocage des fonds, ~4-8 semaines',
+            reviewedOn: '2025-01-01',
+        );
+    }
+
     /** Annual income ceiling of the "très modeste" prime bracket (couple, hors IdF). */
     public function veryModestIncomeCeiling(): Coefficient
     {

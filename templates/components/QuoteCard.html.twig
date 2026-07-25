@@ -5,8 +5,8 @@
    existe (solaire/PAC/chaudière/batterie), sinon un petit swatch dédié
    (isolation…). Ajouter un travail ne touche plus ce template. #}
 {% props action %}
-<div class="card quote">
-    <p class="quote-eyebrow">Travaux disponibles</p>
+<div class="card quote{{ action.inProgress ? ' quote--in-progress' }}">
+    <p class="quote-eyebrow">{{ action.inProgress ? 'Chantier en cours' : 'Travaux disponibles' }}</p>
     <div class="quote-head">
         <div class="quote-icon">{{ include(action.iconAsset) }}</div>
         <h2>{{ action.title }}</h2>
@@ -31,10 +31,17 @@
             {{ action.adviceMessage }}
         </p>
     {% endif %}
-    <div class="quote-actions">
-        <twig:Button label="Payer comptant" action="order" :params="{work: action.work, financing: 'cash'}" class="btn-primary btn-small" :disabled="not action.cashAllowed" />
-        {% if action.loanAllowed %}
-            <twig:Button label="Éco-PTZ · {{ action.loanMonthlyLabel }}/mois · 20 ans" action="order" :params="{work: action.work, financing: 'loan'}" />
+    {% if action.inProgress %}
+        <p class="quote-progress">⏳ {{ action.progressLabel }}</p>
+    {% else %}
+        {% if action.delayLabel is not empty %}
+            <p class="quote-delay">🗓️ {{ action.delayLabel }}</p>
         {% endif %}
-    </div>
+        <div class="quote-actions">
+            <twig:Button label="Payer comptant" action="order" :params="{work: action.work, financing: 'cash'}" class="btn-primary btn-small" :disabled="not action.cashAllowed" />
+            {% if action.loanAllowed %}
+                <twig:Button label="Éco-PTZ · {{ action.loanMonthlyLabel }}/mois · 20 ans" action="order" :params="{work: action.work, financing: 'loan'}" />
+            {% endif %}
+        </div>
+    {% endif %}
 </div>

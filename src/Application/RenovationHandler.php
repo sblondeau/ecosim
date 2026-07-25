@@ -7,9 +7,16 @@ namespace App\Application;
 use App\Domain\Finance\FinanceCalibration;
 use App\Domain\Finance\Money;
 use App\Domain\Finance\RenovationCatalog;
+use App\Domain\Finance\RenovationConflicts;
+use App\Domain\Finance\RenovationDefinition;
 use App\Domain\Finance\RenovationQuoter;
 use App\Domain\Simulation\GameState;
+use App\Domain\Simulation\ScheduledWork;
 
+use function array_filter;
+use function array_map;
+use function array_values;
+use function in_array;
 use function sprintf;
 
 /**
@@ -30,6 +37,7 @@ final readonly class RenovationHandler
         private RenovationQuoter $quoter = new RenovationQuoter(),
         private FinanceCalibration $finance = new FinanceCalibration(),
         private RenovationCatalog $catalog = new RenovationCatalog(),
+        private RenovationConflicts $conflicts = new RenovationConflicts(),
     ) {
     }
 
@@ -48,7 +56,16 @@ final readonly class RenovationHandler
             return 'Ces travaux ne sont pas (ou plus) disponibles.';
         }
 
+        $inProgressSlugs = array_map(static fn (ScheduledWork $pending): string => $pending->workSlug, $state->scheduledWorks);
+        if (in_array($workSlug, $inProgressSlugs, true)) {
+            return 'Ce chantier est déjà en cours.';
+        }
+        if ($this->conflicts->conflictsWithInProgress($work, $this->inProgressWorks($state))) {
+            return 'Un chantier de chauffage est déjà en cours — attendez sa pose avant d\'en commander un autre.';
+        }
+
         $net = $quote->netCost();
+        $chantier = $this->schedule($state, $work, $financing);
 
         if (self::FINANCING_LOAN === $financing) {
             if (!$work->qualifiesForEnergyAid()) {
@@ -60,13 +77,43 @@ final readonly class RenovationHandler
                 return sprintf('Plafond de l\'éco-PTZ dépassé (%s au total).', $cap->format());
             }
 
-            return $state->renovated($quote->resultingHousehold, $state->savings, $state->loan->borrow($net));
+            return $state->scheduling($state->savings, $state->loan->borrow($net), $chantier);
         }
 
         if ($state->savings->cents < $net->cents) {
             return sprintf('Épargne insuffisante pour payer comptant (%s nécessaires).', $net->format());
         }
 
-        return $state->renovated($quote->resultingHousehold, $state->savings->minus($net), $state->loan);
+        return $state->scheduling($state->savings->minus($net), $state->loan, $chantier);
+    }
+
+    /**
+     * The chantier window for a work ordered on the current day: the artisan
+     * arrives after the lead time, the work is done after the pose. When
+     * financed by the éco-PTZ, the funds-release delay stacks BEFORE the lead —
+     * so the loan is not mobilisable for an emergency (§ délais, la panne).
+     */
+    private function schedule(GameState $state, RenovationDefinition $work, string $financing): ScheduledWork
+    {
+        $delay = $work->delay();
+        $funds = self::FINANCING_LOAN === $financing ? (int) $this->finance->ecoPtzFundsReleaseDays()->value : 0;
+        $start = $state->currentDay + max(0, $funds) + $delay->leadDays;
+
+        return new ScheduledWork($work->slug(), $start, $start + $delay->buildDays);
+    }
+
+    /**
+     * The catalogue works currently under construction — resolved from the
+     * scheduled slugs so their {@see RenovationDefinition::exclusivityGroup()}
+     * can be compared. Unknown slugs (never expected) are simply dropped.
+     *
+     * @return list<RenovationDefinition>
+     */
+    private function inProgressWorks(GameState $state): array
+    {
+        return array_values(array_filter(array_map(
+            fn (ScheduledWork $pending): ?RenovationDefinition => $this->catalog->tryGet($pending->workSlug),
+            $state->scheduledWorks,
+        )));
     }
 }

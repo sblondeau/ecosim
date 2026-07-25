@@ -1,0 +1,8 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    # Tests seed game state directly (no HTTP session outside a request):
+    # swap the session-backed store for the process-memory one.
+    App\Application\GameStore: '@App\Application\InMemoryGameStore'
