@@ -509,6 +509,17 @@ final class GameDashboardTest extends KernelTestCase
         self::assertStringContainsString('en cours</tspan>', $html, 'The barricade is captioned for the pose phase.');
     }
 
+    public function testAPosedChantierLeavesNoMarkerBehindOnItsZone(): void
+    {
+        // Lands on the very next day; once posed it must be removed, marker and all.
+        $this->seedChantier(currentDay: 5, slug: 'roof_insulation', start: 5, completion: 6);
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        $html = (string) $component->call('step')->render(); // day 5 -> 6: the chantier is posed
+
+        self::assertStringNotContainsString('chantier-marker', $html, 'Once posed, the chantier is gone — no marker lingers on the zone.');
+    }
+
     /** Seeds the store with a single scheduled chantier and the current day. */
     private function seedChantier(int $currentDay, string $slug, int $start, int $completion): void
     {

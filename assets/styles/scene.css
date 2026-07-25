@@ -48,45 +48,21 @@
 .slot:hover .hit, .slot:focus-visible .hit { stroke: var(--accent); stroke-dasharray: 7 5; }
 .slot.is-selected .hit { stroke: var(--accent); stroke-dasharray: none; }
 
-/* A chantier attached to a zone (§ délais), two phases:
-   - planned (during the lead): a discreet "a chantier is coming here" cue —
-     also why some tree choices are blocked — faint dashed, no motion;
-   - active (the pose window): a marching-ants warn outline + fill, "ça bosse". */
-.slot--chantier-planned .hit {
-    fill: color-mix(in srgb, var(--warn) 6%, transparent);
-    stroke: color-mix(in srgb, var(--warn) 55%, transparent);
-    stroke-width: 2;
-    stroke-dasharray: 3 7;
-}
-.slot--chantier-active .hit {
-    fill: color-mix(in srgb, var(--warn) 16%, transparent);
-    stroke: var(--warn);
-    stroke-dasharray: 7 5;
-    animation: sc-chantier 1.4s linear infinite;
-}
-.slot--chantier-planned:hover .hit, .slot--chantier-planned:focus-visible .hit,
-.slot--chantier-active:hover .hit, .slot--chantier-active:focus-visible .hit { stroke: var(--warn); }
-@keyframes sc-chantier { to { stroke-dashoffset: -24; } }
-
-/* The "travaux" barricade planted on the zone (<twig:scene:Chantier>): a low
-   striped board on two legs. It never eats clicks — the zone underneath stays
-   selectable. Both phases are fully opaque; planned is static, active adds a
-   flashing beacon + a slight bob (the artisan is on site). */
+/* A chantier is shown by its barricade (<twig:scene:Chantier>) alone — the old
+   dashed zone outline was redundant with it (and lingered after completion), so
+   it is gone. The barricade never eats clicks (the zone stays selectable) and
+   stays planted (no bob — a moving sign reads as floating). planned is fully
+   static; active adds a flashing amber beacon + amber caption (the artisan is on
+   site). Both phases are fully opaque. */
 .chantier-marker { pointer-events: none; }
 .chantier-marker .cm-legs { stroke: #3a4450; stroke-width: 4; stroke-linecap: round; fill: none; }
 .chantier-marker .cm-board { fill: url(#scWipStripes); stroke: #14181d; stroke-width: 2; }
 .chantier-marker .cm-plate { fill: #131a22; }
 .chantier-marker .cm-beacon { fill: var(--warn); opacity: 0; }
 /* Caption on the sign's dark centre plate — no halo needed, the plate backs it. */
-.chantier-marker .cm-label { font-size: 9px; font-weight: 700; fill: #eef3f8; }
+.chantier-marker .cm-label { font-size: 7px; font-weight: 700; fill: #eef3f8; }
 .chantier-marker--active .cm-label { fill: var(--warn); }
-.chantier-marker--active {
-    transform-box: fill-box;
-    transform-origin: bottom center;
-    animation: sc-chantier-bob 2s ease-in-out infinite;
-}
 .chantier-marker--active .cm-beacon { animation: sc-chantier-flash 1s steps(1, end) infinite; }
-@keyframes sc-chantier-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2.5px); } }
 @keyframes sc-chantier-flash { 0%, 49% { opacity: 1; } 50%, 100% { opacity: .12; } }
 
 /* --- ciel par saison (les stops du dégradé sont stylés en CSS) --- */
