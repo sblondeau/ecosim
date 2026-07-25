@@ -25,6 +25,14 @@
         <radialGradient id="scSun" cx=".5" cy=".5" r=".5">
             <stop offset="0" stop-color="#fdf3d0" stop-opacity=".9"/><stop offset="1" stop-color="#fdf3d0" stop-opacity="0"/>
         </radialGradient>
+        {# Diagonal black/amber hazard stripes for the "travaux" barricade
+           (<twig:scene:Chantier>). Defined once here, referenced by every
+           marker via fill="url(#scWipStripes)" — a pattern id must be unique in
+           the document, so it cannot live inside the (repeatable) component. #}
+        <pattern id="scWipStripes" width="13" height="13" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+            <rect width="13" height="13" fill="#f4c020"/>
+            <rect width="6.5" height="13" fill="#1c1c1c"/>
+        </pattern>
     </defs>
 
     {# ciel, soleil (derrière collines/nuages/toit — occulté par eux comme un
