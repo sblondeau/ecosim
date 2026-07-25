@@ -484,6 +484,29 @@ final class GameDashboardTest extends KernelTestCase
         self::assertStringContainsString('terminé', $component->component()->notice->text);
     }
 
+    public function testAPlannedChantierPlantsAGhostedWorksSignOnItsZone(): void
+    {
+        // Ordered, but the artisan has not arrived yet — still in the lead window.
+        $this->seedChantier(currentDay: 4, slug: 'roof_insulation', start: 20, completion: 40);
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        $html = (string) $component->render();
+
+        self::assertStringContainsString('chantier-marker--planned', $html, 'During the lead, the zone plants a ghosted "travaux" sign.');
+        self::assertStringNotContainsString('chantier-marker--active', $html, 'It is not the active state yet — the artisan is still awaited.');
+    }
+
+    public function testAnActiveChantierShowsASolidWorksSignOnItsZone(): void
+    {
+        // The pose window: the artisan is on site.
+        $this->seedChantier(currentDay: 25, slug: 'roof_insulation', start: 20, completion: 40);
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        $html = (string) $component->render();
+
+        self::assertStringContainsString('chantier-marker--active', $html, 'During the pose, the zone shows the solid "travaux" sign.');
+    }
+
     /** Seeds the store with a single scheduled chantier and the current day. */
     private function seedChantier(int $currentDay, string $slug, int $start, int $completion): void
     {

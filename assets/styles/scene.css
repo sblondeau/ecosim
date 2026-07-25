@@ -68,6 +68,22 @@
 .slot--chantier-active:hover .hit, .slot--chantier-active:focus-visible .hit { stroke: var(--warn); }
 @keyframes sc-chantier { to { stroke-dashoffset: -24; } }
 
+/* The "travaux" sign planted on the zone (<twig:scene:Chantier>). It never
+   eats clicks — the zone underneath stays selectable. planned = ghosted during
+   the lead; active = solid amber + a slight bob during the pose. */
+.chantier-marker { pointer-events: none; }
+.chantier-marker .cm-post { stroke: #6b7480; stroke-width: 3; stroke-linecap: round; }
+.chantier-marker .cm-sign { fill: var(--warn); stroke: #7a5a12; stroke-width: 2; }
+.chantier-marker .cm-glyph { fill: #3a2c08; }
+.chantier-marker--planned { opacity: .5; }
+.chantier-marker--planned .cm-sign { fill: color-mix(in srgb, var(--warn) 60%, #9aa4b0); }
+.chantier-marker--active {
+    transform-box: fill-box;
+    transform-origin: bottom center;
+    animation: sc-chantier-bob 1.9s ease-in-out infinite;
+}
+@keyframes sc-chantier-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2.5px); } }
+
 /* --- ciel par saison (les stops du dégradé sont stylés en CSS) --- */
 .scene .sky-top { stop-color: #3d5a7a; }
 .scene .sky-bottom { stop-color: #c8d3dc; }

@@ -1,0 +1,17 @@
+{# A "travaux" sign planted on a zone under works (§ délais). `phase` picks the
+   local variant class (CVA-manuel, cf. CLAUDE.md §7): planned = ghosted during
+   the lead (a chantier is coming here — also why some tree choices are blocked),
+   active = solid amber during the pose (the artisan is on site). Origin = foot
+   of the post; the sign stands above it. Colours/opacity/motion live in
+   scene.css so the two phases stay data-driven. Non-clickable (pointer-events
+   none in CSS) so the zone underneath stays selectable. #}
+{% props phase = 'planned' %}
+<g class="chantier-marker chantier-marker--{{ phase }}"{{ attributes }}>
+    <line class="cm-post" x1="0" y1="0" x2="0" y2="-28"/>
+    <rect class="cm-sign" x="-19" y="-64" width="38" height="38" rx="6"/>
+    {# shovel pictogram, centred in the panel #}
+    <g class="cm-glyph" transform="translate(0 -45) rotate(18)">
+        <rect x="-1.6" y="-13" width="3.2" height="15" rx="1.3"/>
+        <path d="M-5.5 1 h11 l-2.2 7.5 q-3.3 2 -6.6 0 Z"/>
+    </g>
+</g>
