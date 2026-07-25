@@ -12,18 +12,21 @@ use App\Application\RenovationHandler;
 use App\Application\ScenarioEventView;
 use App\Application\TimeKeeper;
 use App\Domain\Building\BuildingCalibration;
+use App\Domain\Finance\RenovationCatalog;
 use App\Domain\Finance\SceneSlot;
 use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\ScheduledWork;
 use App\Domain\Time\TickSpeed;
 
 use function array_diff;
+use function array_filter;
 use function array_map;
 use function array_values;
 use function count;
 
 use DateTimeImmutable;
 
+use function implode;
 use function in_array;
 use function max;
 use function min;
@@ -77,6 +80,7 @@ final class GameDashboard
         private readonly TimeKeeper $timeKeeper,
         private readonly GameViewFactory $viewFactory,
         private readonly RenovationHandler $renovations,
+        private readonly RenovationCatalog $catalog = new RenovationCatalog(),
         private readonly BuildingCalibration $building = new BuildingCalibration(),
     ) {
     }
@@ -300,8 +304,16 @@ final class GameDashboard
 
         $posed = array_values(array_diff($beforeSlugs, $afterSlugs));
         if ([] !== $posed) {
+            // Name the posed works: the "before" household hasn't received them
+            // yet, so each still has an offer whose title reads well ("Isolation
+            // des combles"). A ": name" phrasing sidesteps gender agreement.
+            $names = array_values(array_filter(array_map(
+                fn (string $slug): ?string => $this->catalog->tryGet($slug)?->offerFor($before->state->household)?->title,
+                $posed,
+            )));
+            $label = [] !== $names ? implode(', ', $names) : 'travaux';
             $this->notice = Notice::success(
-                1 === count($posed) ? 'Chantier terminé — travaux posés !' : sprintf('%d chantiers terminés !', count($posed)),
+                1 === count($posed) ? sprintf('Chantier terminé : %s.', $label) : sprintf('Chantiers terminés : %s.', $label),
             );
 
             return;

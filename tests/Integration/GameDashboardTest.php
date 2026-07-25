@@ -482,6 +482,7 @@ final class GameDashboardTest extends KernelTestCase
 
         self::assertSame(NoticeSeverity::Success, $component->component()->notice->severity);
         self::assertStringContainsString('terminé', $component->component()->notice->text);
+        self::assertStringContainsString('Isolation des combles', $component->component()->notice->text, 'The completion notice names the work that was posed.');
     }
 
     public function testAPlannedChantierPlantsAGhostedWorksSignOnItsZone(): void
