@@ -58,12 +58,14 @@
 .chantier-marker .cm-legs { stroke: #3a4450; stroke-width: 4; stroke-linecap: round; fill: none; }
 .chantier-marker .cm-board { fill: url(#scWipStripes); stroke: #14181d; stroke-width: 2; }
 .chantier-marker .cm-plate { fill: #131a22; }
-.chantier-marker .cm-beacon { fill: var(--warn); opacity: 0; }
 /* Caption on the sign's dark centre plate — no halo needed, the plate backs it. */
 .chantier-marker .cm-label { font-size: 7px; font-weight: 700; fill: #eef3f8; }
-.chantier-marker--active .cm-label { fill: var(--warn); }
-.chantier-marker--active .cm-beacon { animation: sc-chantier-flash 1s steps(1, end) infinite; }
-@keyframes sc-chantier-flash { 0%, 49% { opacity: 1; } 50%, 100% { opacity: .12; } }
+/* Active (pose): the striped board flips to a white sign with a red dashed
+   marching-ants border and red text — reads clearly as "on site right now". */
+.chantier-marker--active .cm-board { fill: #fff; stroke: #d8322f; stroke-width: 2; stroke-dasharray: 5 3; animation: sc-chantier-dash 1s linear infinite; }
+.chantier-marker--active .cm-plate { fill: #fff; }
+.chantier-marker--active .cm-label { fill: #d8322f; }
+@keyframes sc-chantier-dash { to { stroke-dashoffset: -16; } }
 
 /* --- ciel par saison (les stops du dégradé sont stylés en CSS) --- */
 .scene .sky-top { stop-color: #3d5a7a; }
