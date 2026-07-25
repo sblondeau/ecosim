@@ -492,7 +492,8 @@ final class GameDashboardTest extends KernelTestCase
 
         $html = (string) $component->render();
 
-        self::assertStringContainsString('chantier-marker--planned', $html, 'During the lead, the zone plants a ghosted "travaux" sign.');
+        self::assertStringContainsString('chantier-marker--planned', $html, 'During the lead, the zone plants the "travaux" barricade.');
+        self::assertStringContainsString('Travaux à venir', $html, 'The barricade is captioned for the lead phase.');
         self::assertStringNotContainsString('chantier-marker--active', $html, 'It is not the active state yet — the artisan is still awaited.');
     }
 
@@ -504,7 +505,8 @@ final class GameDashboardTest extends KernelTestCase
 
         $html = (string) $component->render();
 
-        self::assertStringContainsString('chantier-marker--active', $html, 'During the pose, the zone shows the solid "travaux" sign.');
+        self::assertStringContainsString('chantier-marker--active', $html, 'During the pose, the zone shows the active "travaux" barricade.');
+        self::assertStringContainsString('Travaux en cours', $html, 'The barricade is captioned for the pose phase.');
     }
 
     /** Seeds the store with a single scheduled chantier and the current day. */
