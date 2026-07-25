@@ -119,7 +119,7 @@
                 <twig:scene:SolarPanels transform="translate(110 103) skewX(-24) scale(.72)" />
             {% endif %}
             {% if scene.chantierZones.roof is defined %}
-                <twig:scene:Chantier phase="{{ scene.chantierZones.roof }}" transform="translate(300 34)" />
+                <twig:scene:Chantier phase="{{ scene.chantierZones.roof }}" transform="translate(282 140)" />
             {% endif %}
             <polygon class="hit" points="2,142 282,18 562,142"/>
         </g>
@@ -159,7 +159,7 @@
                 <text x="23" y="40" text-anchor="middle" font-size="5" fill="#4f9e7a" letter-spacing=".5">CONSIGNE</text>
             </g>
             {% if scene.chantierZones.living is defined %}
-                <twig:scene:Chantier phase="{{ scene.chantierZones.living }}" transform="translate(95 360)" />
+                <twig:scene:Chantier phase="{{ scene.chantierZones.living }}" transform="translate(95 370)" />
             {% endif %}
             <rect class="hit" x="50" y="156" width="298" height="212"/>
         </g>
@@ -182,7 +182,7 @@
                 <twig:scene:WaterHeater transform="translate(470 258)" />
             {% endif %}
             {% if scene.chantierZones.heating is defined %}
-                <twig:scene:Chantier phase="{{ scene.chantierZones.heating }}" transform="translate(392 360)" />
+                <twig:scene:Chantier phase="{{ scene.chantierZones.heating }}" transform="translate(392 370)" />
             {% endif %}
             <rect class="hit" x="366" y="154" width="148" height="216"/>
         </g>
@@ -195,7 +195,7 @@
            data-action="click->live#action" data-live-action-param="selectSlot" data-live-slot-param="garage">
             <title>Garage — {{ scene.garageLabel }}</title>
             {% if scene.garageState == 'installed' %}
-                <twig:scene:Battery transform="translate(62 142)" />
+                <twig:scene:Battery transform="translate(70 164) scale(.8)" />
             {% endif %}
             {# Le kit se pose AU SOL devant le garage — jamais sur le toit
                (c'est ce qui le définit : on le branche soi-même, sans
@@ -206,7 +206,7 @@
                 <twig:scene:SolarPanels variant="kit" transform="translate(62 268) scale(.95)" />
             {% endif %}
             {% if scene.chantierZones.garage is defined %}
-                <twig:scene:Chantier phase="{{ scene.chantierZones.garage }}" transform="translate(40 150)" />
+                <twig:scene:Chantier phase="{{ scene.chantierZones.garage }}" transform="translate(150 248)" />
             {% endif %}
             <rect class="hit" x="2" y="4" width="204" height="252"/>
             {% if scene.solarState == 'kit' %}

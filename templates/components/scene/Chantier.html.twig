@@ -4,17 +4,16 @@
    cf. CLAUDE.md §7) AND the caption: both phases are fully opaque — planned
    ("Travaux / à venir", during the lead: a chantier is reserved here, also why
    some tree choices are blocked) is static; active ("Travaux / en cours", the
-   pose: the artisan is on site) gets a flashing amber beacon and a slight bob.
-   Origin = ground midpoint between the two feet; the board stands above it.
-   Colours/motion live in scene.css. Non-clickable (pointer-events none) so the
-   zone underneath stays selectable. #}
+   pose: the artisan is on site) turns into a white sign with a red dashed
+   marching-ants border and red text. Origin = ground midpoint between the two
+   feet; the board stands above it. Colours/motion live in scene.css.
+   Non-clickable (pointer-events none) so the zone underneath stays selectable. #}
 {% props phase = 'planned' %}
 {% set line2 = phase == 'active' ? 'en cours' : 'à venir' %}
 <g class="chantier-marker chantier-marker--{{ phase }}"{{ attributes }}>
     <path class="cm-legs" d="M-14 -12 L-26 0 M14 -12 L26 0"/>
     <rect class="cm-board" x="-34" y="-42" width="68" height="30" rx="3"/>
     <rect class="cm-plate" x="-30" y="-38" width="60" height="22" rx="2"/>
-    <circle class="cm-beacon" cx="0" cy="-46" r="3"/>
     <text class="cm-label" text-anchor="middle">
         <tspan x="0" y="-29">Travaux</tspan>
         <tspan x="0" y="-20">{{ line2 }}</tspan>

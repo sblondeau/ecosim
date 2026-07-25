@@ -58,12 +58,12 @@
 .chantier-marker .cm-legs { stroke: #3a4450; stroke-width: 4; stroke-linecap: round; fill: none; }
 .chantier-marker .cm-board { fill: url(#scWipStripes); stroke: #14181d; stroke-width: 2; }
 .chantier-marker .cm-plate { fill: #131a22; }
-.chantier-marker .cm-beacon { fill: var(--warn); opacity: 0; }
 /* Caption on the sign's dark centre plate — no halo needed, the plate backs it. */
 .chantier-marker .cm-label { font-size: 7px; font-weight: 700; fill: #eef3f8; }
-.chantier-marker--active .cm-label { fill: var(--warn); }
-.chantier-marker--active .cm-beacon { animation: sc-chantier-flash 1s steps(1, end) infinite; }
-@keyframes sc-chantier-flash { 0%, 49% { opacity: 1; } 50%, 100% { opacity: .12; } }
+/* Active (pose): SAME striped sign as planned, only the colours change — a
+   white centre plate and red text say "on site right now". */
+.chantier-marker--active .cm-plate { fill: #fff; }
+.chantier-marker--active .cm-label { fill: #d8322f; }
 
 /* --- ciel par saison (les stops du dégradé sont stylés en CSS) --- */
 .scene .sky-top { stop-color: #3d5a7a; }
@@ -185,10 +185,12 @@
 /* --- confort : la teinte du séjour (scène) ; l'occupant est un fichier SVG
        complet par état (scene:Occupant inclut occupant-<tier>.svg), donc plus
        aucune bascule de couches ici. --- */
-.scene .room-tint { fill: #31465c; }
-.scene.comfort-cool .room-tint { fill: #3d4a47; }
-.scene.comfort-warm .room-tint { fill: #4a3f2f; }
-.scene.comfort-hot .room-tint { fill: #5a3b30; }
+/* Living-room wall — a lighter wall than before (wallpaper reads better on it),
+   still hue-coded by felt comfort (cold→blue, cool→sage, warm→tan, hot→terracotta). */
+.scene .room-tint { fill: #647f9d; }
+.scene.comfort-cool .room-tint { fill: #6f8981; }
+.scene.comfort-warm .room-tint { fill: #97845f; }
+.scene.comfort-hot .room-tint { fill: #a5766a; }
 
 /* Position du jour : chaque jour (dayNumber % 7) pose l'occupant à un endroit
    DIFFÉRENT et non aligné gauche→droite — décalage horizontal large (unités
