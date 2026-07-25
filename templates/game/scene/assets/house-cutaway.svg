@@ -27,10 +27,10 @@
              surimpression TRANSLUCIDE sur la teinte de confort (.room-tint, qui
              reste la couleur dominante — le confort se lit toujours). -->
         <pattern id="hWallpaper" width="28" height="48" patternUnits="userSpaceOnUse">
-            <rect x="0" width="2.5" height="48" fill="#ffffff" opacity=".06"/>
-            <rect x="14" width="1" height="48" fill="#ffffff" opacity=".035"/>
-            <path d="M7 12 l3 4 l-3 4 l-3 -4 z" fill="#ffffff" opacity=".05"/>
-            <path d="M21 36 l3 4 l-3 4 l-3 -4 z" fill="#ffffff" opacity=".05"/>
+            <rect x="0" width="2.5" height="48" fill="#3b2f22" opacity=".10"/>
+            <rect x="14" width="1" height="48" fill="#3b2f22" opacity=".06"/>
+            <path d="M7 12 l3 4 l-3 4 l-3 -4 z" fill="#3b2f22" opacity=".08"/>
+            <path d="M21 36 l3 4 l-3 4 l-3 -4 z" fill="#3b2f22" opacity=".08"/>
         </pattern>
         <!-- Pierre de la chaufferie : moellons en assises décalées, joints de
              mortier sombres — un local technique en pierre apparente. -->
