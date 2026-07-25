@@ -75,18 +75,10 @@
 .chantier-marker { pointer-events: none; }
 .chantier-marker .cm-legs { stroke: #3a4450; stroke-width: 4; stroke-linecap: round; fill: none; }
 .chantier-marker .cm-board { fill: url(#scWipStripes); stroke: #14181d; stroke-width: 2; }
+.chantier-marker .cm-plate { fill: #131a22; }
 .chantier-marker .cm-beacon { fill: var(--warn); opacity: 0; }
-/* Caption under the barricade — a dark halo (paint-order stroke) keeps it
-   readable whether it sits on sky, tiles or a wall. */
-.chantier-marker .cm-label {
-    font-size: 12px;
-    font-weight: 700;
-    fill: #eef3f8;
-    paint-order: stroke;
-    stroke: #10141a;
-    stroke-width: 3.5px;
-    stroke-linejoin: round;
-}
+/* Caption on the sign's dark centre plate — no halo needed, the plate backs it. */
+.chantier-marker .cm-label { font-size: 9px; font-weight: 700; fill: #eef3f8; }
 .chantier-marker--active .cm-label { fill: var(--warn); }
 .chantier-marker--active {
     transform-box: fill-box;
