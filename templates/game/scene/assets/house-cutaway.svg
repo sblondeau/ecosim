@@ -23,6 +23,24 @@
             <path d="M0 15h34" stroke="#5f342b" stroke-width="2"/>
             <path d="M17 0v15" stroke="#5f342b" stroke-width="1.4"/>
         </pattern>
+        <!-- Papier peint du séjour : fines rayures verticales + semis losange, en
+             surimpression TRANSLUCIDE sur la teinte de confort (.room-tint, qui
+             reste la couleur dominante — le confort se lit toujours). -->
+        <pattern id="hWallpaper" width="28" height="48" patternUnits="userSpaceOnUse">
+            <rect x="0" width="2.5" height="48" fill="#ffffff" opacity=".06"/>
+            <rect x="14" width="1" height="48" fill="#ffffff" opacity=".035"/>
+            <path d="M7 12 l3 4 l-3 4 l-3 -4 z" fill="#ffffff" opacity=".05"/>
+            <path d="M21 36 l3 4 l-3 4 l-3 -4 z" fill="#ffffff" opacity=".05"/>
+        </pattern>
+        <!-- Pierre de la chaufferie : moellons en assises décalées, joints de
+             mortier sombres — un local technique en pierre apparente. -->
+        <pattern id="hStone" width="52" height="34" patternUnits="userSpaceOnUse">
+            <rect width="52" height="34" fill="#3f454d"/>
+            <path d="M0 17 H52 M26 0 V17 M13 17 V34 M39 17 V34" stroke="#2a2f35" stroke-width="1.6"/>
+            <rect x="1" y="1" width="24" height="15" fill="#454c55" opacity=".55"/>
+            <rect x="27" y="1" width="24" height="15" fill="#3b424a" opacity=".5"/>
+            <rect x="14" y="18" width="24" height="15" fill="#434a53" opacity=".5"/>
+        </pattern>
     </defs>
 
     <!-- plafond -->
@@ -72,6 +90,8 @@
 
     <!-- ===== séjour (la teinte de fond = confort ressenti) ===== -->
     <rect class="room-tint" x="46" y="152" width="306" height="220" fill="#31465c"/>
+    <!-- papier peint par-dessus la teinte (translucide → confort préservé) -->
+    <rect x="46" y="152" width="306" height="220" fill="url(#hWallpaper)"/>
     <!-- fenêtre du mur du fond -->
     <g>
         <!-- cadre (huisserie) : bois par défaut (simple vitrage, fenêtre
@@ -163,7 +183,8 @@
 
     <!-- ===== cloison + local technique (vide : le renderer pose l'équipement) ===== -->
     <rect x="352" y="152" width="12" height="220" fill="#8a7f6d"/>
-    <rect x="364" y="152" width="152" height="220" fill="#232e3a"/>
+    <!-- chaufferie en pierre apparente -->
+    <rect x="364" y="152" width="152" height="220" fill="url(#hStone)"/>
 
     <!-- ===== couches d'isolation, une par surface (révélées par les classes
          .house--* posées par scene:HouseShell). Dessinées en fin de document
