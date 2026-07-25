@@ -1,7 +1,12 @@
 # Délais de travaux — design (phase « rythme »)
 
 **Date** : 2026-07-23
-**Statut** : design validé, prêt pour le plan d'implémentation.
+**Statut** : ✅ **Implémenté (PR #15, juillet 2026).** Deux écarts assumés vs le
+design d'origine, notés en place ci-dessous (§5, §8) : les délais sont **portés
+par chaque work** via `delay(): ChantierDelay` (et non deux méthodes
+`leadDelayDays()`/`buildDelayDays()`), et l'exclusivité d'un générateur de
+chauffage passe par un **groupe d'exclusivité** (`ExclusivityGroup` +
+`RenovationConflicts`) et non par le « foyer projeté ».
 **Nature** : première extension **post-MVP / V1.x**. Le MVP (boucle §15 + arbre
 resserré + catalogue + onboarding) est complet ; cette phase ouvre le volet
 « la rénovation a un rythme ».
@@ -110,30 +115,44 @@ jours/semaines, le calendrier se remplit, l'anticipation devient la stratégie.
   travaux que sur `[chantierStartDay, completionDay]` (§3 — un lead de plusieurs
   mois ne doit pas montrer l'échafaudage dès la commande). Semé/déterministe,
   (dé)sérialisé par `SessionGameStore` (bump `FORMAT_VERSION`).
-- **`RenovationDefinition`** (l'interface catalogue) gagne **`leadDelayDays():
-  int`** et **`buildDelayDays(): int`** — chaque `Work` renvoie ses durées,
-  adossées à des `Coefficient`. Même patron que
-  `offerFor()`/`sceneLayerFor()`/`iconAsset()`.
-- **`FinanceCalibration`** gagne le `Coefficient` **`ptzFundsReleaseDelayDays`**.
+- **`RenovationDefinition`** (l'interface catalogue) gagne **`delay():
+  ChantierDelay`** — chaque `Work` renvoie sa fenêtre (le VO `ChantierDelay`
+  porte `leadDays` + `buildDays`). Même patron que
+  `offerFor()`/`sceneLayerFor()`/`iconAsset()`. *(Implémenté ainsi plutôt qu'en
+  deux méthodes `leadDelayDays()`/`buildDelayDays()` : un seul VO regroupe les
+  deux durées liées.)*
+- **`FinanceCalibration`** gagne le `Coefficient`
+  **`ecoPtzFundsReleaseDays()`** (~42 j, ordre de grandeur assumé §13).
 - **`RenovationHandler::order()`** : **programme au lieu d'appliquer**. Il
   re-cote et applique les règles de financement **comme aujourd'hui** (paie
   comptant / emprunte au PTZ *à la commande*, prime déduite au devis), mais au
   lieu de muter le foyer il **ajoute un `ScheduledWork`** avec
   `chantierStartDay = jour + (PTZ ? délai_fonds : 0) + leadDelay` et
   `completionDay = chantierStartDay + buildDelay`.
-- **Offres calculées contre le « foyer projeté »** (= foyer courant + tous les
-  `scheduledWorks` déjà appliqués) au lieu du foyer courant. Ça résout **d'un
-  coup**, sans concept d'exclusivité à maintenir :
-  - re-commander un travaux **déjà en cours** → non proposé (déjà là dans le
-    projeté) ;
-  - **conflit de même fonction** (ex. granulés alors qu'une PAC est en cours) →
-    non proposé (le projeté a déjà la PAC) — **cohérence, pas verrou §1** (un
-    seul générateur, un seul chantier sur ce slot à la fois) ;
+- **Concurrence des offres** ⚠️ *(écart assumé vs le design d'origine — le
+  « foyer projeté » décrit ici n'a **pas** été retenu ; voir l'encadré).* Deux
+  refus, deux mécanismes :
+  - re-commander un travaux **déjà en cours** → refusé par le handler (le slug
+    est déjà dans `scheduledWorks`) et l'offre est masquée dans la vue ;
+  - **conflit de même fonction** (granulés alors qu'une PAC est en cours) → géré
+    par un **groupe d'exclusivité** : `RenovationDefinition::exclusivityGroup():
+    ?ExclusivityGroup` (seuls PAC et granulés renvoient `HeatingGenerator` ; la
+    réparation reste **hors groupe** pour toujours pouvoir survivre à la panne),
+    comparé par `RenovationConflicts`. **Cohérence, pas verrou §1** : une fois un
+    générateur posé, le *switch* reste permis (coût d'accès plein) — c'est
+    seulement un second chantier concurrent qui est refusé.
   - **parallèle non-conflictuel** (murs alors que les combles sont en cours) →
-    toujours proposé (surface différente). ✅
-  Réutilise la logique catalogue existante (`offerFor`/quote contre *un* foyer) ;
-  on lui passe le projeté. Le limiteur global reste la **trésorerie** (pas de
-  verrou de nombre §1).
+    toujours proposé (groupe différent / null). ✅
+  Le limiteur global reste la **trésorerie** (pas de verrou de nombre §1).
+
+  > **Pourquoi pas le « foyer projeté ».** Le design initial voulait coter les
+  > offres contre `foyer courant + scheduledWorks appliqués`, pour bloquer les
+  > conflits « d'un coup ». Ça ne marche pas ici : `PelletBoilerWork::offerFor()`
+  > ne renvoie `null` que si la maison est *déjà* au granulés — il **autorise le
+  > switch** depuis une PAC. Donc un foyer projeté « PAC en cours » proposerait
+  > quand même les granulés. Le groupe d'exclusivité exprime la règle
+  > directement, sans dépendre du fait qu'un work interdise ou non son propre
+  > remplacement.
 - **`SimulationEngine`** : dans sa boucle jour déjà semée, tout `ScheduledWork`
   dont `completionDay <= jour` → **applique l'effet du travaux au foyer
   courant** (effet re-dérivé du catalogue, donc plusieurs chantiers se composent
@@ -211,9 +230,11 @@ foyer arrive en différé. Une seule liste (`scheduledWorks`).
   - `RenovationHandler` : une commande **programme** (n'applique pas au jour
     même) ; `chantierStartDay` = jour + lead (comptant) ; + délai_fonds (PTZ) ;
     `completionDay` = start + build ; concurrence autorisée si finançable.
-  - **Foyer projeté** : granulés **non proposé** tant qu'une PAC est en cours ;
-    murs **toujours proposé** pendant un chantier combles ; re-commande d'un
-    travaux en cours refusée.
+  - **Groupe d'exclusivité** (et non « foyer projeté », cf. §5) : granulés
+    **refusé** tant qu'une PAC est en cours (même `ExclusivityGroup`) ; murs
+    **toujours proposé** pendant un chantier combles (groupe null) ; re-commande
+    d'un travaux en cours refusée ; réparation chaudière **jamais** bloquée par
+    un générateur en commande.
   - `SimulationEngine` : un `ScheduledWork` échu applique l'effet **au bon
     jour** (`completionDay`) ; deux chantiers se composent ; rien avant ; le tick
     **rapporte** les transitions début/fin du jour.

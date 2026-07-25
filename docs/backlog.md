@@ -187,7 +187,16 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
   résiduelle se matérialise une seule fois, à l'échange (la reprise).
 - **Délai & conditions d'accès de l'éco-PTZ (le levier « délai » du §1, à
   modéliser)** (déclencheur : Phase 4 économie complète, ou passe réalisme des
-  aides). Aujourd'hui l'éco-PTZ est **instantané** au clic — irréaliste. Réel
+  aides).
+  > ✅ **Délai fait (PR #15, juillet 2026).** Le déblocage des fonds est modélisé
+  > (`FinanceCalibration::ecoPtzFundsReleaseDays()`, ~42 j, ordre de grandeur
+  > assumé §13) et s'ajoute *avant* le lead du chantier quand le travaux est
+  > financé au PTZ → **non mobilisable pour la panne**, exactement la leçon
+  > visée. **Restent à faire** (volet réalisme des aides) : conditions d'accès
+  > (RGE obligatoire, logement > 2 ans), plafonds tiérés (15/25/30/50 k), durée
+  > réelle 15/20 ans — voir le volet **taux d'endettement** plus bas.
+
+  Aujourd'hui l'éco-PTZ est **instantané** au clic — irréaliste. Réel
   (sources : service-public.fr, ADEME, Ministère ; plafonds/durées exacts à
   revérifier avant codage) : **artisan RGE obligatoire**, logement > 2 ans,
   **aucune condition de revenus** (c'est un prêt, la banque évalue la
@@ -209,6 +218,20 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
 - **Durée des travaux (chantier + délais amont/aval, le levier « délai » du §1
   généralisé)** (déclencheur : Phase 4 économie complète, ou passe réalisme des
   aides — même chantier que le délai éco-PTZ ci-dessus, à traiter ensemble).
+  > ✅ **Fait (PR #15, juillet 2026 — cf. `docs/specs/2026-07-23-delais-travaux-design.md`).**
+  > Un travaux commandé est **programmé** (`ScheduledWork` : lead + pose,
+  > déterministe) au lieu d'être posé instantanément ; le délai per-work
+  > (`RenovationDefinition::delay(): ChantierDelay`, asymétrique — réparation
+  > rapide, générateurs/PV lents) ; la scène marque la zone « chantier prévu »
+  > puis « en pose », avec notices début/fin et **aucune pause auto** (feel).
+  > **Écart assumé vs design §5** : l'exclusivité d'un générateur de chauffage
+  > est portée par un **groupe** (`ExclusivityGroup` sur le work +
+  > `RenovationConflicts`), **pas** par le « foyer projeté » du design initial
+  > (le `PelletBoilerWork::offerFor()` autorise le *switch* d'un générateur déjà
+  > posé, donc le projeté ne bloquait pas granulés-pendant-PAC). **Restent hors
+  > phase** : ③ saisonnalité des délais, ⑥ inconfort de chantier (jours sans
+  > chauffage), avance des aides / acomptes — voir §7 de la spec.
+
   Aujourd'hui un travaux est **instantané** : clic → équipement posé dans la
   seconde. Irréaliste et surtout ça **annule le levier délai** du §1 (le coût
   d'accès n'est pas que le prix). Un vrai travaux est une **chaîne de phases**,
