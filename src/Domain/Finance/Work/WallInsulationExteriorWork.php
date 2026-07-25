@@ -7,6 +7,8 @@ namespace App\Domain\Finance\Work;
 use App\Domain\Building\Household;
 use App\Domain\Building\WallInsulation;
 use App\Domain\Finance\AdviceLevel;
+use App\Domain\Finance\ChantierDelay;
+use App\Domain\Finance\ExclusivityGroup;
 use App\Domain\Finance\FinanceCalibration;
 use App\Domain\Finance\Money;
 use App\Domain\Finance\RenovationAdvice;
@@ -81,5 +83,15 @@ final readonly class WallInsulationExteriorWork implements RenovationDefinition
     public function iconAsset(): string
     {
         return 'game/scene/assets/icons/insulation.svg';
+    }
+
+    public function delay(): ChantierDelay
+    {
+        return new ChantierDelay(35, 14);
+    }
+
+    public function exclusivityGroup(): ?ExclusivityGroup
+    {
+        return null;
     }
 }

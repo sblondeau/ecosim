@@ -24,7 +24,6 @@ use App\Domain\Finance\PropertyValuator;
 use App\Domain\Finance\RenovationCatalog;
 use App\Domain\Finance\RenovationConflicts;
 use App\Domain\Finance\RenovationDefinition;
-use App\Domain\Finance\RenovationDelays;
 use App\Domain\Finance\RenovationQuoter;
 use App\Domain\Finance\SceneSlot;
 use App\Domain\Math\SeasonalCycle;
@@ -40,7 +39,10 @@ use App\Domain\Time\GameDate;
 use App\Domain\Weather\Weather;
 use App\Domain\Weather\WeatherGenerator;
 
+use function array_filter;
+use function array_keys;
 use function array_map;
+use function array_values;
 use function ceil;
 use function count;
 use function implode;
@@ -80,7 +82,6 @@ final readonly class GameViewFactory
         private DpeCertifier $dpeCertifier = new DpeCertifier(),
         private CarbonAccountant $carbon = new CarbonAccountant(),
         private RenovationCatalog $catalog = new RenovationCatalog(),
-        private RenovationDelays $delays = new RenovationDelays(),
         private RenovationConflicts $conflicts = new RenovationConflicts(),
     ) {
     }
@@ -617,6 +618,11 @@ final readonly class GameViewFactory
         }
         $actions = [];
 
+        $inProgressWorks = array_values(array_filter(array_map(
+            fn (string $slug): ?RenovationDefinition => $this->catalog->tryGet($slug),
+            array_keys($completionBySlug),
+        )));
+
         foreach ($this->catalog->all() as $work) {
             $quote = $this->quoter->quote($work, $state->household);
             if (null === $quote) {
@@ -627,7 +633,7 @@ final readonly class GameViewFactory
 
             // A work conflicting with an in-progress chantier (a second heating
             // generator) is not offerable while that chantier is being built.
-            if (!$inProgress && $this->conflicts->conflictsWithInProgress($work->slug(), array_keys($completionBySlug))) {
+            if (!$inProgress && $this->conflicts->conflictsWithInProgress($work, $inProgressWorks)) {
                 continue;
             }
 
@@ -667,11 +673,11 @@ final readonly class GameViewFactory
      */
     private function chantierDelayLabel(RenovationDefinition $work): string
     {
-        $delay = $this->delays->for($work->slug());
+        $delay = $work->delay();
         $label = sprintf('Posé ~%s après la commande', $this->humanDelay($delay->totalDays()));
 
         if ($work->qualifiesForEnergyAid()) {
-            $label .= sprintf(' (+ ~%s si éco-PTZ)', $this->humanDelay($this->delays->ptzFundsReleaseDays()));
+            $label .= sprintf(' (+ ~%s si éco-PTZ)', $this->humanDelay(max(0, (int) $this->finance->ecoPtzFundsReleaseDays()->value)));
         }
 
         return $label;

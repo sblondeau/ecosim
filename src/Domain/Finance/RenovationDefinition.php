@@ -75,4 +75,32 @@ interface RenovationDefinition
 
     /** Template path of the drawer icon — the scene's own asset (one drawing per equipment). */
     public function iconAsset(): string;
+
+    /**
+     * How long this work's chantier takes ({@see ChantierDelay}): the lead
+     * before the artisan arrives (contact, devis, carnet RGE) and the pose
+     * itself, in game-days — the « délai » access-cost lever (game-design §1:
+     * le levier est le coût d'accès = prix + délai + prérequis, jamais une
+     * magnitude truquée).
+     *
+     * Orders of magnitude: the pose durations lean on ADEME / trade guides
+     * (chaudière/PAC ~1-3 j, combles ~1 j, ITE ~1-3 sem., PV ~1-2 j); the LEAD
+     * times (carnet d'artisan RGE) are honestly WITHOUT a hard source — assumed
+     * orders of magnitude (§13), not maquillés en chiffres sourcés. The
+     * asymmetry is the point: the emergency boiler repair is fast, everything
+     * that replaces it is slow — so under the panne, repairing is rational on
+     * the spot and installing the heat pump BEFORE the breakdown is the winning
+     * play.
+     */
+    public function delay(): ChantierDelay;
+
+    /**
+     * The {@see ExclusivityGroup} this work belongs to, or null when it stands
+     * alone. Two works of the same group cannot have chantiers in flight at
+     * once because they replace the SAME exclusive equipment (one heating
+     * generator, not a PAC AND a pellet boiler). The emergency boiler repair is
+     * deliberately outside any group — you must always survive the panne, even
+     * with a generator already on order.
+     */
+    public function exclusivityGroup(): ?ExclusivityGroup;
 }

@@ -4,46 +4,33 @@ declare(strict_types=1);
 
 namespace App\Domain\Finance;
 
-use function in_array;
-
 /**
- * Which works cannot have two chantiers in flight at once because they replace
- * the SAME exclusive equipment — you don't queue a heat pump AND a pellet
- * boiler, you pick one generator.
+ * The coherence rule for chantiers that replace the SAME exclusive equipment:
+ * at most one of a group may be in flight at once (game-design §1). The group
+ * membership itself is carried by each work ({@see
+ * RenovationDefinition::exclusivityGroup()}) — this only compares them.
  *
- * This is a coherence rule, not an artificial gate (§1): once a generator is
- * installed you may still switch to another (the coût d'accès stays the full
- * price). It only forbids ordering a second, conflicting chantier while the
- * first is still being built.
- *
- * The emergency boiler_repair is deliberately NOT in the group: you must always
- * be able to survive the panne, even with a heat pump already on order.
+ * Not an artificial gate: once a generator is installed you may still switch to
+ * another (the coût d'accès stays the full price). It only forbids ordering a
+ * second, conflicting chantier while the first is still being built.
  */
 final readonly class RenovationConflicts
 {
-    private const string HEATING_GENERATOR = 'heating-generator';
-
-    public function groupFor(string $workSlug): ?string
-    {
-        return in_array($workSlug, ['heat_pump', 'pellet_boiler'], true)
-            ? self::HEATING_GENERATOR
-            : null;
-    }
-
     /**
-     * Whether ordering $workSlug conflicts with a chantier already in progress.
+     * Whether ordering $ordered conflicts with a work already in progress —
+     * both non-null and in the same {@see ExclusivityGroup}.
      *
-     * @param list<string> $inProgressSlugs
+     * @param list<RenovationDefinition> $inProgress
      */
-    public function conflictsWithInProgress(string $workSlug, array $inProgressSlugs): bool
+    public function conflictsWithInProgress(RenovationDefinition $ordered, array $inProgress): bool
     {
-        $group = $this->groupFor($workSlug);
+        $group = $ordered->exclusivityGroup();
         if (null === $group) {
             return false;
         }
 
-        foreach ($inProgressSlugs as $inProgress) {
-            if ($this->groupFor($inProgress) === $group) {
+        foreach ($inProgress as $work) {
+            if ($work->exclusivityGroup() === $group) {
                 return true;
             }
         }
