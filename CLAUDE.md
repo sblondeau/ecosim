@@ -72,9 +72,14 @@ Persistance   src/Entity/ + src/Repository/  (Doctrine, entités anémiques = é
   (tick, météo semée à régimes persistants, production solaire/batterie/bilan,
   chauffage fioul/PAC + confort + DPE, `Household` avec panne `boilerBroken`,
   argent — `Money` en centimes, facture 2 lignes, revenu mensuel, prime par
-  tranches, éco-PTZ `Loan`, `RenovationQuoter` (dont réparation chaudière,
-  comptant seul), valeur du bien DPE — `SimulationEngine` qui applique
-  génériquement les **événements scriptés** du scénario ; `Domain/Scenario/` :
+  tranches, éco-PTZ `Loan`, catalogue `RenovationCatalog`/`RenovationDefinition`
+  (chaque travaux porte prix, offre, conseil, **délai** `ChantierDelay` = lead +
+  pose, et **groupe d'exclusivité** `ExclusivityGroup`) coté par
+  `RenovationQuoter` (réparation chaudière comptant),
+  `FinanceCalibration::ecoPtzFundsReleaseDays` (déblocage PTZ ~42 j, empilé
+  avant le lead), valeur du bien DPE — `SimulationEngine` qui **pose les
+  chantiers programmés échus** (`ScheduledWork`) puis applique génériquement les
+  **événements scriptés** du scénario ; `Domain/Scenario/` :
   interfaces `Scenario` (état initial, horizon, événements) + `ScriptedEvent`
   (`shouldFire`/`fire`, prédicat libre et déterministe), `BoilerBreakdownEvent`
   (20 janvier, seulement si encore au fioul ; maison non chauffée = équilibre
@@ -82,23 +87,31 @@ Persistance   src/Entity/ + src/Repository/  (Doctrine, entités anémiques = é
   nu, fioul, 7 750 € d'épargne calibrée sur le choix de la panne), registre
   `Coefficient`) ; `src/Application/`
   (`GameView`/`ActionView`/`EndReportView` + factory — **bilan de fin par axes,
-  jamais d'agrégat** (§1) —, `RenovationHandler`, `GameStore`/`SessionGameStore`
-  v8, `Game`) ; présentation `GameController` (dashboard, jour-suivant,
+  jamais d'agrégat** (§1) —, `RenovationHandler` (qui **programme** les chantiers
+  via `GameState::scheduling` — un générateur de chauffage à la fois,
+  `RenovationConflicts`), `GameStore`/`SessionGameStore` **v16**, `Game` (porte
+  les `acknowledgedEvents` **persistés** → les modales d'accueil ne reviennent
+  pas au refresh)) ; présentation `GameController` (dashboard, jour-suivant,
   **travaux**, nouvelle-partie, CSRF par attribut, flashs) + dashboard Twig
   (Finances avec revenu/dépenses/reste à vivre, Patrimoine, Confort, zones,
-  bandeau panne, bilan de fin, travaux avec devis et double financement) ;
+  bandeau panne, bilan de fin, travaux avec devis (**délai annoncé**), carte
+  « chantier en cours », ligne **éco-PTZ mobilisé / 50 000 € max**, double
+  financement) ;
   `app:simulate:demo` ; **tick temps réel posé** : `Domain/Time`
   `TickSpeed` (⏸/×1/×2/×3) + `TimeProgression` (12 s réelles = 1 jour,
   `PausesWhileAway` via fenêtre de grâce, reste reporté, horloge toujours
   injectée), `TimeKeeper` (rattrapage borné à l'horizon, porte unique du
-  temps, **pause auto au matin de la panne**). **Tout passe par le LiveComponent
+  temps, **pause auto au matin de la panne** ; un chantier ne déclenche aucune
+  pause — la barricade de scène + les notices début/pose portent l'info). **Tout passe par le LiveComponent
   `GameDashboard`** : `data-poll` 4 s + **toutes les actions en `#[LiveAction]`**
   (jour-suivant, vitesse, consigne thermostat, travaux, nouvelle-partie) — plus
   aucun POST-form, le `GameController` = coquille `GET /`. Messages transitoires
   = propriété `notice` du composant (plus de flash). Scène = **composants Twig
   anonymes** `templates/components/scene/*` (`<twig:scene:Occupant tier=…>`,
   `Boiler state=…`, `HouseShell insulation=…`, `Cloud`, `Tree`, `Garage`,
-  `SolarPanels`, `Battery`, `HeatPump`) qui incluent le `.svg` brut (retouche
+  `SolarPanels`, `Battery`, `HeatPump`, `WaterHeater`, `Chantier phase=…` — la
+  barricade « travaux prévu/en cours » posée sur la zone en chantier) qui
+  incluent le `.svg` brut (retouche
   préservée) + classe de variante locale posée par le composant
   (`.occupant--cool`, `.boiler--fioul`… — CVA-manuel, pas `html_cva` : 1 prop
   ×2-4 valeurs, Tailwind absent) ; ambiance scène-wide sur `.scene`. Le
@@ -112,9 +125,15 @@ Persistance   src/Entity/ + src/Repository/  (Doctrine, entités anémiques = é
   `ExplainedEvent` enchaînés (`ScenarioIntroEvent` récit immersif illustré +
   `ScenarioBriefingEvent` les 4 axes & mode d'emploi ; seul le briefing, dernier
   écran, redémarre l'horloge), les 4 coins/axes et le DPE G de départ y sont
-  corrects. **La boucle MVP est complète, cadrage compris.** Prochaines
-  directions = post-MVP/V1.x (cf. `docs/backlog.md` : dynamisme du gameplay,
-  cycle de vie des équipements, réalisme des délais). **Persistance Doctrine :
+  corrects ; l'acquittement des modales est **persisté** (`Game.acknowledgedEvents`)
+  → pas de réaffichage au refresh. **La boucle MVP est complète, cadrage compris.**
+  **Phase délais faite** (juillet 2026, PR #15) — la rénovation a un **rythme** :
+  chantiers programmés (`ScheduledWork`), délais réalistes par travaux (lead +
+  pose, asymétriques), déblocage éco-PTZ non mobilisable en urgence, exclusivité
+  générateur, barricade de scène « prévu/en cours ». Prochaines directions =
+  post-MVP/V1.x (cf. `docs/backlog.md` : **poids financier / taux d'endettement**
+  — le volet racine-2 pré-cadré, le vrai frein au « PTZ gratuit » —, cycle de vie
+  des équipements, dynamisme du gameplay). **Persistance Doctrine :
   reportée à une étape méta-jeu dédiée**
   (comptes, reprise, parties multiples, historique, stats — cf. backlog
   « Persistance & méta-jeu » ; à faire en bloc, pas en portage session→DB
