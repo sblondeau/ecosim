@@ -81,6 +81,17 @@ final class GameDashboard
     ) {
     }
 
+    /**
+     * On the initial page render, seed the acknowledged-modals prop from the
+     * PERSISTED game — so a refresh does not re-show the intro/briefing the
+     * player already dismissed (polls keep it via the LiveProp; only a full
+     * reload re-mounts and would otherwise reset it to []).
+     */
+    public function mount(): void
+    {
+        $this->acknowledgedEvents = $this->store->current()->acknowledgedEvents;
+    }
+
     #[LiveAction]
     public function selectSlot(#[LiveArg] string $slot): void
     {
@@ -112,11 +123,15 @@ final class GameDashboard
     {
         $this->acknowledgedEvents[] = $eventId;
 
+        // Persist the acknowledgement in the game itself, so a page refresh
+        // remembers it (the LiveProp above only survives polls).
         $event = $this->scenarioEvent($eventId);
+        $game = $this->store->current()->withAcknowledgedEvent($eventId);
         if (null !== $event && $event->restartsClockOnAcknowledge) {
-            $game = $this->store->current();
-            $this->commit($game->withProgression($game->progression->withSpeed($game->progression->speed, new DateTimeImmutable())));
+            $game = $game->withProgression($game->progression->withSpeed($game->progression->speed, new DateTimeImmutable()));
         }
+
+        $this->commit($game);
     }
 
     /** Manual step: live the current day now, restarting the real-time clock. */

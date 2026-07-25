@@ -102,6 +102,21 @@ final class GameDashboardTest extends KernelTestCase
         self::assertStringNotContainsString('intro-overlay', $game);
     }
 
+    public function testAcknowledgedOnboardingModalsStayDismissedAcrossARefresh(): void
+    {
+        $first = $this->createLiveComponent(GameDashboard::class);
+        $first->call('acknowledgeEvent', ['id' => 'intro']);
+        $first->call('acknowledgeEvent', ['id' => 'briefing']);
+
+        // A page refresh = a fresh mount, which must restore the dismissals from
+        // the persisted game rather than reset them to [] and re-show the modals.
+        $refreshed = $this->createLiveComponent(GameDashboard::class);
+        self::assertSame(['intro', 'briefing'], $refreshed->component()->acknowledgedEvents, 'Acknowledgements are restored from the persisted game.');
+
+        $html = (string) $refreshed->render();
+        self::assertStringNotContainsString('intro-overlay', $html, 'Neither onboarding modal re-appears after a refresh.');
+    }
+
     public function testAcknowledgingEachOnboardingModalRevealsTheNextPendingEventImmediately(): void
     {
         $component = $this->createLiveComponent(GameDashboard::class);

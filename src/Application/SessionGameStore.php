@@ -24,6 +24,7 @@ use App\Domain\Time\TimeProgression;
 use DateTimeImmutable;
 
 use function is_array;
+use function is_string;
 
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -45,7 +46,7 @@ final readonly class SessionGameStore implements GameStore
      * format is thrown away and the game restarts, instead of being silently
      * rebuilt into a valid-looking but absurd state by the hydrate fallbacks.
      */
-    private const int FORMAT_VERSION = 15;
+    private const int FORMAT_VERSION = 16;
 
     public function __construct(
         private RequestStack $requestStack,
@@ -159,7 +160,26 @@ final readonly class SessionGameStore implements GameStore
             TickSpeed::tryFrom((int) ($data['speed'] ?? TickSpeed::Normal->value)) ?? TickSpeed::Normal,
         );
 
-        return new Game($config, $state, $progression);
+        return new Game($config, $state, $progression, $this->hydrateAcknowledgedEvents($data['acknowledgedEvents'] ?? []));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function hydrateAcknowledgedEvents(mixed $raw): array
+    {
+        if (!is_array($raw)) {
+            return [];
+        }
+
+        $ids = [];
+        foreach ($raw as $id) {
+            if (is_string($id)) {
+                $ids[] = $id;
+            }
+        }
+
+        return $ids;
     }
 
     /**
@@ -238,6 +258,7 @@ final readonly class SessionGameStore implements GameStore
                 ],
                 $game->state->scheduledWorks,
             ),
+            'acknowledgedEvents' => $game->acknowledgedEvents,
         ];
     }
 }
