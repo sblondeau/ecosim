@@ -398,16 +398,18 @@ details.card[open]>summary {
     color: var(--muted);
 }
 
-/* ===== Panneau de décision — travaux en rail + détail (§ étape 1) ===== */
-.works-panel {
-    display: grid;
-    grid-template-columns: 188px minmax(0, 1fr);
-    gap: var(--space-md);
-    align-items: start;
+/* ===== Panneau de décision — rail + détail (§ étape 1) ===== */
+/* rail des choix : colonne de gauche pleine hauteur, défile si trop long. */
+.works-rail {
+    min-height: 0;
+    overflow-y: auto;
+    padding: var(--space-md);
+    border-right: 1px solid var(--line);
+    background: color-mix(in srgb, var(--bg) 30%, transparent);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xs);
 }
-
-/* rail des choix */
-.works-rail { display: flex; flex-direction: column; gap: var(--space-2xs); }
 .rail-eyebrow {
     margin: 0 0 var(--space-2xs);
     font-size: var(--text-2xs);
@@ -473,7 +475,8 @@ details.card[open]>summary {
 .pos { color: var(--accent); }
 
 @media (max-width: 720px) {
-    .works-panel { grid-template-columns: 1fr; }
+    .zpanel-body { grid-template-columns: 1fr; }
+    .works-rail { border-right: none; border-bottom: 1px solid var(--line); max-height: 34%; }
     .wdetail-top { grid-template-columns: 1fr; }
     .wdetail-actions { margin-left: 0; width: 100%; }
 }
@@ -491,18 +494,31 @@ details.card[open]>summary {
     overflow: hidden;
 }
 
-.zpanel-scroll {
+/* Corps en 2 colonnes : rail pleine hauteur | droite (détail + footer). */
+.zpanel-body {
     flex: 1;
     min-height: 0;
+    display: grid;
+    grid-template-columns: 210px minmax(0, 1fr);
+}
+.zpanel-body--norail { grid-template-columns: minmax(0, 1fr); }
+
+/* Colonne droite : détail défilant surmontant la barre d'action calée en bas. */
+.zpanel-right {
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+}
+.zpanel-right-scroll {
+    min-height: 0;
     overflow-y: auto;
-    padding: var(--space-lg);
+    padding: var(--space-md) var(--space-lg);
     display: flex;
     flex-direction: column;
     gap: var(--space-md);
 }
-
 .zpanel-foot {
-    flex: none;
     padding: var(--space-sm) var(--space-lg);
     border-top: 1px solid var(--line);
     background: linear-gradient(0deg, color-mix(in srgb, var(--accent) 7%, var(--surface-panel)), var(--surface-panel));
@@ -539,8 +555,25 @@ details.card[open]>summary {
     width: 100%;
     padding: var(--space-md) var(--space-lg);
     background: linear-gradient(0deg, rgba(8, 12, 16, .74), transparent);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-md);
 }
 .zone-hero-cap h2 { margin: 0; font-size: var(--text-xl); }
+/* Thermostat du salon, compact, dans le bandeau (§ décision — désencombre le corps). */
+.hero-thermo {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    padding: 3px 6px;
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--bg) 62%, transparent);
+    border: 1px solid var(--line);
+    font-variant-numeric: tabular-nums;
+}
+.hero-thermo-val { min-width: 3.4em; text-align: center; font-weight: 700; font-size: var(--text-md); }
+.hero-thermo .thermo-btn { padding: 2px 8px; }
 .zone-hero-close {
     position: absolute;
     top: 10px;
