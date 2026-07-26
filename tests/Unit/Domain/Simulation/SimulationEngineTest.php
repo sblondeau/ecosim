@@ -12,6 +12,7 @@ use App\Domain\Building\WallInsulation;
 use App\Domain\Building\WaterHeater;
 use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
+use App\Domain\Finance\PendingSubsidy;
 use App\Domain\Simulation\GameConfig;
 use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\PeriodTotals;
@@ -255,6 +256,48 @@ final class SimulationEngineTest extends TestCase
         $nextDay = $engine->advance($config, $repaired);
 
         self::assertFalse($nextDay->household->boilerBroken, 'The scripted event fires once — a scene, not a wear model.');
+    }
+
+    public function testAPendingSubsidyLandsAsCashOnItsDisbursementDay(): void
+    {
+        $engine = new SimulationEngine();
+        $config = self::config(30);
+
+        $withSubsidy = new GameState(9, self::passoire(), 0.0, Money::fromEuros(1000.0), Loan::none(), new PeriodTotals(), [], [new PendingSubsidy(Money::fromEuros(500.0), 10)]);
+        $without = new GameState(9, self::passoire(), 0.0, Money::fromEuros(1000.0), Loan::none(), new PeriodTotals(), [], []);
+
+        $a = $engine->advance($config, $withSubsidy); // day 9 -> 10, the disbursement day
+        $b = $engine->advance($config, $without);
+
+        self::assertSame($b->savings->cents + 500_00, $a->savings->cents, 'The prime lands as cash on its disbursement day (MaPrimeRénov\' versée après travaux).');
+        self::assertCount(0, $a->pendingSubsidies, 'A disbursed subsidy leaves the pending list.');
+    }
+
+    public function testAPtzFinancedPrimeRepaysTheLoanInsteadOfCashing(): void
+    {
+        $engine = new SimulationEngine();
+        $config = self::config(30);
+        $loan = Loan::none()->borrow(Money::fromEuros(13000.0));
+        $withPrime = new GameState(9, self::passoire(), 0.0, Money::fromEuros(1000.0), $loan, new PeriodTotals(), [], [new PendingSubsidy(Money::fromEuros(5200.0), 10, repaysLoan: true)]);
+        $without = new GameState(9, self::passoire(), 0.0, Money::fromEuros(1000.0), $loan, new PeriodTotals());
+
+        $a = $engine->advance($config, $withPrime); // day 9 -> 10, the disbursement day
+        $b = $engine->advance($config, $without);
+
+        self::assertSame(7800_00, $a->loan->remaining->cents, 'The prime prepays the éco-PTZ (13000 − 5200), it does not cash out.');
+        self::assertSame($b->savings->cents, $a->savings->cents, 'A PTZ-financed prime never touches savings.');
+        self::assertCount(0, $a->pendingSubsidies);
+    }
+
+    public function testAPendingSubsidyIsNotDisbursedBeforeItsDay(): void
+    {
+        $engine = new SimulationEngine();
+        $config = self::config(30);
+        $state = new GameState(8, self::passoire(), 0.0, Money::fromEuros(1000.0), Loan::none(), new PeriodTotals(), [], [new PendingSubsidy(Money::fromEuros(500.0), 10)]);
+
+        $a = $engine->advance($config, $state); // day 8 -> 9, still before disbursement
+
+        self::assertCount(1, $a->pendingSubsidies, 'The subsidy is not paid before its day.');
     }
 
     public function testSwitchingToTheHeatPumpBeforeTheEventAvoidsIt(): void

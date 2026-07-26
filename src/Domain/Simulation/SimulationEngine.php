@@ -121,7 +121,9 @@ final readonly class SimulationEngine
         }
 
         return Money::fromEuros(
-            $this->finance->monthlyNetIncome()->value - $this->finance->monthlyLivingExpenses()->value,
+            $this->finance->monthlyNetIncome()->value
+            - $this->finance->monthlyLivingExpenses()->value
+            - $this->finance->mortgageMonthlyPayment()->value,
         );
     }
 
@@ -137,7 +139,36 @@ final readonly class SimulationEngine
 
         $settled = $state->advanced($this->snapshot($config, $state));
 
-        return $this->withScriptedEvents($config, $this->withCompletedChantiers($settled));
+        return $this->withScriptedEvents($config, $this->withDisbursedSubsidies($this->withCompletedChantiers($settled)));
+    }
+
+    /**
+     * Banks the primes whose disbursement day has come (§ contrainte ②):
+     * MaPrimeRénov' is paid AFTER the works, so the deferred refund lands as
+     * cash here and leaves the pending list.
+     */
+    private function withDisbursedSubsidies(GameState $state): GameState
+    {
+        $savings = $state->savings;
+        $loan = $state->loan;
+        $pending = [];
+        foreach ($state->pendingSubsidies as $subsidy) {
+            if ($subsidy->disbursementDay > $state->currentDay) {
+                $pending[] = $subsidy;
+
+                continue;
+            }
+
+            // A PTZ-financed prime prepays the loan (§ contrainte ③ — the debt
+            // drops); a cash-financed one is banked to savings.
+            if ($subsidy->repaysLoan) {
+                $loan = $loan->prepay($subsidy->amount);
+            } else {
+                $savings = $savings->plus($subsidy->amount);
+            }
+        }
+
+        return $state->withSavings($savings)->withLoan($loan)->withPendingSubsidies($pending);
     }
 
     /**

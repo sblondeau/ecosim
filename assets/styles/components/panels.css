@@ -291,6 +291,34 @@ details.card[open]>summary {
     color: var(--muted);
 }
 
+/* éco-PTZ debt-ratio hint under the loan button (before → after). */
+.quote-debt-hint {
+    margin: var(--space-xs) 0 0;
+    font-size: var(--text-sm);
+    color: var(--muted);
+}
+
+.quote-debt-hint--blocked {
+    color: var(--danger);
+}
+
+/* Debt-to-income ratio, colour-coded by how close to the 35 % wall (§ contrainte ③). */
+.debt {
+    font-weight: 700;
+}
+
+.debt--ok {
+    color: var(--accent);
+}
+
+.debt--tendu {
+    color: var(--warn);
+}
+
+.debt--sature {
+    color: var(--danger);
+}
+
 .quote-head {
     display: flex;
     align-items: center;

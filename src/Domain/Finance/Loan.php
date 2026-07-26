@@ -7,6 +7,7 @@ namespace App\Domain\Finance;
 use function intdiv;
 use function max;
 use function min;
+use function round;
 
 /**
  * The household's zero-interest loan account (éco-PTZ-like, game-design §8:
@@ -70,6 +71,31 @@ final readonly class Loan
             monthlyPayment: $this->monthlyPayment->plus(Money::fromCents($installment)),
             borrowedTotal: $this->borrowedTotal->plus($amount),
         );
+    }
+
+    /**
+     * Pay down the principal early (§ contrainte ②/③): a renovation prime lands
+     * and reduces the éco-PTZ instead of cashing out. Remaining and the total
+     * (now the reste à charge, aids deducted) drop by the amount; the monthly
+     * eases proportionally so the debt ratio reflects the smaller principal.
+     */
+    public function prepay(Money $amount): self
+    {
+        if ($this->remaining->cents <= 0) {
+            return $this;
+        }
+
+        $reduction = Money::fromCents(min($amount->cents, $this->remaining->cents));
+        $newRemaining = $this->remaining->minus($reduction);
+        $newBorrowed = Money::fromCents(max(0, $this->borrowedTotal->cents - $reduction->cents));
+
+        if ($newRemaining->cents <= 0) {
+            return new self(Money::zero(), Money::zero(), $newBorrowed);
+        }
+
+        $newMonthly = Money::fromCents((int) round($this->monthlyPayment->cents * $newRemaining->cents / $this->remaining->cents));
+
+        return new self($newRemaining, $newMonthly, $newBorrowed);
     }
 
     /**

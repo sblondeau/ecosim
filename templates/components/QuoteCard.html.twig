@@ -4,18 +4,18 @@
    mappée dans ActionView.iconAsset) : le même asset SVG que la scène quand il
    existe (solaire/PAC/chaudière/batterie), sinon un petit swatch dédié
    (isolation…). Ajouter un travail ne touche plus ce template. #}
-{% props action %}
+{% props action, debtRatioNow = '' %}
 <div class="card quote{{ action.inProgress ? ' quote--in-progress' }}{{ action.crewBusy ? ' quote--blocked' }}">
     <p class="quote-eyebrow">{{ action.inProgress ? 'Chantier en cours' : (action.crewBusy ? 'À programmer' : 'Travaux disponibles') }}</p>
     <div class="quote-head">
         <div class="quote-icon">{{ include(action.iconAsset) }}</div>
         <h2>{{ action.title }}</h2>
     </div>
-    <div class="row"><span class="key">Coût</span><span>{{ action.costLabel }}</span></div>
+    <div class="row"><span class="key">Coût à avancer</span><span><strong>{{ action.costLabel }}</strong></span></div>
     {% if action.subsidyLabel is not empty %}
-        <div class="row"><span class="key">Prime</span><span class="pos">−{{ action.subsidyLabel }}</span></div>
+        <div class="row"><span class="key">Prime <span class="muted">(remboursée après travaux)</span></span><span class="pos">+{{ action.subsidyLabel }}</span></div>
+        <div class="row"><span class="key">Reste à charge final</span><span>{{ action.netCostLabel }}</span></div>
     {% endif %}
-    <div class="row"><span class="key">Reste à charge</span><span><strong>{{ action.netCostLabel }}</strong></span></div>
     {% if action.effectLabels is not empty %}
         <div class="effects">
             {% for effect in action.effectLabels %}
@@ -43,6 +43,9 @@
             <twig:Button label="Payer comptant" action="order" :params="{work: action.work, financing: 'cash'}" class="btn-primary btn-small" :disabled="not action.cashAllowed" />
             {% if action.loanAllowed %}
                 <twig:Button label="Éco-PTZ · {{ action.loanMonthlyLabel }}/mois · 20 ans" action="order" :params="{work: action.work, financing: 'loan'}" />
+                <p class="quote-debt-hint">Endettement : {{ debtRatioNow }} → {{ action.loanDebtRatioAfterLabel }}</p>
+            {% elseif action.loanDebtRatioAfterLabel is not empty and not action.crewBusy %}
+                <p class="quote-debt-hint quote-debt-hint--blocked">Éco-PTZ indisponible : porterait l'endettement à {{ action.loanDebtRatioAfterLabel }} (max 35 %).</p>
             {% endif %}
         </div>
     {% endif %}

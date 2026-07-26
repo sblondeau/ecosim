@@ -12,12 +12,14 @@
     <h2>Budget mensuel</h2>
     <div class="row"><span class="key">Revenu</span><span class="pos">+{{ game.monthlyIncomeLabel }}</span></div>
     <div class="row"><span class="key">Vie courante</span><span class="neg">−{{ game.monthlyExpensesLabel }}</span></div>
+    <div class="row"><span class="key">Crédit immobilier</span><span class="neg">−{{ game.mortgageLabel }}</span></div>
     <div class="row"><span class="key">Énergie · moyenne</span><span class="neg">−{{ game.monthlyEnergyCostLabel }}</span></div>
     {% if game.loanActive %}
         <div class="row"><span class="key">Dette éco-PTZ<twig:Tip text="{{ game.help.ecoPtz }}" /></span><span class="neg">−{{ game.loanMonthlyPaymentLabel }}</span></div>
     {% endif %}
     <div class="row"><span class="key"><strong>Reste à vivre</strong></span><span class="{{ game.monthlyLeftoverNegative ? 'neg' }}"><strong>{{ game.monthlyLeftoverLabel }}</strong></span></div>
-    <p class="panel-note">Reste à vivre = revenu − vie courante − énergie − dette. L'énergie est une moyenne mensuelle (la facture réelle est saisonnière, plus salée l'hiver).</p>
+    <div class="row"><span class="key">Taux d'endettement<twig:Tip text="Part des revenus consacrée au crédit immobilier + éco-PTZ. Au-delà de 35 % (règle HCSF), une banque n'accorde plus de prêt." /></span><span class="debt debt--{{ game.debtRatioLevel }}">{{ game.debtRatioLabel }}</span></div>
+    <p class="panel-note">Reste à vivre = revenu − vie courante − crédit immo − énergie − éco-PTZ. L'énergie est une moyenne mensuelle (la facture réelle est saisonnière, plus salée l'hiver).</p>
 </div>
 
 <div class="card">
@@ -28,5 +30,8 @@
     {% if game.loanActive %}
         <div class="row"><span class="key">Dette éco-PTZ restante · ~{{ game.loanRemainingYears }} an{{ game.loanRemainingYears > 1 ? 's' }}</span><span>{{ game.loanRemainingLabel }}</span></div>
         <div class="row"><span class="key">Éco-PTZ mobilisé</span><span>{{ game.loanBorrowedLabel }} <span class="muted">/ {{ game.loanCapLabel }} max</span></span></div>
+    {% endif %}
+    {% if game.pendingSubsidiesLabel is not empty %}
+        <div class="row"><span class="key">Primes à venir <span class="muted">({{ game.pendingSubsidiesEtaLabel }})</span><twig:Tip text="MaPrimeRénov' est versée après les travaux : vous avancez le prix plein, la prime revient quelques semaines après la pose." /></span><span class="pos">+{{ game.pendingSubsidiesLabel }}</span></div>
     {% endif %}
 </div>

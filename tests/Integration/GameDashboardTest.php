@@ -6,6 +6,8 @@ namespace App\Tests\Integration;
 
 use App\Application\GameStore;
 use App\Application\InMemoryGameStore;
+use App\Domain\Finance\Money;
+use App\Domain\Finance\PendingSubsidy;
 use App\Domain\Finance\RenovationCatalog;
 use App\Domain\Scenario\PrimoAccedantScenario;
 use App\Domain\Simulation\GameState;
@@ -519,6 +521,30 @@ final class GameDashboardTest extends KernelTestCase
         $html = (string) $component->call('step')->render(); // day 5 -> 6: the chantier is posed
 
         self::assertStringNotContainsString('chantier-marker', $html, 'Once posed, the chantier is gone — no marker lingers on the zone.');
+    }
+
+    public function testAPrimeArrivalIsNotifiedWhenItLands(): void
+    {
+        // A pending prime landing on the very next day.
+        $this->seedPendingSubsidy(currentDay: 5, amountEuros: 1600.0, disbursementDay: 6);
+        $component = $this->createLiveComponent(GameDashboard::class);
+
+        $component->call('step'); // day 5 -> 6: the prime is disbursed
+
+        self::assertSame(NoticeSeverity::Success, $component->component()->notice->severity);
+        self::assertStringContainsString('Prime reçue', $component->component()->notice->text);
+    }
+
+    /** Seeds the store with a single pending subsidy and the current day. */
+    private function seedPendingSubsidy(int $currentDay, float $amountEuros, int $disbursementDay): void
+    {
+        $store = self::getContainer()->get(GameStore::class);
+        self::assertInstanceOf(GameStore::class, $store);
+
+        $game = $store->current();
+        $s = $game->state;
+        $seeded = new GameState($currentDay, $s->household, $s->batteryLevelKwh, $s->savings, $s->loan, $s->totals, [], [new PendingSubsidy(Money::fromEuros($amountEuros), $disbursementDay)]);
+        $store->save($game->withState($seeded));
     }
 
     /** Seeds the store with a single scheduled chantier and the current day. */

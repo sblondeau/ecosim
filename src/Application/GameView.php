@@ -48,9 +48,19 @@ final readonly class GameView
         public string $monthlyExpensesLabel,
         /** Estimated monthly energy cost (reference year ÷ 12, net of resale). */
         public string $monthlyEnergyCostLabel,
-        /** True disposable income: income − living − energy − loan. */
+        /** Monthly home-loan payment, now an explicit charge (§ contrainte ③). */
+        public string $mortgageLabel,
+        /** Debt-to-income ratio (mortgage + éco-PTZ) in whole percent, e.g. « 30 % ». */
+        public string $debtRatioLabel,
+        /** Colour bucket for the ratio: 'ok' (< 33 %) | 'tendu' (33-35 %) | 'sature' (≥ 35 %). */
+        public string $debtRatioLevel,
+        /** True disposable income: income − living − mortgage − energy − loan. */
         public string $monthlyLeftoverLabel,
         public bool $monthlyLeftoverNegative,
+        /** Renovation primes owed but not yet paid (MaPrimeRénov' after works, § contrainte ②); '' when none. */
+        public string $pendingSubsidiesLabel,
+        /** When the soonest pending prime lands (« dans ~12 j »); '' when none pending. */
+        public string $pendingSubsidiesEtaLabel,
         // Fuel poverty (ONPE taux d'effort énergétique)
         /** Share of annual income spent on housing energy, in whole percent. */
         public int $energyEffortPct,

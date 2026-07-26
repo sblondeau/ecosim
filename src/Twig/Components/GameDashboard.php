@@ -12,6 +12,8 @@ use App\Application\RenovationHandler;
 use App\Application\ScenarioEventView;
 use App\Application\TimeKeeper;
 use App\Domain\Building\BuildingCalibration;
+use App\Domain\Finance\Money;
+use App\Domain\Finance\PendingSubsidy;
 use App\Domain\Finance\RenovationCatalog;
 use App\Domain\Finance\SceneSlot;
 use App\Domain\Simulation\GameState;
@@ -21,6 +23,7 @@ use App\Domain\Time\TickSpeed;
 use function array_diff;
 use function array_filter;
 use function array_map;
+use function array_sum;
 use function array_values;
 use function count;
 
@@ -326,5 +329,23 @@ final class GameDashboard
                 return;
             }
         }
+
+        // A prime landing (MaPrimeRénov' after works, § contrainte ②): only
+        // reached when no chantier transition took the headline this tick.
+        $disbursed = $this->disbursedSubsidyTotal($before->state, $after->state);
+        if ($disbursed->cents > 0) {
+            $this->notice = Notice::success(sprintf('Prime reçue : %s (déduite de votre financement).', $disbursed->format()));
+        }
+    }
+
+    /** How much prime was banked between two states — pending subsidies only ever shrink during a tick. */
+    private function disbursedSubsidyTotal(GameState $before, GameState $after): Money
+    {
+        $sum = static fn (array $subsidies): int => array_sum(array_map(
+            static fn (PendingSubsidy $subsidy): int => $subsidy->amount->cents,
+            $subsidies,
+        ));
+
+        return Money::fromCents(max(0, $sum($before->pendingSubsidies) - $sum($after->pendingSubsidies)));
     }
 }

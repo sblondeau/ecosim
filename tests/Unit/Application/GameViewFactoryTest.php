@@ -154,11 +154,16 @@ final class GameViewFactoryTest extends TestCase
         $view = new GameViewFactory()->build(self::config(), GameState::start(self::passoire(), Money::fromEuros(8000.0)));
 
         self::assertSame('2 800,00 €', $view->monthlyIncomeLabel);
-        self::assertSame('2 100,00 €', $view->monthlyExpensesLabel);
-        // The passoire's energy (reference year ÷ 12, net of solar resale) eats
-        // into the leftover: 2800 − 2100 − 338.28 = 361.72, not the misleading 700.
+        // The mortgage is now an explicit charge (§ contrainte ③): living dropped
+        // to 1 260, mortgage 840 — 1 260 + 840 = 2 100, reste-à-vivre unchanged.
+        self::assertSame('1 260,00 €', $view->monthlyExpensesLabel);
+        self::assertSame('840,00 €', $view->mortgageLabel);
+        self::assertSame('30 %', $view->debtRatioLabel, 'Starting debt ratio = mortgage alone (840/2800).');
+        self::assertSame('ok', $view->debtRatioLevel);
+        // Energy (reference year ÷ 12, net of solar resale) eats into the
+        // leftover: 2800 − 1260 − 840 − 338.28 = 361.72, not the misleading 700.
         self::assertSame('338,28 €', $view->monthlyEnergyCostLabel);
-        self::assertSame('361,72 €', $view->monthlyLeftoverLabel, 'Leftover = income − living − energy − debt.');
+        self::assertSame('361,72 €', $view->monthlyLeftoverLabel, 'Leftover = income − living − mortgage − energy − debt.');
         self::assertFalse($view->monthlyLeftoverNegative);
     }
 

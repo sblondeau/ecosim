@@ -82,7 +82,7 @@
 {% if not game.finished %}
     {% for work in game.worksBySlot[selected] ?? [] %}
         {% if game.actions[work] is defined %}
-            <twig:QuoteCard :action="game.actions[work]" />
+            <twig:QuoteCard :action="game.actions[work]" debtRatioNow="{{ game.debtRatioLabel }}" />
         {% endif %}
     {% endfor %}
 {% endif %}

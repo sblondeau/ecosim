@@ -90,6 +90,52 @@ final class RenovationHandlerTest extends TestCase
         self::assertInstanceOf(GameState::class, $curtains);
     }
 
+    public function testOrderingFrontsTheStickerPriceAndDefersTheSubsidyRefund(): void
+    {
+        // Roof insulation: 4000 sticker, 40 % prime → 1600, net 2400. Paid cash.
+        $result = new RenovationHandler()->order(self::bareState(), 'roof_insulation', RenovationHandler::FINANCING_CASH);
+
+        self::assertInstanceOf(GameState::class, $result);
+        self::assertSame(4000_00, 8000_00 - $result->savings->cents, 'Savings front the full 4000 sticker, not the 2400 net.');
+        self::assertCount(1, $result->pendingSubsidies, 'The 1600 prime is scheduled as a refund, not deducted now.');
+        self::assertSame(1600_00, $result->pendingSubsidies[0]->amount->cents);
+        self::assertSame($result->scheduledWorks[0]->completionDay + 60, $result->pendingSubsidies[0]->disbursementDay, 'The prime lands ~60 days after the pose.');
+        self::assertFalse($result->pendingSubsidies[0]->repaysLoan, 'A cash-financed prime refunds to savings.');
+    }
+
+    public function testLoanBorrowsTheStickerNotTheNet(): void
+    {
+        // Heat pump: 13000 sticker, 40 % prime → 5200, net 7800. Financed by the PTZ.
+        $result = new RenovationHandler()->order(self::bareState(), 'heat_pump', RenovationHandler::FINANCING_LOAN);
+
+        self::assertInstanceOf(GameState::class, $result);
+        self::assertSame(13000_00, $result->loan->borrowedTotal->cents, 'The éco-PTZ fronts the full sticker; the prime refunds later.');
+        self::assertCount(1, $result->pendingSubsidies);
+        self::assertSame(5200_00, $result->pendingSubsidies[0]->amount->cents);
+        self::assertTrue($result->pendingSubsidies[0]->repaysLoan, 'A PTZ-financed prime prepays the loan, not cash.');
+    }
+
+    public function testAnEcoPtzThatWouldBreachThe35PercentDebtWallIsRefused(): void
+    {
+        $handler = new RenovationHandler();
+        $state = self::bareState();
+
+        // Pile up éco-PTZ (full stickers): ITE 18000 + PAC 13000 = 31 000 →
+        // ratio still under 35 %. Each chantier posed before the next (1 crew).
+        $state = self::completed($handler->order($state, 'wall_insulation_exterior', RenovationHandler::FINANCING_LOAN));
+        $state = self::completed($handler->order($state, 'heat_pump', RenovationHandler::FINANCING_LOAN));
+
+        // The next loan (roof, +4000 → 35 000 borrowed) tips the debt ratio past
+        // 35 % — the bank refuses it, well before the 50 000 € plafond.
+        $refused = $handler->order($state, 'roof_insulation', RenovationHandler::FINANCING_LOAN);
+        self::assertIsString($refused);
+        self::assertStringContainsString('endettement', $refused);
+
+        // But paying that same work CASH is never gated by solvency.
+        $cash = $handler->order($state, 'roof_insulation', RenovationHandler::FINANCING_CASH);
+        self::assertInstanceOf(GameState::class, $cash, 'Cash is limited by savings, not the debt ratio.');
+    }
+
     public function testCashIsRefusedWhenSavingsAreInsufficient(): void
     {
         $result = new RenovationHandler()->order(self::bareState(5000.0), 'solar_panels', RenovationHandler::FINANCING_CASH);
@@ -98,14 +144,14 @@ final class RenovationHandlerTest extends TestCase
         self::assertStringContainsString('Épargne insuffisante', $result);
     }
 
-    public function testLoanFinancesTheNetCostNowButSchedulesTheChantier(): void
+    public function testLoanFrontsTheStickerNowAndSchedulesTheChantier(): void
     {
         $result = new RenovationHandler()->order(self::bareState(), 'heat_pump', RenovationHandler::FINANCING_LOAN);
 
         self::assertInstanceOf(GameState::class, $result);
         self::assertSame(HeatingSystem::FuelOilBoiler, $result->household->heatingSystem, 'Heating is untouched at order — the chantier is scheduled.');
-        self::assertSame(8000_00, $result->savings->cents, 'Savings untouched.');
-        self::assertSame(7800_00, $result->loan->remaining->cents, 'Net cost (13000 − 5200 prime) borrowed now.');
+        self::assertSame(8000_00, $result->savings->cents, 'Savings untouched (the PTZ fronts the cost).');
+        self::assertSame(13000_00, $result->loan->remaining->cents, 'The PTZ borrows the full 13000 sticker; the 5200 prime refunds later.');
         self::assertCount(1, $result->scheduledWorks);
         self::assertSame('heat_pump', $result->scheduledWorks[0]->workSlug);
     }
@@ -166,23 +212,24 @@ final class RenovationHandlerTest extends TestCase
         self::assertStringContainsString('éco-PTZ', $result);
     }
 
-    public function testFullRenovationFitsUnderTheLoanCap(): void
+    public function testTheSolvencyWallCapsThePtzWellBeforeThe50kPlafond(): void
     {
-        // Chains every loan-eligible work (the 4 surface works + heat pump)
-        // through the loan to exercise the cap mechanism end to end.
+        // Chains loan-eligible works: full stickers accumulate on the PTZ, but
+        // the 35 % debt wall (§ contrainte ③) bites long before the 50 000 € cap.
         $handler = new RenovationHandler();
         $state = self::bareState();
 
-        foreach (['roof_insulation', 'wall_insulation_interior', 'glazing', 'heat_pump'] as $work) {
-            $result = $handler->order($state, $work, RenovationHandler::FINANCING_LOAN);
-            self::assertInstanceOf(GameState::class, $result, sprintf('%s should be orderable once the crew is free.', $work));
-            $state = self::completed($result); // pose it before the next — one pro chantier at a time
+        // 4000 (roof) + 9000 (ITI) + 8000 (glazing) = 21 000 € → ratio ~33 %, fits.
+        foreach (['roof_insulation', 'wall_insulation_interior', 'glazing'] as $work) {
+            $state = self::completed($handler->order($state, $work, RenovationHandler::FINANCING_LOAN));
         }
+        self::assertSame(21000_00, $state->loan->borrowedTotal->cents);
 
-        // Net costs at the "intermédiaire" 40 % rate: 2400 (roof) + 5400 (ITI)
-        // + 4800 (glazing) + 7800 (heat pump) = 20 400 €, comfortably under the
-        // 50 000 € éco-PTZ cap — borrowed at order time, accumulating.
-        self::assertSame(20400_00, $state->loan->borrowedTotal->cents);
+        // Adding the heat pump (+13000 → 34000) would tip the ratio past 35 %,
+        // so the PTZ is refused far under the 50 000 € plafond.
+        $refused = $handler->order($state, 'heat_pump', RenovationHandler::FINANCING_LOAN);
+        self::assertIsString($refused);
+        self::assertStringContainsString('endettement', $refused);
     }
 
     public function testLowTempEmittersAndPelletBoilerAreFinanceableWithTheLoan(): void
@@ -192,12 +239,12 @@ final class RenovationHandlerTest extends TestCase
 
         $withEmitters = $handler->order($state, 'low_temp_emitters', RenovationHandler::FINANCING_LOAN);
         self::assertInstanceOf(GameState::class, $withEmitters);
-        self::assertSame(3900_00, $withEmitters->loan->borrowedTotal->cents, 'Net cost (6500 − 2600 prime) borrowed now.');
+        self::assertSame(6500_00, $withEmitters->loan->borrowedTotal->cents, 'The PTZ fronts the full 6500 sticker.');
 
         // Pose the emitters chantier first (one pro at a time), then the boiler.
         $withPellet = $handler->order(self::completed($withEmitters), 'pellet_boiler', RenovationHandler::FINANCING_LOAN);
         self::assertInstanceOf(GameState::class, $withPellet);
-        // 3900 (emitters) + 8400 (14000 − 5600 prime, pellet boiler) = 12 300 €.
-        self::assertSame(12300_00, $withPellet->loan->borrowedTotal->cents);
+        // Full stickers: 6500 (emitters) + 14000 (pellet boiler) = 20 500 €.
+        self::assertSame(20500_00, $withPellet->loan->borrowedTotal->cents);
     }
 }

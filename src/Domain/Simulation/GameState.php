@@ -7,6 +7,7 @@ namespace App\Domain\Simulation;
 use App\Domain\Building\Household;
 use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
+use App\Domain\Finance\PendingSubsidy;
 
 /**
  * The mutable-over-time state of a game, as an immutable snapshot.
@@ -23,8 +24,9 @@ use App\Domain\Finance\Money;
 final readonly class GameState
 {
     /**
-     * @param int<0, max>         $currentDay
-     * @param list<ScheduledWork> $scheduledWorks chantiers ordered but not yet posed
+     * @param int<0, max>          $currentDay
+     * @param list<ScheduledWork>  $scheduledWorks   chantiers ordered but not yet posed
+     * @param list<PendingSubsidy> $pendingSubsidies primes dues mais pas encore versées (§ contrainte ②)
      */
     public function __construct(
         public int $currentDay,
@@ -34,6 +36,7 @@ final readonly class GameState
         public Loan $loan,
         public PeriodTotals $totals,
         public array $scheduledWorks = [],
+        public array $pendingSubsidies = [],
     ) {
     }
 
@@ -62,6 +65,7 @@ final readonly class GameState
             $this->loan->afterPayment($day->loanPayment),
             $this->totals->add($day),
             $this->scheduledWorks,
+            $this->pendingSubsidies,
         );
     }
 
@@ -80,6 +84,7 @@ final readonly class GameState
             $this->loan,
             $this->totals,
             $this->scheduledWorks,
+            $this->pendingSubsidies,
         );
     }
 
@@ -99,17 +104,18 @@ final readonly class GameState
             $loan,
             $this->totals,
             $this->scheduledWorks,
+            $this->pendingSubsidies,
         );
     }
 
     /**
      * The state right after ORDERING a renovation: the money is committed now
-     * (savings for the cash part, loan for the financed part), but the
-     * household is untouched — the chantier is added to the schedule and its
-     * effect lands later, on {@see ScheduledWork::$completionDay}. The day does
-     * not advance.
+     * (savings for the cash part, loan for the financed part — at the FULL
+     * sticker price, § contrainte ②), the household is untouched, the chantier
+     * joins the schedule, and — when the work carries a prime — a deferred
+     * refund joins the pending subsidies. The day does not advance.
      */
-    public function scheduling(Money $savings, Loan $loan, ScheduledWork $work): self
+    public function scheduling(Money $savings, Loan $loan, ScheduledWork $work, ?PendingSubsidy $subsidy = null): self
     {
         return new self(
             $this->currentDay,
@@ -119,6 +125,7 @@ final readonly class GameState
             $loan,
             $this->totals,
             [...$this->scheduledWorks, $work],
+            null === $subsidy ? $this->pendingSubsidies : [...$this->pendingSubsidies, $subsidy],
         );
     }
 
@@ -138,6 +145,57 @@ final readonly class GameState
             $this->loan,
             $this->totals,
             $scheduledWorks,
+            $this->pendingSubsidies,
+        );
+    }
+
+    /** The same state with a different savings balance — the engine banks a disbursed prime. */
+    public function withSavings(Money $savings): self
+    {
+        return new self(
+            $this->currentDay,
+            $this->household,
+            $this->batteryLevelKwh,
+            $savings,
+            $this->loan,
+            $this->totals,
+            $this->scheduledWorks,
+            $this->pendingSubsidies,
+        );
+    }
+
+    /** The same state with a different loan — the engine prepays it when a prime lands on a PTZ-financed work. */
+    public function withLoan(Loan $loan): self
+    {
+        return new self(
+            $this->currentDay,
+            $this->household,
+            $this->batteryLevelKwh,
+            $this->savings,
+            $loan,
+            $this->totals,
+            $this->scheduledWorks,
+            $this->pendingSubsidies,
+        );
+    }
+
+    /**
+     * The same state with a rewritten pending-subsidy list — the engine uses it
+     * to drop primes it has just disbursed.
+     *
+     * @param list<PendingSubsidy> $pendingSubsidies
+     */
+    public function withPendingSubsidies(array $pendingSubsidies): self
+    {
+        return new self(
+            $this->currentDay,
+            $this->household,
+            $this->batteryLevelKwh,
+            $this->savings,
+            $this->loan,
+            $this->totals,
+            $this->scheduledWorks,
+            $pendingSubsidies,
         );
     }
 }

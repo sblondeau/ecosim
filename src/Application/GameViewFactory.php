@@ -26,6 +26,7 @@ use App\Domain\Finance\RenovationConcurrency;
 use App\Domain\Finance\RenovationDefinition;
 use App\Domain\Finance\RenovationQuoter;
 use App\Domain\Finance\SceneSlot;
+use App\Domain\Finance\SolvencyPolicy;
 use App\Domain\Math\SeasonalCycle;
 use App\Domain\Scenario\PrimoAccedantScenario;
 use App\Domain\Scenario\Scenario;
@@ -69,6 +70,9 @@ final readonly class GameViewFactory
         9 => 'septembre', 10 => 'octobre', 11 => 'novembre', 12 => 'décembre',
     ];
 
+    /** Debt ratio at which the Finances gauge turns amber — approaching the 35 % wall (§ contrainte ③). */
+    private const float DEBT_RATIO_TENSION = 0.33;
+
     public function __construct(
         private SimulationEngine $engine = new SimulationEngine(),
         private FinanceCalibration $finance = new FinanceCalibration(),
@@ -83,6 +87,7 @@ final readonly class GameViewFactory
         private CarbonAccountant $carbon = new CarbonAccountant(),
         private RenovationCatalog $catalog = new RenovationCatalog(),
         private RenovationConcurrency $concurrency = new RenovationConcurrency(),
+        private SolvencyPolicy $solvency = new SolvencyPolicy(),
     ) {
     }
 
@@ -107,8 +112,24 @@ final readonly class GameViewFactory
         // average — the real bill is seasonal), net of solar resale.
         $monthlyIncome = Money::fromEuros($this->finance->monthlyNetIncome()->value);
         $monthlyLiving = Money::fromEuros($this->finance->monthlyLivingExpenses()->value);
+        $monthlyMortgage = Money::fromEuros($this->finance->mortgageMonthlyPayment()->value);
         $monthlyEnergy = Money::fromCents(intdiv($currentAnnual->netEnergyCost->cents, 12));
-        $monthlyLeftover = $monthlyIncome->minus($monthlyLiving)->minus($monthlyEnergy)->minus($state->loan->monthlyPayment);
+        $monthlyLeftover = $monthlyIncome->minus($monthlyLiving)->minus($monthlyMortgage)->minus($monthlyEnergy)->minus($state->loan->monthlyPayment);
+
+        // Debt-to-income ratio (§ contrainte ③): mortgage + éco-PTZ over income.
+        $debtRatio = $this->solvency->debtRatio($state->loan);
+        $debtRatioLevel = $debtRatio >= $this->solvency->ceiling() ? 'sature' : ($debtRatio >= self::DEBT_RATIO_TENSION ? 'tendu' : 'ok');
+
+        // Renovation primes owed but not yet paid (§ contrainte ② — MaPrimeRénov'
+        // lands after the works): the money the household has fronted, coming
+        // back, and how long until the soonest one arrives.
+        $pendingSubsidies = Money::zero();
+        $soonestSubsidyDay = null;
+        foreach ($state->pendingSubsidies as $subsidy) {
+            $pendingSubsidies = $pendingSubsidies->plus($subsidy->amount);
+            $soonestSubsidyDay = null === $soonestSubsidyDay ? $subsidy->disbursementDay : min($soonestSubsidyDay, $subsidy->disbursementDay);
+        }
+        $subsidyEtaLabel = null === $soonestSubsidyDay ? '' : sprintf('dans ~%d j', max(0, $soonestSubsidyDay - $state->currentDay));
 
         // The drawer's done chips and quote order, both driven by the
         // catalogue instead of the template's old hardcoded worksOfSlot and
@@ -156,7 +177,12 @@ final readonly class GameViewFactory
             monthlyIncomeLabel: $monthlyIncome->format(),
             monthlyExpensesLabel: $monthlyLiving->format(),
             monthlyEnergyCostLabel: $monthlyEnergy->format(),
+            mortgageLabel: $monthlyMortgage->format(),
+            debtRatioLabel: sprintf('%d %%', (int) round($debtRatio * 100)),
+            debtRatioLevel: $debtRatioLevel,
             monthlyLeftoverLabel: $monthlyLeftover->format(),
+            pendingSubsidiesLabel: $pendingSubsidies->cents > 0 ? $pendingSubsidies->format() : '',
+            pendingSubsidiesEtaLabel: $subsidyEtaLabel,
             monthlyLeftoverNegative: $monthlyLeftover->isNegative(),
             energyEffortPct: (int) round($effortRate * 100),
             inFuelPoverty: $effortRate > $this->finance->fuelPovertyEffortThreshold()->value,
@@ -639,19 +665,25 @@ final readonly class GameViewFactory
             // The current house's reference year is shared; each work gets its own.
             $after = $this->estimator->estimate($quote->resultingHousehold);
 
-            $net = $quote->netCost();
+            // The household fronts the full sticker (§ contrainte ②) — cash and
+            // loan are checked against the cost, not the (later-refunded) net.
+            $cost = $quote->cost;
             $advice = $work->adviceFor($state->household);
 
             $actions[$work->slug()] = new ActionView(
                 work: $work->slug(),
                 title: $quote->title,
-                costLabel: $quote->cost->format(),
+                costLabel: $cost->format(),
                 subsidyLabel: $quote->subsidy->cents > 0 ? $quote->subsidy->format() : '',
-                netCostLabel: $net->format(),
-                cashAllowed: !$crewBusy && $state->savings->cents >= $net->cents,
+                netCostLabel: $quote->netCost()->format(),
+                cashAllowed: !$crewBusy && $state->savings->cents >= $cost->cents,
                 loanAllowed: $loanEligible = (!$crewBusy && $work->qualifiesForEnergyAid()
-                    && $state->loan->borrowedTotal->plus($net)->cents <= $loanCap->cents),
-                loanMonthlyLabel: $loanEligible ? Loan::none()->borrow($net)->monthlyPayment->format() : '',
+                    && $state->loan->borrowedTotal->plus($cost)->cents <= $loanCap->cents
+                    && $this->solvency->allowsBorrowing($state->loan, $cost)),
+                loanMonthlyLabel: $loanEligible ? Loan::none()->borrow($cost)->monthlyPayment->format() : '',
+                loanDebtRatioAfterLabel: $work->qualifiesForEnergyAid()
+                    ? sprintf('%d %%', (int) round($this->solvency->debtRatioAfterBorrowing($state->loan, $cost) * 100))
+                    : '',
                 effectLabels: $this->effectLabels($before, $after),
                 adviceLevel: $advice->level->value,
                 adviceMessage: $advice->message,

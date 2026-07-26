@@ -38,6 +38,24 @@ final class LoanTest extends TestCase
         self::assertSame(50_00 + 32_50, $loan->monthlyPayment->cents);
     }
 
+    public function testPrepayingEasesTheRemainingMonthlyAndBorrowedTotal(): void
+    {
+        // 12 000 € borrowed → 50 €/mo. A 3 000 € prime prepays it (§ contrainte ②/③).
+        $after = Loan::none()->borrow(Money::fromEuros(12000.0))->prepay(Money::fromEuros(3000.0));
+
+        self::assertSame(9000_00, $after->remaining->cents, 'The principal drops by the prime.');
+        self::assertSame(37_50, $after->monthlyPayment->cents, 'The monthly eases proportionally (50 × 9000/12000), so the debt ratio drops.');
+        self::assertSame(9000_00, $after->borrowedTotal->cents, 'The éco-PTZ now reflects the reste à charge (net after aids).');
+    }
+
+    public function testPrepayingMoreThanOwedClearsTheLoan(): void
+    {
+        $after = Loan::none()->borrow(Money::fromEuros(1000.0))->prepay(Money::fromEuros(5000.0));
+
+        self::assertFalse($after->isActive());
+        self::assertSame(0, $after->monthlyPayment->cents);
+    }
+
     public function testRemainingMonthsCountsThePaymentsAhead(): void
     {
         self::assertSame(0, Loan::none()->remainingMonths());
