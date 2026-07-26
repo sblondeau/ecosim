@@ -111,11 +111,15 @@ final readonly class GameViewFactory
         $monthlyLeftover = $monthlyIncome->minus($monthlyLiving)->minus($monthlyEnergy)->minus($state->loan->monthlyPayment);
 
         // Renovation primes owed but not yet paid (§ contrainte ② — MaPrimeRénov'
-        // lands after the works): the money the household has fronted, coming back.
+        // lands after the works): the money the household has fronted, coming
+        // back, and how long until the soonest one arrives.
         $pendingSubsidies = Money::zero();
+        $soonestSubsidyDay = null;
         foreach ($state->pendingSubsidies as $subsidy) {
             $pendingSubsidies = $pendingSubsidies->plus($subsidy->amount);
+            $soonestSubsidyDay = null === $soonestSubsidyDay ? $subsidy->disbursementDay : min($soonestSubsidyDay, $subsidy->disbursementDay);
         }
+        $subsidyEtaLabel = null === $soonestSubsidyDay ? '' : sprintf('dans ~%d j', max(0, $soonestSubsidyDay - $state->currentDay));
 
         // The drawer's done chips and quote order, both driven by the
         // catalogue instead of the template's old hardcoded worksOfSlot and
@@ -165,6 +169,7 @@ final readonly class GameViewFactory
             monthlyEnergyCostLabel: $monthlyEnergy->format(),
             monthlyLeftoverLabel: $monthlyLeftover->format(),
             pendingSubsidiesLabel: $pendingSubsidies->cents > 0 ? $pendingSubsidies->format() : '',
+            pendingSubsidiesEtaLabel: $subsidyEtaLabel,
             monthlyLeftoverNegative: $monthlyLeftover->isNegative(),
             energyEffortPct: (int) round($effortRate * 100),
             inFuelPoverty: $effortRate > $this->finance->fuelPovertyEffortThreshold()->value,

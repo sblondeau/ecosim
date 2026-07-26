@@ -53,6 +53,8 @@ final readonly class GameView
         public bool $monthlyLeftoverNegative,
         /** Renovation primes owed but not yet paid (MaPrimeRénov' after works, § contrainte ②); '' when none. */
         public string $pendingSubsidiesLabel,
+        /** When the soonest pending prime lands (« dans ~12 j »); '' when none pending. */
+        public string $pendingSubsidiesEtaLabel,
         // Fuel poverty (ONPE taux d'effort énergétique)
         /** Share of annual income spent on housing energy, in whole percent. */
         public int $energyEffortPct,

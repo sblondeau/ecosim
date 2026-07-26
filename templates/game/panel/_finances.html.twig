@@ -30,6 +30,6 @@
         <div class="row"><span class="key">Éco-PTZ mobilisé</span><span>{{ game.loanBorrowedLabel }} <span class="muted">/ {{ game.loanCapLabel }} max</span></span></div>
     {% endif %}
     {% if game.pendingSubsidiesLabel is not empty %}
-        <div class="row"><span class="key">Primes à venir<twig:Tip text="MaPrimeRénov' est versée après les travaux : vous avancez le prix plein, la prime revient quelques semaines après la pose." /></span><span class="pos">+{{ game.pendingSubsidiesLabel }}</span></div>
+        <div class="row"><span class="key">Primes à venir <span class="muted">({{ game.pendingSubsidiesEtaLabel }})</span><twig:Tip text="MaPrimeRénov' est versée après les travaux : vous avancez le prix plein, la prime revient quelques semaines après la pose." /></span><span class="pos">+{{ game.pendingSubsidiesLabel }}</span></div>
     {% endif %}
 </div>
