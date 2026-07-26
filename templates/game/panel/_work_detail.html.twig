@@ -1,58 +1,28 @@
-{# Détail d'un travaux sélectionné dans le panneau de zone (§ panneau de
-   décision, étape 1). Trois rôles : « ce que c'est » (pédago — pour l'instant
-   le conseil existant, le contenu riche arrive à l'étape 2), « ce que ça
-   change » (les effets — le radar viendra à l'étape 3), et la barre d'action
-   (prix, prime, endettement avant→après, délai, financements). Toutes les
-   données viennent de l'ActionView existant. #}
-<div class="wdetail">
-    <div class="wdetail-top">
-        <div class="wdetail-peda">
-            <p class="eyebrow">Ce que c'est</p>
-            {% if action.shortWhat is not empty %}<p class="wdetail-what">{{ action.shortWhat }}</p>{% endif %}
-            {% if action.roiLabel is not empty %}<p class="wdetail-roi">💶 {{ action.roiLabel }}</p>{% endif %}
-            {% if action.adviceMessage is not empty %}
-                <p class="wdetail-advice wdetail-advice--{{ action.adviceLevel }}"><span class="wdetail-advice-ico">{{ action.adviceLevel == 'caution' ? '⚠️' : '💡' }}</span>{{ action.adviceMessage }}</p>
-            {% endif %}
-            {% if action.pedaDetails is not empty %}
-                <details class="wdetail-more">
-                    <summary>Voir plus</summary>
-                    <p>{{ action.pedaDetails }}</p>
-                    {% if action.pedaSources is not empty %}<p class="wdetail-sources">Sources : {{ action.pedaSources|join(' · ') }}</p>{% endif %}
-                </details>
-            {% endif %}
-        </div>
-        <div class="wdetail-compare">
-            <p class="eyebrow">Ce que ça change</p>
-            {% if action.effectLabels is not empty %}
-                <div class="wdetail-effects">{% for effect in action.effectLabels %}<div>{{ effect }}</div>{% endfor %}</div>
-            {% else %}
-                <p class="wdetail-none">Aucun effet mesurable sur votre installation actuelle.</p>
-            {% endif %}
-        </div>
+{# Détail d'un travaux (§ panneau de décision) : « ce que c'est » (pédago) +
+   « ce que ça change » (effets). Le CTA vit dans le footer calé en bas
+   (_work_cta.html.twig), pas ici. Tout vient de l'ActionView. #}
+<div class="wdetail-top">
+    <div class="wdetail-peda">
+        <p class="eyebrow">Ce que c'est</p>
+        {% if action.shortWhat is not empty %}<p class="wdetail-what">{{ action.shortWhat }}</p>{% endif %}
+        {% if action.roiLabel is not empty %}<p class="wdetail-roi">💶 {{ action.roiLabel }}</p>{% endif %}
+        {% if action.adviceMessage is not empty %}
+            <p class="wdetail-advice wdetail-advice--{{ action.adviceLevel }}"><span class="wdetail-advice-ico">{{ action.adviceLevel == 'caution' ? '⚠️' : '💡' }}</span>{{ action.adviceMessage }}</p>
+        {% endif %}
+        {% if action.pedaDetails is not empty %}
+            <details class="wdetail-more">
+                <summary>Voir plus</summary>
+                <p>{{ action.pedaDetails }}</p>
+                {% if action.pedaSources is not empty %}<p class="wdetail-sources">Sources : {{ action.pedaSources|join(' · ') }}</p>{% endif %}
+            </details>
+        {% endif %}
     </div>
-
-    {% if action.inProgress %}
-        <div class="wdetail-cta wdetail-cta--status"><p class="wdetail-status">⏳ {{ action.progressLabel }}</p></div>
-    {% elseif action.crewBusy %}
-        <div class="wdetail-cta wdetail-cta--status"><p class="wdetail-status wdetail-status--blocked">🚧 Un autre chantier d'artisan est en cours — disponible dès sa pose.</p></div>
-    {% else %}
-        <div class="wdetail-cta">
-            <div class="wdetail-price">
-                <div class="wdetail-big">{{ action.costLabel }}<small>à avancer</small></div>
-                {% if action.subsidyLabel is not empty %}
-                    <div class="wdetail-note"><span class="pos">Prime +{{ action.subsidyLabel }}</span> après travaux · reste à charge <strong>{{ action.netCostLabel }}</strong></div>
-                {% endif %}
-                <div class="wdetail-meta">
-                    {% if action.loanDebtRatioAfterLabel is not empty %}<span class="metachip">Endettement {{ debtRatioNow }} → {{ action.loanDebtRatioAfterLabel }}</span>{% endif %}
-                    {% if action.delayLabel is not empty %}<span class="metachip">🗓️ {{ action.delayLabel }}</span>{% endif %}
-                </div>
-            </div>
-            <div class="wdetail-actions">
-                <twig:Button label="Payer comptant" action="order" :params="{work: action.work, financing: 'cash'}" class="btn-primary btn-small" :disabled="not action.cashAllowed" />
-                {% if action.loanAllowed %}
-                    <twig:Button label="Éco-PTZ · {{ action.loanMonthlyLabel }}/mois" action="order" :params="{work: action.work, financing: 'loan'}" />
-                {% endif %}
-            </div>
-        </div>
-    {% endif %}
+    <div class="wdetail-compare">
+        <p class="eyebrow">Ce que ça change</p>
+        {% if action.effectLabels is not empty %}
+            <div class="wdetail-effects">{% for effect in action.effectLabels %}<div>{{ effect }}</div>{% endfor %}</div>
+        {% else %}
+            <p class="wdetail-none">Aucun effet mesurable sur votre installation actuelle.</p>
+        {% endif %}
+    </div>
 </div>
