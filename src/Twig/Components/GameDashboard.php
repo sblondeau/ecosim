@@ -61,6 +61,14 @@ final class GameDashboard
     #[LiveProp(writable: true)]
     public ?string $selectedSlot = null;
 
+    /**
+     * Which work's detail is shown in the open zone panel (slug). Null falls
+     * back to the zone's first offered work (resolved in the template). Reset
+     * when the zone changes so a detail never leaks across zones.
+     */
+    #[LiveProp(writable: true)]
+    public ?string $selectedWork = null;
+
     /** Transient message shown after an action (persists across polls, cleared on the next action). */
     #[LiveProp(writable: true, useSerializerForHydration: true)]
     public ?Notice $notice = null;
@@ -108,8 +116,18 @@ final class GameDashboard
             return;
         }
 
-        // Clicking the open panel's trigger again closes it.
+        // Clicking the open panel's trigger again closes it. Changing zone
+        // clears the detailed work so it never leaks from one zone to another.
         $this->selectedSlot = $slot === $this->selectedSlot ? null : $slot;
+        $this->selectedWork = null;
+    }
+
+    /** Show a work's detail in the open zone panel (the rail → detail selection). */
+    #[LiveAction]
+    public function selectWork(#[LiveArg] string $work): void
+    {
+        $this->notice = null;
+        $this->selectedWork = $work;
     }
 
     #[LiveAction]
@@ -117,6 +135,7 @@ final class GameDashboard
     {
         $this->notice = null;
         $this->selectedSlot = null;
+        $this->selectedWork = null;
     }
 
     /**
@@ -205,6 +224,7 @@ final class GameDashboard
     public function reset(): void
     {
         $this->selectedSlot = null;
+        $this->selectedWork = null;
         $this->notice = null;
         $this->acknowledgedEvents = [];
         $this->game = $this->store->reset();

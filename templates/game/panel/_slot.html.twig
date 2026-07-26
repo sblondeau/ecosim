@@ -58,9 +58,6 @@
         <div class="row" style="margin-top:.5rem"><span class="key">Ressenti</span><span>{{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
         <div class="row"><span class="key">Air intérieur</span><span>{{ game.indoorTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
     {% endif %}
-    {% if doneChips is not empty %}
-        <div class="done-strip">{% for chip in doneChips %}<span class="done-chip">✔ {{ chip }}</span>{% endfor %}</div>
-    {% endif %}
 </div>
 
 {% if selected == 'living' and not game.finished and not game.boilerBroken %}
@@ -79,10 +76,40 @@
     </div>
 {% endif %}
 
+{# Travaux de la zone : rail de choix + détail d'UN travaux sélectionné
+   (§ panneau de décision, étape 1). Le détail par défaut = le premier travaux
+   offert ; `this.selectedWork` prime s'il appartient à la zone. #}
 {% if not game.finished %}
+    {% set zoneWorks = [] %}
     {% for work in game.worksBySlot[selected] ?? [] %}
-        {% if game.actions[work] is defined %}
-            <twig:QuoteCard :action="game.actions[work]" debtRatioNow="{{ game.debtRatioLabel }}" />
-        {% endif %}
+        {% if game.actions[work] is defined %}{% set zoneWorks = zoneWorks|merge([work]) %}{% endif %}
     {% endfor %}
+    {% if zoneWorks is not empty %}
+        {% set current = this.selectedWork in zoneWorks ? this.selectedWork : zoneWorks|first %}
+        <div class="works-panel">
+            <div class="works-rail">
+                <p class="rail-eyebrow">Travaux possibles</p>
+                {% for work in zoneWorks %}
+                    {% set wa = game.actions[work] %}
+                    <button type="button" class="zwork{{ work == current ? ' sel' }}{{ wa.inProgress ? ' busy' }}{{ wa.crewBusy ? ' blocked' }}"
+                            data-action="live#action" data-live-action-param="selectWork" data-live-work-param="{{ work }}">
+                        <span class="zwork-ico">{{ include(wa.iconAsset) }}</span>
+                        <span class="zwork-txt">
+                            <span class="zwork-name">{{ wa.title }}</span>
+                            <span class="zwork-cost">{{ wa.inProgress ? 'chantier en cours' : (wa.crewBusy ? 'autre chantier en cours' : wa.costLabel) }}</span>
+                        </span>
+                    </button>
+                {% endfor %}
+                {% if doneChips is not empty %}
+                    <p class="rail-eyebrow rail-eyebrow--second">Déjà en place</p>
+                    {% for chip in doneChips %}
+                        <div class="zwork zwork--done"><span class="zwork-ico">✔</span><span class="zwork-txt"><span class="zwork-name">{{ chip }}</span></span></div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="works-detail">
+                {{ include('game/panel/_work_detail.html.twig', {action: game.actions[current], debtRatioNow: game.debtRatioLabel}) }}
+            </div>
+        </div>
+    {% endif %}
 {% endif %}
