@@ -14,6 +14,7 @@ use App\Domain\Finance\RenovationAdvice;
 use App\Domain\Finance\RenovationDefinition;
 use App\Domain\Finance\RenovationOffer;
 use App\Domain\Finance\SceneSlot;
+use App\Domain\Finance\WorkPedagogy;
 
 /**
  * Interior wall insulation (ITI): the cheaper of the two wall-insulation
@@ -91,5 +92,14 @@ final readonly class WallInsulationInteriorWork implements RenovationDefinition
     public function requiresProfessional(): bool
     {
         return true;
+    }
+
+    public function pedagogy(): WorkPedagogy
+    {
+        return new WorkPedagogy(
+            'L\'isolation des murs par l\'intérieur (ITI) double les murs d\'un isolant côté pièce. Les murs sont la 2ᵉ source de pertes après le toit.',
+            'Moins chère que l\'ITE et sans toucher la façade, mais elle rogne un peu la surface habitable et traite moins bien les ponts thermiques (jonctions planchers/murs).',
+            ['ADEME — isolation des murs'],
+        );
     }
 }

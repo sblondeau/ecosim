@@ -13,6 +13,7 @@ use App\Domain\Finance\RenovationAdvice;
 use App\Domain\Finance\RenovationDefinition;
 use App\Domain\Finance\RenovationOffer;
 use App\Domain\Finance\SceneSlot;
+use App\Domain\Finance\WorkPedagogy;
 
 /**
  * Draught-proofing: window seals, door sweeps, mastic. A cheap daily gesture
@@ -93,5 +94,14 @@ final readonly class DraughtProofingWork implements RenovationDefinition
     public function requiresProfessional(): bool
     {
         return false;
+    }
+
+    public function pedagogy(): WorkPedagogy
+    {
+        return new WorkPedagogy(
+            'Joints de fenêtres, bas de porte, mastic : on bouche les fuites d\'air. Un geste peu coûteux qu\'on fait soi-même, avec un gain de confort immédiat sur les courants d\'air.',
+            'L\'étanchéité à l\'air évite de chauffer de l\'air qui s\'échappe. Petit poste, mais un des meilleurs rapports confort/prix, et prérequis d\'une VMC efficace.',
+            [],
+        );
     }
 }

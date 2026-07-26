@@ -133,4 +133,9 @@ final readonly class StubDefinition implements RenovationDefinition
     {
         return true;
     }
+
+    public function pedagogy(): \App\Domain\Finance\WorkPedagogy
+    {
+        return new \App\Domain\Finance\WorkPedagogy('test');
+    }
 }

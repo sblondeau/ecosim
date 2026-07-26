@@ -51,6 +51,15 @@ final readonly class ActionView
          * Shown disabled with a reason rather than hidden. Gestes are never busy.
          */
         public bool $crewBusy = false,
+        // Pédagogie (§ panneau de décision, étape 2) — from the work's WorkPedagogy.
+        /** 1-2 sentences: what the work is / how it works. */
+        public string $shortWhat = '',
+        /** The « Voir plus » long form (mechanism, pitfalls). */
+        public string $pedaDetails = '',
+        /** @var list<string> traceable sources (ADEME…) shown in the expanded view */
+        public array $pedaSources = [],
+        /** Payback in plain French (« S'amortit en ~12 ans · 650 €/an ») — empty if none. */
+        public string $roiLabel = '',
     ) {
     }
 }

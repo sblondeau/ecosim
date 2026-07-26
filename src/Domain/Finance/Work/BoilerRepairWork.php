@@ -13,6 +13,7 @@ use App\Domain\Finance\RenovationAdvice;
 use App\Domain\Finance\RenovationDefinition;
 use App\Domain\Finance\RenovationOffer;
 use App\Domain\Finance\SceneSlot;
+use App\Domain\Finance\WorkPedagogy;
 
 /**
  * Fix the broken fuel-oil boiler: the cheap way back to normal after the
@@ -88,5 +89,14 @@ final readonly class BoilerRepairWork implements RenovationDefinition
     public function requiresProfessional(): bool
     {
         return true;
+    }
+
+    public function pedagogy(): WorkPedagogy
+    {
+        return new WorkPedagogy(
+            'Une intervention d\'urgence : le chauffagiste remet la chaudière fioul en état de marche. Rien n\'est amélioré — on répare l\'existant pour ne pas rester sans chauffage.',
+            'C\'est un dépannage rapide, pas une rénovation : le générateur reste au fioul, avec ses factures et ses émissions. À voir comme un sursis le temps de préparer un vrai changement (PAC, granulés).',
+            [],
+        );
     }
 }

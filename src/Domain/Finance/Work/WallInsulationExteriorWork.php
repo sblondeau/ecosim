@@ -14,6 +14,7 @@ use App\Domain\Finance\RenovationAdvice;
 use App\Domain\Finance\RenovationDefinition;
 use App\Domain\Finance\RenovationOffer;
 use App\Domain\Finance\SceneSlot;
+use App\Domain\Finance\WorkPedagogy;
 
 /**
  * Exterior wall insulation (ITE): the dearer of the two wall-insulation
@@ -92,5 +93,14 @@ final readonly class WallInsulationExteriorWork implements RenovationDefinition
     public function requiresProfessional(): bool
     {
         return true;
+    }
+
+    public function pedagogy(): WorkPedagogy
+    {
+        return new WorkPedagogy(
+            'L\'isolation des murs par l\'extérieur (ITE) enveloppe la maison d\'un isolant sous un nouveau ravalement. Elle traite les ponts thermiques et ne réduit pas la surface intérieure.',
+            'La solution la plus performante sur les murs, mais la plus chère (ravalement inclus) et la plus longue. Idéale si une façade est de toute façon à refaire.',
+            ['ADEME — isolation des murs par l\'extérieur'],
+        );
     }
 }

@@ -534,3 +534,11 @@ details.card[open]>summary {
     z-index: 1;
     background: color-mix(in srgb, var(--bg) 55%, transparent);
 }
+
+/* Pédagogie du travaux (§ étape 2) : descriptif court, ROI, « Voir plus ». */
+.wdetail-what { margin: 0; font-size: var(--text-sm); color: var(--ink); }
+.wdetail-roi { margin: 0; font-size: var(--text-sm); font-weight: 600; color: var(--accent); }
+.wdetail-more { font-size: var(--text-sm); }
+.wdetail-more summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: var(--text-xs); }
+.wdetail-more > p { margin: var(--space-xs) 0 0; color: var(--muted); }
+.wdetail-sources { font-size: var(--text-2xs); font-style: italic; color: var(--muted); }

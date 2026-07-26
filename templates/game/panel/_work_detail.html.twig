@@ -8,10 +8,17 @@
     <div class="wdetail-top">
         <div class="wdetail-peda">
             <p class="eyebrow">Ce que c'est</p>
+            {% if action.shortWhat is not empty %}<p class="wdetail-what">{{ action.shortWhat }}</p>{% endif %}
+            {% if action.roiLabel is not empty %}<p class="wdetail-roi">💶 {{ action.roiLabel }}</p>{% endif %}
             {% if action.adviceMessage is not empty %}
                 <p class="wdetail-advice wdetail-advice--{{ action.adviceLevel }}"><span class="wdetail-advice-ico">{{ action.adviceLevel == 'caution' ? '⚠️' : '💡' }}</span>{{ action.adviceMessage }}</p>
-            {% else %}
-                <p class="wdetail-advice">Descriptif pédagogique à venir.</p>
+            {% endif %}
+            {% if action.pedaDetails is not empty %}
+                <details class="wdetail-more">
+                    <summary>Voir plus</summary>
+                    <p>{{ action.pedaDetails }}</p>
+                    {% if action.pedaSources is not empty %}<p class="wdetail-sources">Sources : {{ action.pedaSources|join(' · ') }}</p>{% endif %}
+                </details>
             {% endif %}
         </div>
         <div class="wdetail-compare">

@@ -14,6 +14,7 @@ use App\Domain\Finance\RenovationAdvice;
 use App\Domain\Finance\RenovationDefinition;
 use App\Domain\Finance\RenovationOffer;
 use App\Domain\Finance\SceneSlot;
+use App\Domain\Finance\WorkPedagogy;
 
 /**
  * Automatic wood-pellet boiler: replaces the generator, cheap and low-carbon
@@ -88,5 +89,14 @@ final readonly class PelletBoilerWork implements RenovationDefinition
     public function requiresProfessional(): bool
     {
         return true;
+    }
+
+    public function pedagogy(): WorkPedagogy
+    {
+        return new WorkPedagogy(
+            'Une chaudière à granulés brûle des pellets de bois (biomasse). Chaleur renouvelable et peu carbonée, mais elle exige un silo et un réapprovisionnement régulier.',
+            'Alternative à la PAC quand le réseau électrique ou le bâti s\'y prêtent mal. Le prix du granulé est plus stable que le fioul, mais le stockage occupe de la place.',
+            ['ADEME — chauffage au bois'],
+        );
     }
 }
