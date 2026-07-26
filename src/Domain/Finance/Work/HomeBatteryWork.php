@@ -8,7 +8,6 @@ use App\Domain\Building\Household;
 use App\Domain\Energy\EnergyCalibration;
 use App\Domain\Finance\AdviceLevel;
 use App\Domain\Finance\ChantierDelay;
-use App\Domain\Finance\ExclusivityGroup;
 use App\Domain\Finance\FinanceCalibration;
 use App\Domain\Finance\Money;
 use App\Domain\Finance\RenovationAdvice;
@@ -98,8 +97,8 @@ final readonly class HomeBatteryWork implements RenovationDefinition
         return new ChantierDelay(14, 1);
     }
 
-    public function exclusivityGroup(): ?ExclusivityGroup
+    public function requiresProfessional(): bool
     {
-        return null;
+        return true;
     }
 }

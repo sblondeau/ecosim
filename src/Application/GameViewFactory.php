@@ -22,7 +22,7 @@ use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
 use App\Domain\Finance\PropertyValuator;
 use App\Domain\Finance\RenovationCatalog;
-use App\Domain\Finance\RenovationConflicts;
+use App\Domain\Finance\RenovationConcurrency;
 use App\Domain\Finance\RenovationDefinition;
 use App\Domain\Finance\RenovationQuoter;
 use App\Domain\Finance\SceneSlot;
@@ -82,7 +82,7 @@ final readonly class GameViewFactory
         private DpeCertifier $dpeCertifier = new DpeCertifier(),
         private CarbonAccountant $carbon = new CarbonAccountant(),
         private RenovationCatalog $catalog = new RenovationCatalog(),
-        private RenovationConflicts $conflicts = new RenovationConflicts(),
+        private RenovationConcurrency $concurrency = new RenovationConcurrency(),
     ) {
     }
 
@@ -631,11 +631,10 @@ final readonly class GameViewFactory
 
             $inProgress = isset($completionBySlug[$work->slug()]);
 
-            // A work conflicting with an in-progress chantier (a second heating
-            // generator) is not offerable while that chantier is being built.
-            if (!$inProgress && $this->conflicts->conflictsWithInProgress($work, $inProgressWorks)) {
-                continue;
-            }
+            // Only one professional chantier at a time (§ contrainte ①): a pro
+            // work stays listed but DISABLED (crewBusy) while another pro
+            // chantier is being built — shown with a reason, not hidden.
+            $crewBusy = !$inProgress && !$this->concurrency->allowsOrdering($work, $inProgressWorks);
 
             // The current house's reference year is shared; each work gets its own.
             $after = $this->estimator->estimate($quote->resultingHousehold);
@@ -649,8 +648,8 @@ final readonly class GameViewFactory
                 costLabel: $quote->cost->format(),
                 subsidyLabel: $quote->subsidy->cents > 0 ? $quote->subsidy->format() : '',
                 netCostLabel: $net->format(),
-                cashAllowed: $state->savings->cents >= $net->cents,
-                loanAllowed: $loanEligible = ($work->qualifiesForEnergyAid()
+                cashAllowed: !$crewBusy && $state->savings->cents >= $net->cents,
+                loanAllowed: $loanEligible = (!$crewBusy && $work->qualifiesForEnergyAid()
                     && $state->loan->borrowedTotal->plus($net)->cents <= $loanCap->cents),
                 loanMonthlyLabel: $loanEligible ? Loan::none()->borrow($net)->monthlyPayment->format() : '',
                 effectLabels: $this->effectLabels($before, $after),
@@ -660,6 +659,7 @@ final readonly class GameViewFactory
                 delayLabel: $this->chantierDelayLabel($work),
                 inProgress: $inProgress,
                 progressLabel: $inProgress ? $this->progressLabel($completionBySlug[$work->slug()] - $state->currentDay) : '',
+                crewBusy: $crewBusy,
             );
         }
 

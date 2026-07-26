@@ -5,8 +5,8 @@
    existe (solaire/PAC/chaudière/batterie), sinon un petit swatch dédié
    (isolation…). Ajouter un travail ne touche plus ce template. #}
 {% props action %}
-<div class="card quote{{ action.inProgress ? ' quote--in-progress' }}">
-    <p class="quote-eyebrow">{{ action.inProgress ? 'Chantier en cours' : 'Travaux disponibles' }}</p>
+<div class="card quote{{ action.inProgress ? ' quote--in-progress' }}{{ action.crewBusy ? ' quote--blocked' }}">
+    <p class="quote-eyebrow">{{ action.inProgress ? 'Chantier en cours' : (action.crewBusy ? 'À programmer' : 'Travaux disponibles') }}</p>
     <div class="quote-head">
         <div class="quote-icon">{{ include(action.iconAsset) }}</div>
         <h2>{{ action.title }}</h2>
@@ -33,6 +33,8 @@
     {% endif %}
     {% if action.inProgress %}
         <p class="quote-progress">⏳ {{ action.progressLabel }}</p>
+    {% elseif action.crewBusy %}
+        <p class="quote-blocked">🚧 Un autre chantier d'artisan est déjà en cours — disponible dès sa pose.</p>
     {% else %}
         {% if action.delayLabel is not empty %}
             <p class="quote-delay">🗓️ {{ action.delayLabel }}</p>

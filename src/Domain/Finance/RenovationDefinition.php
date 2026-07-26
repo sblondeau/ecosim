@@ -95,12 +95,12 @@ interface RenovationDefinition
     public function delay(): ChantierDelay;
 
     /**
-     * The {@see ExclusivityGroup} this work belongs to, or null when it stands
-     * alone. Two works of the same group cannot have chantiers in flight at
-     * once because they replace the SAME exclusive equipment (one heating
-     * generator, not a PAC AND a pellet boiler). The emergency boiler repair is
-     * deliberately outside any group — you must always survive the panne, even
-     * with a generator already on order.
+     * Whether this work needs an RGE professional (true) or is a self-doable
+     * geste (false: draught-proofing, thermal curtains, the plug-and-play solar
+     * kit). Drives the "one professional chantier at a time" rule (§ contrainte,
+     * levier ① — {@see RenovationConcurrency}): pro works serialise, DIY gestes
+     * run in parallel. The emergency boiler repair answers true but is exempted
+     * from the rule (you must survive the panne even mid-chantier).
      */
-    public function exclusivityGroup(): ?ExclusivityGroup;
+    public function requiresProfessional(): bool;
 }

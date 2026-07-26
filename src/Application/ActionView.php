@@ -43,6 +43,12 @@ final readonly class ActionView
         public bool $inProgress = false,
         /** When in progress: the pose countdown (« Chantier en cours · posé dans 3 j »). */
         public string $progressLabel = '',
+        /**
+         * Whether this (professional) work is orderable but blocked right now
+         * because another pro chantier occupies the single crew (§ contrainte ①).
+         * Shown disabled with a reason rather than hidden. Gestes are never busy.
+         */
+        public bool $crewBusy = false,
     ) {
     }
 }

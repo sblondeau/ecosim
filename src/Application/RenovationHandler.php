@@ -7,7 +7,7 @@ namespace App\Application;
 use App\Domain\Finance\FinanceCalibration;
 use App\Domain\Finance\Money;
 use App\Domain\Finance\RenovationCatalog;
-use App\Domain\Finance\RenovationConflicts;
+use App\Domain\Finance\RenovationConcurrency;
 use App\Domain\Finance\RenovationDefinition;
 use App\Domain\Finance\RenovationQuoter;
 use App\Domain\Simulation\GameState;
@@ -37,7 +37,7 @@ final readonly class RenovationHandler
         private RenovationQuoter $quoter = new RenovationQuoter(),
         private FinanceCalibration $finance = new FinanceCalibration(),
         private RenovationCatalog $catalog = new RenovationCatalog(),
-        private RenovationConflicts $conflicts = new RenovationConflicts(),
+        private RenovationConcurrency $concurrency = new RenovationConcurrency(),
     ) {
     }
 
@@ -60,8 +60,8 @@ final readonly class RenovationHandler
         if (in_array($workSlug, $inProgressSlugs, true)) {
             return 'Ce chantier est déjà en cours.';
         }
-        if ($this->conflicts->conflictsWithInProgress($work, $this->inProgressWorks($state))) {
-            return 'Un chantier de chauffage est déjà en cours — attendez sa pose avant d\'en commander un autre.';
+        if (!$this->concurrency->allowsOrdering($work, $this->inProgressWorks($state))) {
+            return 'Un chantier est déjà en cours — attendez sa pose avant d\'en commander un autre.';
         }
 
         $net = $quote->netCost();
@@ -104,8 +104,8 @@ final readonly class RenovationHandler
 
     /**
      * The catalogue works currently under construction — resolved from the
-     * scheduled slugs so their {@see RenovationDefinition::exclusivityGroup()}
-     * can be compared. Unknown slugs (never expected) are simply dropped.
+     * scheduled slugs so the concurrency rule can weigh them. Unknown slugs
+     * (never expected) are simply dropped.
      *
      * @return list<RenovationDefinition>
      */

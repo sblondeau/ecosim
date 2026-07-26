@@ -43,8 +43,13 @@ final class GameViewFactoryTest extends TestCase
         self::assertTrue($view->actions['solar_panels']->inProgress, 'An ordered work is shown as a chantier in progress, not orderable again.');
         self::assertStringContainsString('4', $view->actions['solar_panels']->progressLabel, 'It names the days left until it lands (completion day 4, current day 0).');
 
-        self::assertFalse($view->actions['roof_insulation']->inProgress, 'A work not yet ordered stays orderable.');
-        self::assertNotSame('', $view->actions['roof_insulation']->delayLabel, 'An orderable work announces its chantier delay up front.');
+        // While the solar chantier (a pro work) runs, other PRO works stay
+        // listed but DISABLED (crewBusy) — one crew at a time — while
+        // self-doable gestes stay orderable and announce their delay.
+        self::assertTrue($view->actions['roof_insulation']->crewBusy, 'A second professional work is disabled while a pro chantier runs.');
+        self::assertFalse($view->actions['roof_insulation']->cashAllowed, 'A crew-busy work cannot be ordered.');
+        self::assertFalse($view->actions['thermal_curtains']->crewBusy, 'A self-doable geste stays orderable in parallel.');
+        self::assertNotSame('', $view->actions['thermal_curtains']->delayLabel, 'An orderable geste announces its chantier delay up front.');
     }
 
     public function testASceneZoneIsPlannedDuringTheLeadThenActiveDuringThePoseOnItsVisualZone(): void
@@ -64,7 +69,7 @@ final class GameViewFactoryTest extends TestCase
         self::assertArrayNotHasKey('walls', $onSite->scene->chantierZones, 'The marker follows the visual roof, not the walls drawer slot.');
     }
 
-    public function testASecondHeatingGeneratorIsHiddenWhileOneIsBeingBuilt(): void
+    public function testProfessionalWorksAreDisabledWhileAChantierRunsButGestesStay(): void
     {
         $bare = new Household(0.0, 0.0, self::original(), HeatingSystem::FuelOilBoiler);
         $state = new GameState(
@@ -80,8 +85,9 @@ final class GameViewFactoryTest extends TestCase
         $view = new GameViewFactory()->build(self::config(), $state);
 
         self::assertTrue($view->actions['heat_pump']->inProgress, 'The heat pump chantier shows as in progress.');
-        self::assertArrayNotHasKey('pellet_boiler', $view->actions, 'A second generator is not offered while one is being built.');
-        self::assertArrayHasKey('low_temp_emitters', $view->actions, 'Non-generator heating works stay offered.');
+        self::assertTrue($view->actions['pellet_boiler']->crewBusy, 'Another generator is listed but disabled while one is being built.');
+        self::assertTrue($view->actions['low_temp_emitters']->crewBusy, 'Any professional work is disabled — one crew at a time.');
+        self::assertFalse($view->actions['thermal_curtains']->crewBusy, 'Self-doable gestes stay orderable in parallel.');
     }
 
     private static function config(): GameConfig
