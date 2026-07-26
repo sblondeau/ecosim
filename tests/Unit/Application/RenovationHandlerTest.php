@@ -11,8 +11,11 @@ use App\Domain\Building\HeatingSystem;
 use App\Domain\Building\Household;
 use App\Domain\Building\WallInsulation;
 use App\Domain\Finance\Money;
+use App\Domain\Finance\RenovationCatalog;
 use App\Domain\Simulation\GameState;
 use PHPUnit\Framework\TestCase;
+
+use function sprintf;
 
 final class RenovationHandlerTest extends TestCase
 {
@@ -22,6 +25,25 @@ final class RenovationHandlerTest extends TestCase
             new Household(0.0, 0.0, new EnvelopeState(false, WallInsulation::None, Glazing::Single), HeatingSystem::FuelOilBoiler),
             Money::fromEuros($savingsEuros),
         );
+    }
+
+    /**
+     * Mimics the engine posing every scheduled chantier: applies its effect to
+     * the household and frees the crew. Used to chain professional works in a
+     * test, since only one pro chantier may be in flight at a time.
+     */
+    private static function completed(GameState $state): GameState
+    {
+        $catalog = new RenovationCatalog();
+        $household = $state->household;
+        foreach ($state->scheduledWorks as $chantier) {
+            $offer = $catalog->get($chantier->workSlug)->offerFor($household);
+            if (null !== $offer) {
+                $household = $offer->resultingHousehold;
+            }
+        }
+
+        return $state->withHousehold($household)->withScheduledWorks([]);
     }
 
     public function testCashPurchaseDebitsTheSavingsNowButSchedulesTheChantier(): void
@@ -49,22 +71,23 @@ final class RenovationHandlerTest extends TestCase
         self::assertStringContainsString('déjà en cours', $again);
     }
 
-    public function testASecondHeatingGeneratorCannotBeOrderedWhileOneIsInProgress(): void
+    public function testOnlyOneProfessionalChantierRunsAtATime(): void
     {
         $handler = new RenovationHandler();
         $withPacPending = $handler->order(self::bareState(), 'heat_pump', RenovationHandler::FINANCING_LOAN);
         self::assertInstanceOf(GameState::class, $withPacPending);
 
-        // A pellet boiler conflicts with the pending heat-pump chantier: you do
-        // not queue two generators.
-        $refused = $handler->order($withPacPending, 'pellet_boiler', RenovationHandler::FINANCING_LOAN);
-        self::assertIsString($refused);
-        self::assertStringContainsString('chauffage', $refused);
+        // Any second PROFESSIONAL work is refused while the PAC chantier is in
+        // flight — not just another generator (that exclusivity is subsumed).
+        foreach (['pellet_boiler', 'low_temp_emitters', 'roof_insulation'] as $blocked) {
+            $refused = $handler->order($withPacPending, $blocked, RenovationHandler::FINANCING_LOAN);
+            self::assertIsString($refused, sprintf('%s is a pro work, refused while a chantier runs.', $blocked));
+            self::assertStringContainsString('déjà en cours', $refused);
+        }
 
-        // Low-temp emitters share the heating slot but are not a generator —
-        // still orderable alongside the pending heat pump.
-        $emitters = $handler->order($withPacPending, 'low_temp_emitters', RenovationHandler::FINANCING_LOAN);
-        self::assertInstanceOf(GameState::class, $emitters);
+        // A self-doable geste runs in parallel with the pro chantier.
+        $curtains = $handler->order($withPacPending, 'thermal_curtains', RenovationHandler::FINANCING_CASH);
+        self::assertInstanceOf(GameState::class, $curtains);
     }
 
     public function testCashIsRefusedWhenSavingsAreInsufficient(): void
@@ -152,14 +175,13 @@ final class RenovationHandlerTest extends TestCase
 
         foreach (['roof_insulation', 'wall_insulation_interior', 'glazing', 'heat_pump'] as $work) {
             $result = $handler->order($state, $work, RenovationHandler::FINANCING_LOAN);
-            self::assertInstanceOf(GameState::class, $result);
-            $state = $result;
+            self::assertInstanceOf(GameState::class, $result, sprintf('%s should be orderable once the crew is free.', $work));
+            $state = self::completed($result); // pose it before the next — one pro chantier at a time
         }
 
-        self::assertCount(4, $state->scheduledWorks, 'The four loan-financed chantiers are all scheduled.');
         // Net costs at the "intermédiaire" 40 % rate: 2400 (roof) + 5400 (ITI)
         // + 4800 (glazing) + 7800 (heat pump) = 20 400 €, comfortably under the
-        // 50 000 € éco-PTZ cap — borrowed at order time.
+        // 50 000 € éco-PTZ cap — borrowed at order time, accumulating.
         self::assertSame(20400_00, $state->loan->borrowedTotal->cents);
     }
 
@@ -172,9 +194,9 @@ final class RenovationHandlerTest extends TestCase
         self::assertInstanceOf(GameState::class, $withEmitters);
         self::assertSame(3900_00, $withEmitters->loan->borrowedTotal->cents, 'Net cost (6500 − 2600 prime) borrowed now.');
 
-        $withPellet = $handler->order($withEmitters, 'pellet_boiler', RenovationHandler::FINANCING_LOAN);
+        // Pose the emitters chantier first (one pro at a time), then the boiler.
+        $withPellet = $handler->order(self::completed($withEmitters), 'pellet_boiler', RenovationHandler::FINANCING_LOAN);
         self::assertInstanceOf(GameState::class, $withPellet);
-        self::assertCount(2, $withPellet->scheduledWorks, 'Both chantiers scheduled.');
         // 3900 (emitters) + 8400 (14000 − 5600 prime, pellet boiler) = 12 300 €.
         self::assertSame(12300_00, $withPellet->loan->borrowedTotal->cents);
     }

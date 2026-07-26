@@ -129,8 +129,8 @@ final readonly class StubDefinition implements RenovationDefinition
         return new \App\Domain\Finance\ChantierDelay(1, 1);
     }
 
-    public function exclusivityGroup(): ?\App\Domain\Finance\ExclusivityGroup
+    public function requiresProfessional(): bool
     {
-        return null;
+        return true;
     }
 }

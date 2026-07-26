@@ -8,7 +8,6 @@ use App\Domain\Building\Household;
 use App\Domain\Building\WallInsulation;
 use App\Domain\Finance\AdviceLevel;
 use App\Domain\Finance\ChantierDelay;
-use App\Domain\Finance\ExclusivityGroup;
 use App\Domain\Finance\FinanceCalibration;
 use App\Domain\Finance\Money;
 use App\Domain\Finance\RenovationAdvice;
@@ -89,8 +88,8 @@ final readonly class WallInsulationInteriorWork implements RenovationDefinition
         return new ChantierDelay(28, 5);
     }
 
-    public function exclusivityGroup(): ?ExclusivityGroup
+    public function requiresProfessional(): bool
     {
-        return null;
+        return true;
     }
 }

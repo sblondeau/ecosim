@@ -22,7 +22,7 @@ use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
 use App\Domain\Finance\PropertyValuator;
 use App\Domain\Finance\RenovationCatalog;
-use App\Domain\Finance\RenovationConflicts;
+use App\Domain\Finance\RenovationConcurrency;
 use App\Domain\Finance\RenovationDefinition;
 use App\Domain\Finance\RenovationQuoter;
 use App\Domain\Finance\SceneSlot;
@@ -82,7 +82,7 @@ final readonly class GameViewFactory
         private DpeCertifier $dpeCertifier = new DpeCertifier(),
         private CarbonAccountant $carbon = new CarbonAccountant(),
         private RenovationCatalog $catalog = new RenovationCatalog(),
-        private RenovationConflicts $conflicts = new RenovationConflicts(),
+        private RenovationConcurrency $concurrency = new RenovationConcurrency(),
     ) {
     }
 
@@ -631,9 +631,9 @@ final readonly class GameViewFactory
 
             $inProgress = isset($completionBySlug[$work->slug()]);
 
-            // A work conflicting with an in-progress chantier (a second heating
-            // generator) is not offerable while that chantier is being built.
-            if (!$inProgress && $this->conflicts->conflictsWithInProgress($work, $inProgressWorks)) {
+            // Only one professional chantier at a time (§ contrainte ①): a pro
+            // work is not offerable while another pro chantier is being built.
+            if (!$inProgress && !$this->concurrency->allowsOrdering($work, $inProgressWorks)) {
                 continue;
             }
 

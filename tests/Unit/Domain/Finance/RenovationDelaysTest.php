@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\Finance;
 
-use App\Domain\Finance\ExclusivityGroup;
 use App\Domain\Finance\FinanceCalibration;
 use App\Domain\Finance\RenovationCatalog;
 use PHPUnit\Framework\TestCase;
@@ -60,14 +59,5 @@ final class RenovationDelaysTest extends TestCase
         foreach ($this->catalog->all() as $work) {
             self::assertGreaterThan(0, $work->delay()->totalDays(), sprintf('%s must have a chantier delay.', $work->slug()));
         }
-    }
-
-    public function testOnlyHeatingGeneratorsShareTheExclusivityGroup(): void
-    {
-        self::assertSame(ExclusivityGroup::HeatingGenerator, $this->catalog->get('heat_pump')->exclusivityGroup());
-        self::assertSame(ExclusivityGroup::HeatingGenerator, $this->catalog->get('pellet_boiler')->exclusivityGroup());
-        // The emergency repair must never be blocked by a generator on order.
-        self::assertNull($this->catalog->get('boiler_repair')->exclusivityGroup());
-        self::assertNull($this->catalog->get('roof_insulation')->exclusivityGroup());
     }
 }

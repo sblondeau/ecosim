@@ -7,7 +7,6 @@ namespace App\Domain\Finance\Work;
 use App\Domain\Building\Household;
 use App\Domain\Finance\AdviceLevel;
 use App\Domain\Finance\ChantierDelay;
-use App\Domain\Finance\ExclusivityGroup;
 use App\Domain\Finance\FinanceCalibration;
 use App\Domain\Finance\Money;
 use App\Domain\Finance\RenovationAdvice;
@@ -22,6 +21,9 @@ use App\Domain\Finance\SceneSlot;
  */
 final readonly class BoilerRepairWork implements RenovationDefinition
 {
+    /** Named so the concurrency rule can exempt the emergency repair. */
+    public const string SLUG = 'boiler_repair';
+
     public function __construct(
         private FinanceCalibration $calibration = new FinanceCalibration(),
     ) {
@@ -29,7 +31,7 @@ final readonly class BoilerRepairWork implements RenovationDefinition
 
     public function slug(): string
     {
-        return 'boiler_repair';
+        return self::SLUG;
     }
 
     public function slot(): SceneSlot
@@ -83,8 +85,8 @@ final readonly class BoilerRepairWork implements RenovationDefinition
         return new ChantierDelay(2, 1);
     }
 
-    public function exclusivityGroup(): ?ExclusivityGroup
+    public function requiresProfessional(): bool
     {
-        return null;
+        return true;
     }
 }
