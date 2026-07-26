@@ -268,7 +268,9 @@ final class GameDashboard
     {
         $positions = [];
         foreach (SceneSlot::cases() as $slot) {
-            $positions[$slot->value] = 'at-drawer';
+            // Zone panels open as a fixed-height CENTRAL modal (the decision
+            // moment — § panneau de décision), not the old side drawer.
+            $positions[$slot->value] = 'at-center';
         }
         foreach (AxisPanel::cases() as $panel) {
             $positions[$panel->value] = $panel->anchor();

@@ -482,3 +482,55 @@ details.card[open]>summary {
     .wdetail-top { grid-template-columns: 1fr; }
     .wdetail-actions { margin-left: 0; width: 100%; }
 }
+
+/* ===== Panneau de zone = modale centrale à hauteur fixe (§ panneau de décision) ===== */
+.float-panel.at-center {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(880px, 95%);
+    height: min(88vh, 660px);
+    overflow-y: auto;
+    overflow-x: visible;
+}
+
+/* Bandeau illustration pleine largeur (déborde le padding du panneau, comme .intro-hero) */
+.zone-hero {
+    position: relative;
+    margin: calc(-1 * var(--space-lg)) calc(-1 * var(--space-lg)) 0;
+    height: 132px;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    background: radial-gradient(120% 140% at 78% 15%, color-mix(in srgb, var(--accent) 30%, #1b2530), #10171f 72%);
+}
+.zone-hero--roof { background: radial-gradient(120% 140% at 78% 15%, color-mix(in srgb, var(--warn) 34%, #1b2530), #10171f 72%); }
+.zone-hero--walls { background: radial-gradient(120% 140% at 78% 15%, color-mix(in srgb, #c58a5a 42%, #1b2530), #10171f 72%); }
+.zone-hero--heating { background: radial-gradient(120% 140% at 78% 15%, color-mix(in srgb, var(--danger) 32%, #1b2530), #12141a 72%); }
+.zone-hero--garage { background: radial-gradient(120% 140% at 78% 15%, color-mix(in srgb, var(--cold) 32%, #1b2530), #10171f 72%); }
+.zone-hero--living { background: radial-gradient(120% 140% at 78% 15%, color-mix(in srgb, var(--accent) 30%, #1b2530), #10171f 72%); }
+
+.zone-hero-art {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-54%);
+    font-size: 5.2rem;
+    line-height: 1;
+    filter: drop-shadow(0 8px 18px rgba(0, 0, 0, .4));
+}
+.zone-hero-cap {
+    position: relative;
+    width: 100%;
+    padding: var(--space-md) var(--space-lg);
+    background: linear-gradient(0deg, rgba(8, 12, 16, .74), transparent);
+}
+.zone-hero-cap h2 { margin: 0; font-size: var(--text-xl); }
+.zone-hero-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1;
+    background: color-mix(in srgb, var(--bg) 55%, transparent);
+}

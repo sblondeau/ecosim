@@ -11,8 +11,16 @@
     living: '🛋️ Séjour',
 } %}
 {% set doneChips = game.doneChipsBySlot[selected] ?? [] %}
+{# Illustration d'en-tête (§ panneau de décision) : bandeau pleine largeur, une
+   vraie image de zone (façon onboarding) viendra à la place du dégradé + emoji.
+   Le titre est posé sur un voile pour rester lisible. #}
+{% set heroIcons = {roof: '🏠', walls: '🧱', heating: (game.boilerBroken ? '🚨' : '🔥'), garage: '🚗', living: '🛋️'} %}
 
-<twig:PanelHead title="{{ titles[selected] }}" />
+<header class="zone-hero zone-hero--{{ selected }}">
+    <span class="zone-hero-art" aria-hidden="true">{{ heroIcons[selected] }}</span>
+    <button type="button" class="zone-hero-close btn-ghost btn-small" data-action="click->live#action" data-live-action-param="closePanel" aria-label="Fermer">✕</button>
+    <div class="zone-hero-cap"><h2>{{ titles[selected] }}</h2></div>
+</header>
 
 <div class="card">
     {% if selected == 'roof' %}
