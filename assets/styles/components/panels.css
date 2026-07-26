@@ -541,22 +541,42 @@ details.card[open]>summary {
 .zone-hero--garage { background: radial-gradient(120% 140% at 78% 15%, color-mix(in srgb, var(--cold) 32%, #1b2530), #10171f 72%); }
 .zone-hero--living { background: radial-gradient(120% 140% at 78% 15%, color-mix(in srgb, var(--accent) 30%, #1b2530), #10171f 72%); }
 
+/* Emoji en filigrane derrière le titre (une vraie image le remplacera). */
 .zone-hero-art {
     position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-54%);
-    font-size: 5.2rem;
+    right: 16px;
+    top: 8px;
+    font-size: 3.6rem;
     line-height: 1;
-    filter: drop-shadow(0 8px 18px rgba(0, 0, 0, .4));
+    opacity: .5;
+    pointer-events: none;
 }
 .zone-hero-cap {
     position: relative;
     width: 100%;
-    padding: var(--space-md) var(--space-lg);
-    background: linear-gradient(0deg, rgba(8, 12, 16, .74), transparent);
+    padding: var(--space-sm) var(--space-lg);
+    background: linear-gradient(0deg, rgba(8, 12, 16, .82), rgba(8, 12, 16, .3) 60%, transparent);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-md);
+    flex-wrap: wrap;
 }
 .zone-hero-cap h2 { margin: 0; font-size: var(--text-xl); }
+/* État de la pièce en une ligne (badge) + thermostat du salon. */
+.zone-hero-state { display: flex; align-items: center; gap: var(--space-xs); flex-wrap: wrap; }
+.zbadge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3xs);
+    padding: 3px 11px;
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--bg) 55%, transparent);
+    border: 1px solid var(--line);
+    font-size: var(--text-sm);
+    font-weight: 600;
+}
+.zbadge--danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, var(--line)); background: color-mix(in srgb, var(--danger) 14%, var(--bg)); }
 .zone-hero-close {
     position: absolute;
     top: 10px;
@@ -565,19 +585,7 @@ details.card[open]>summary {
     background: color-mix(in srgb, var(--bg) 55%, transparent);
 }
 
-/* Bandeau d'état de la pièce (contexte + thermostat) en tête — fixe, il libère
-   la colonne de droite pour le seul descriptif du travaux. */
-.zone-context {
-    flex: none;
-    padding: var(--space-sm) var(--space-lg);
-    border-bottom: 1px solid var(--line);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3xs);
-    font-size: var(--text-sm);
-}
-.zone-context:empty { display: none; }
-.zone-context .row { padding: 2px 0; }
+/* Thermostat du salon dans l'en-tête (compact). */
 .ctx-thermo { display: inline-flex; align-items: center; gap: var(--space-2xs); }
 .ctx-thermo-val { min-width: 3.6em; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
 .ctx-thermo .thermo-btn { padding: 1px 9px; }
