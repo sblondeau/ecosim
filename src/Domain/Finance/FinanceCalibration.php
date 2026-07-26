@@ -112,18 +112,52 @@ final class FinanceCalibration
     }
 
     /**
-     * Monthly living expenses EXCLUDING energy (food, transport, mortgage…).
-     * Energy is billed separately by the simulation — that is the point.
+     * Monthly living expenses EXCLUDING energy AND the mortgage (food,
+     * transport, insurances…). Energy is billed separately by the simulation;
+     * the mortgage is now its own explicit charge ({@see self::mortgageMonthlyPayment()},
+     * § contrainte ③), so this dropped from the old 2 100 blended figure to
+     * 1 260 (1 260 + 840 = 2 100 — reste-à-vivre unchanged).
      */
     public function monthlyLivingExpenses(): Coefficient
     {
         return new Coefficient(
-            value: 2100.0,
+            value: 1260.0,
             unit: '€/month',
-            min: 1800.0,
-            max: 2800.0,
-            source: 'Calibration de jeu : reste-à-vivre serré du primo-accédant (~700 €/mois hors énergie, game-design §18) — un janvier au fioul (~740 €) le consomme entièrement',
-            reviewedOn: '2025-01-01',
+            min: 1000.0,
+            max: 1900.0,
+            source: 'Calibration de jeu : reste-à-vivre serré du primo-accédant (~700 €/mois hors énergie, game-design §18), une fois le crédit immo sorti du forfait',
+            reviewedOn: '2026-07-26',
+        );
+    }
+
+    /**
+     * The household's home-loan monthly payment — modelled explicitly (§ contrainte
+     * ③) so it weighs in the debt ratio. Sized on the ACPR average effort rate at
+     * origination (~30,7 % of income): 30 % of 2 800 € ≈ 840 €. Assumed order of
+     * magnitude (§13); the 30 % effort rate itself is the sourced figure.
+     */
+    public function mortgageMonthlyPayment(): Coefficient
+    {
+        return new Coefficient(
+            value: 840.0,
+            unit: '€/month',
+            min: 700.0,
+            max: 900.0,
+            source: 'ACPR, Le financement de l\'habitat 2024 : taux d\'effort moyen à l\'octroi ~30,7 % ; sur 2 800 €/mois → ~840 €',
+            reviewedOn: '2026-07-26',
+        );
+    }
+
+    /** Debt-to-income ceiling a bank enforces: the HCSF 35 % wall (insurance included). */
+    public function debtRatioCeiling(): Coefficient
+    {
+        return new Coefficient(
+            value: 0.35,
+            unit: 'fraction',
+            min: 0.35,
+            max: 0.35,
+            source: 'HCSF : taux d\'effort maximal 35 % (règle contraignante depuis 2021, assurance comprise)',
+            reviewedOn: '2026-07-26',
         );
     }
 

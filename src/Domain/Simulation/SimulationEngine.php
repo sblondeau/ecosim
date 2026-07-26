@@ -121,7 +121,9 @@ final readonly class SimulationEngine
         }
 
         return Money::fromEuros(
-            $this->finance->monthlyNetIncome()->value - $this->finance->monthlyLivingExpenses()->value,
+            $this->finance->monthlyNetIncome()->value
+            - $this->finance->monthlyLivingExpenses()->value
+            - $this->finance->mortgageMonthlyPayment()->value,
         );
     }
 

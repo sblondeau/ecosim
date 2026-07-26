@@ -26,6 +26,7 @@ use App\Domain\Finance\RenovationConcurrency;
 use App\Domain\Finance\RenovationDefinition;
 use App\Domain\Finance\RenovationQuoter;
 use App\Domain\Finance\SceneSlot;
+use App\Domain\Finance\SolvencyPolicy;
 use App\Domain\Math\SeasonalCycle;
 use App\Domain\Scenario\PrimoAccedantScenario;
 use App\Domain\Scenario\Scenario;
@@ -83,6 +84,7 @@ final readonly class GameViewFactory
         private CarbonAccountant $carbon = new CarbonAccountant(),
         private RenovationCatalog $catalog = new RenovationCatalog(),
         private RenovationConcurrency $concurrency = new RenovationConcurrency(),
+        private SolvencyPolicy $solvency = new SolvencyPolicy(),
     ) {
     }
 
@@ -107,8 +109,13 @@ final readonly class GameViewFactory
         // average — the real bill is seasonal), net of solar resale.
         $monthlyIncome = Money::fromEuros($this->finance->monthlyNetIncome()->value);
         $monthlyLiving = Money::fromEuros($this->finance->monthlyLivingExpenses()->value);
+        $monthlyMortgage = Money::fromEuros($this->finance->mortgageMonthlyPayment()->value);
         $monthlyEnergy = Money::fromCents(intdiv($currentAnnual->netEnergyCost->cents, 12));
-        $monthlyLeftover = $monthlyIncome->minus($monthlyLiving)->minus($monthlyEnergy)->minus($state->loan->monthlyPayment);
+        $monthlyLeftover = $monthlyIncome->minus($monthlyLiving)->minus($monthlyMortgage)->minus($monthlyEnergy)->minus($state->loan->monthlyPayment);
+
+        // Debt-to-income ratio (§ contrainte ③): mortgage + éco-PTZ over income.
+        $debtRatio = $this->solvency->debtRatio($state->loan);
+        $debtRatioLevel = $debtRatio >= $this->solvency->ceiling() ? 'sature' : ($debtRatio >= 0.33 ? 'tendu' : 'ok');
 
         // Renovation primes owed but not yet paid (§ contrainte ② — MaPrimeRénov'
         // lands after the works): the money the household has fronted, coming
@@ -167,6 +174,9 @@ final readonly class GameViewFactory
             monthlyIncomeLabel: $monthlyIncome->format(),
             monthlyExpensesLabel: $monthlyLiving->format(),
             monthlyEnergyCostLabel: $monthlyEnergy->format(),
+            mortgageLabel: $monthlyMortgage->format(),
+            debtRatioLabel: sprintf('%d %%', (int) round($debtRatio * 100)),
+            debtRatioLevel: $debtRatioLevel,
             monthlyLeftoverLabel: $monthlyLeftover->format(),
             pendingSubsidiesLabel: $pendingSubsidies->cents > 0 ? $pendingSubsidies->format() : '',
             pendingSubsidiesEtaLabel: $subsidyEtaLabel,
@@ -665,8 +675,12 @@ final readonly class GameViewFactory
                 netCostLabel: $quote->netCost()->format(),
                 cashAllowed: !$crewBusy && $state->savings->cents >= $cost->cents,
                 loanAllowed: $loanEligible = (!$crewBusy && $work->qualifiesForEnergyAid()
-                    && $state->loan->borrowedTotal->plus($cost)->cents <= $loanCap->cents),
+                    && $state->loan->borrowedTotal->plus($cost)->cents <= $loanCap->cents
+                    && $this->solvency->allowsBorrowing($state->loan, $cost)),
                 loanMonthlyLabel: $loanEligible ? Loan::none()->borrow($cost)->monthlyPayment->format() : '',
+                loanDebtRatioAfterLabel: $work->qualifiesForEnergyAid()
+                    ? sprintf('%d %%', (int) round($this->solvency->debtRatioAfterBorrowing($state->loan, $cost) * 100))
+                    : '',
                 effectLabels: $this->effectLabels($before, $after),
                 adviceLevel: $advice->level->value,
                 adviceMessage: $advice->message,

@@ -24,6 +24,8 @@ final readonly class ActionView
         public bool $loanAllowed,
         /** Monthly éco-PTZ installment this work would add (empty if not loan-eligible). */
         public string $loanMonthlyLabel = '',
+        /** Debt ratio the household would carry if this work is loan-financed (« 34 % »); '' if not loan-eligible. */
+        public string $loanDebtRatioAfterLabel = '',
         /**
          * What the work would change over a reference weather year (bill,
          * comfort, production…) — honest estimates, never exact promises.
