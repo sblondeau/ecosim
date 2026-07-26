@@ -278,6 +278,19 @@ details.card[open]>summary {
     color: var(--warn);
 }
 
+/* A pro work blocked by the one-crew-at-a-time rule (§ contrainte ①): listed
+   but dimmed, with a reason instead of order buttons. */
+.quote--blocked {
+    opacity: .62;
+}
+
+.quote-blocked {
+    margin: var(--space-sm) 0 0;
+    font-size: var(--text-md);
+    font-weight: 600;
+    color: var(--muted);
+}
+
 .quote-head {
     display: flex;
     align-items: center;
