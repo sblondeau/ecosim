@@ -273,6 +273,22 @@ final class SimulationEngineTest extends TestCase
         self::assertCount(0, $a->pendingSubsidies, 'A disbursed subsidy leaves the pending list.');
     }
 
+    public function testAPtzFinancedPrimeRepaysTheLoanInsteadOfCashing(): void
+    {
+        $engine = new SimulationEngine();
+        $config = self::config(30);
+        $loan = Loan::none()->borrow(Money::fromEuros(13000.0));
+        $withPrime = new GameState(9, self::passoire(), 0.0, Money::fromEuros(1000.0), $loan, new PeriodTotals(), [], [new PendingSubsidy(Money::fromEuros(5200.0), 10, repaysLoan: true)]);
+        $without = new GameState(9, self::passoire(), 0.0, Money::fromEuros(1000.0), $loan, new PeriodTotals());
+
+        $a = $engine->advance($config, $withPrime); // day 9 -> 10, the disbursement day
+        $b = $engine->advance($config, $without);
+
+        self::assertSame(7800_00, $a->loan->remaining->cents, 'The prime prepays the éco-PTZ (13000 − 5200), it does not cash out.');
+        self::assertSame($b->savings->cents, $a->savings->cents, 'A PTZ-financed prime never touches savings.');
+        self::assertCount(0, $a->pendingSubsidies);
+    }
+
     public function testAPendingSubsidyIsNotDisbursedBeforeItsDay(): void
     {
         $engine = new SimulationEngine();

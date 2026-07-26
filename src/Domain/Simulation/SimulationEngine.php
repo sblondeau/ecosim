@@ -150,6 +150,7 @@ final readonly class SimulationEngine
     private function withDisbursedSubsidies(GameState $state): GameState
     {
         $savings = $state->savings;
+        $loan = $state->loan;
         $pending = [];
         foreach ($state->pendingSubsidies as $subsidy) {
             if ($subsidy->disbursementDay > $state->currentDay) {
@@ -158,10 +159,16 @@ final readonly class SimulationEngine
                 continue;
             }
 
-            $savings = $savings->plus($subsidy->amount);
+            // A PTZ-financed prime prepays the loan (§ contrainte ③ — the debt
+            // drops); a cash-financed one is banked to savings.
+            if ($subsidy->repaysLoan) {
+                $loan = $loan->prepay($subsidy->amount);
+            } else {
+                $savings = $savings->plus($subsidy->amount);
+            }
         }
 
-        return $state->withSavings($savings)->withPendingSubsidies($pending);
+        return $state->withSavings($savings)->withLoan($loan)->withPendingSubsidies($pending);
     }
 
     /**

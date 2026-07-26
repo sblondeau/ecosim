@@ -334,7 +334,7 @@ final class GameDashboard
         // reached when no chantier transition took the headline this tick.
         $disbursed = $this->disbursedSubsidyTotal($before->state, $after->state);
         if ($disbursed->cents > 0) {
-            $this->notice = Notice::success(sprintf('Prime reçue : +%s.', $disbursed->format()));
+            $this->notice = Notice::success(sprintf('Prime reçue : %s (déduite de votre financement).', $disbursed->format()));
         }
     }
 

@@ -100,6 +100,7 @@ final class RenovationHandlerTest extends TestCase
         self::assertCount(1, $result->pendingSubsidies, 'The 1600 prime is scheduled as a refund, not deducted now.');
         self::assertSame(1600_00, $result->pendingSubsidies[0]->amount->cents);
         self::assertSame($result->scheduledWorks[0]->completionDay + 60, $result->pendingSubsidies[0]->disbursementDay, 'The prime lands ~60 days after the pose.');
+        self::assertFalse($result->pendingSubsidies[0]->repaysLoan, 'A cash-financed prime refunds to savings.');
     }
 
     public function testLoanBorrowsTheStickerNotTheNet(): void
@@ -111,6 +112,7 @@ final class RenovationHandlerTest extends TestCase
         self::assertSame(13000_00, $result->loan->borrowedTotal->cents, 'The éco-PTZ fronts the full sticker; the prime refunds later.');
         self::assertCount(1, $result->pendingSubsidies);
         self::assertSame(5200_00, $result->pendingSubsidies[0]->amount->cents);
+        self::assertTrue($result->pendingSubsidies[0]->repaysLoan, 'A PTZ-financed prime prepays the loan, not cash.');
     }
 
     public function testAnEcoPtzThatWouldBreachThe35PercentDebtWallIsRefused(): void

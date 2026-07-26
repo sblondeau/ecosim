@@ -72,7 +72,7 @@ final readonly class RenovationHandler
         // paid back later, ~60 days after the pose (MaPrimeRénov' après travaux).
         $cost = $quote->cost;
         $chantier = $this->schedule($state, $work, $financing);
-        $refund = $this->deferredSubsidy($quote, $chantier);
+        $refund = $this->deferredSubsidy($quote, $chantier, self::FINANCING_LOAN === $financing);
 
         if (self::FINANCING_LOAN === $financing) {
             if (!$work->qualifiesForEnergyAid()) {
@@ -109,7 +109,7 @@ final readonly class RenovationHandler
      * (§ contrainte ②). Null when the work carries no subsidy (solar, battery,
      * repair) — nothing to defer.
      */
-    private function deferredSubsidy(RenovationQuote $quote, ScheduledWork $chantier): ?PendingSubsidy
+    private function deferredSubsidy(RenovationQuote $quote, ScheduledWork $chantier, bool $repaysLoan): ?PendingSubsidy
     {
         if ($quote->subsidy->cents <= 0) {
             return null;
@@ -117,7 +117,7 @@ final readonly class RenovationHandler
 
         $disbursementDay = $chantier->completionDay + (int) $this->finance->subsidyDisbursementDays()->value;
 
-        return new PendingSubsidy($quote->subsidy, max(0, $disbursementDay));
+        return new PendingSubsidy($quote->subsidy, max(0, $disbursementDay), $repaysLoan);
     }
 
     /**

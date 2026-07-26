@@ -17,8 +17,14 @@ final readonly class PendingSubsidy
 {
     public function __construct(
         public Money $amount,
-        /** Game-day index on which the prime is credited to savings. */
+        /** Game-day index on which the prime lands. */
         public int $disbursementDay,
+        /**
+         * Where the prime goes when it lands: true → it prepays the éco-PTZ that
+         * financed the work (the debt drops, the ratio eases); false → it is
+         * credited to savings (the work was paid cash). Chosen by the financing.
+         */
+        public bool $repaysLoan = false,
     ) {
     }
 }

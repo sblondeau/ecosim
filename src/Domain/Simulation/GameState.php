@@ -164,6 +164,21 @@ final readonly class GameState
         );
     }
 
+    /** The same state with a different loan — the engine prepays it when a prime lands on a PTZ-financed work. */
+    public function withLoan(Loan $loan): self
+    {
+        return new self(
+            $this->currentDay,
+            $this->household,
+            $this->batteryLevelKwh,
+            $this->savings,
+            $loan,
+            $this->totals,
+            $this->scheduledWorks,
+            $this->pendingSubsidies,
+        );
+    }
+
     /**
      * The same state with a rewritten pending-subsidy list — the engine uses it
      * to drop primes it has just disbursed.

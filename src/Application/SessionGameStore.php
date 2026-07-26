@@ -47,7 +47,7 @@ final readonly class SessionGameStore implements GameStore
      * format is thrown away and the game restarts, instead of being silently
      * rebuilt into a valid-looking but absurd state by the hydrate fallbacks.
      */
-    private const int FORMAT_VERSION = 17;
+    private const int FORMAT_VERSION = 18;
 
     public function __construct(
         private RequestStack $requestStack,
@@ -202,6 +202,7 @@ final readonly class SessionGameStore implements GameStore
             $subsidies[] = new PendingSubsidy(
                 Money::fromCents((int) $entry['amount']),
                 max(0, (int) ($entry['day'] ?? 0)),
+                (bool) ($entry['repaysLoan'] ?? false),
             );
         }
 
@@ -288,6 +289,7 @@ final readonly class SessionGameStore implements GameStore
                 static fn (PendingSubsidy $subsidy): array => [
                     'amount' => $subsidy->amount->cents,
                     'day' => $subsidy->disbursementDay,
+                    'repaysLoan' => $subsidy->repaysLoan,
                 ],
                 $game->state->pendingSubsidies,
             ),
