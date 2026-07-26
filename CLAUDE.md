@@ -129,11 +129,21 @@ Persistance   src/Entity/ + src/Repository/  (Doctrine, entités anémiques = é
   → pas de réaffichage au refresh. **La boucle MVP est complète, cadrage compris.**
   **Phase délais faite** (juillet 2026, PR #15) — la rénovation a un **rythme** :
   chantiers programmés (`ScheduledWork`), délais réalistes par travaux (lead +
-  pose, asymétriques), déblocage éco-PTZ non mobilisable en urgence, exclusivité
-  générateur, barricade de scène « prévu/en cours ». Prochaines directions =
-  post-MVP/V1.x (cf. `docs/backlog.md` : **poids financier / taux d'endettement**
-  — le volet racine-2 pré-cadré, le vrai frein au « PTZ gratuit » —, cycle de vie
-  des équipements, dynamisme du gameplay). **Persistance Doctrine :
+  pose, asymétriques), déblocage éco-PTZ non mobilisable en urgence, barricade de
+  scène « prévu/en cours ». **Volet contrainte fait** (juillet 2026, PR #17/#18,
+  cf. `docs/specs/2026-07-26-contrainte-renovation-design.md`) — trois leviers de
+  coût d'accès qui tuent le « rénover sans douleur » : ① **un chantier d'artisan
+  à la fois** (`RenovationConcurrency` + `RenovationDefinition::requiresProfessional()`,
+  gestes DIY en parallèle, réparation exemptée — subsume l'ancienne exclusivité
+  générateur) ; ② **avance de trésorerie** (on emprunte/paie le **sticker**, la
+  prime revient ~60 j après la pose — `PendingSubsidy`, versée par le moteur ;
+  sur un PTZ elle **rembourse le prêt** via `Loan::prepay`, sinon cash) ;
+  ③ **solvabilité** (`SolvencyPolicy` : crédit immo explicite + **taux
+  d'endettement**, refus net d'un éco-PTZ perçant le mur **HCSF 35 %** ; UI taux
+  coloré + avant→après). Prochaines directions = post-MVP/V1.x (cf.
+  `docs/backlog.md` : **cadrage du scénario** — l'objectif 1 an F→C est un
+  « best case », cf. sources TREMI/ONRE ; cycle de vie des équipements ;
+  dynamisme du gameplay). **Persistance Doctrine :
   reportée à une étape méta-jeu dédiée**
   (comptes, reprise, parties multiples, historique, stats — cf. backlog
   « Persistance & méta-jeu » ; à faire en bloc, pas en portage session→DB

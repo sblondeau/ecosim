@@ -228,9 +228,12 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
   > est portée par un **groupe** (`ExclusivityGroup` sur le work +
   > `RenovationConflicts`), **pas** par le « foyer projeté » du design initial
   > (le `PelletBoilerWork::offerFor()` autorise le *switch* d'un générateur déjà
-  > posé, donc le projeté ne bloquait pas granulés-pendant-PAC). **Restent hors
+  > posé, donc le projeté ne bloquait pas granulés-pendant-PAC). *(Cette
+  > exclusivité générateur a depuis été **subsumée** par la règle « un chantier
+  > d'artisan à la fois » — `RenovationConcurrency`, PR #17.)* **Restent hors
   > phase** : ③ saisonnalité des délais, ⑥ inconfort de chantier (jours sans
-  > chauffage), avance des aides / acomptes — voir §7 de la spec.
+  > chauffage), acomptes 30/solde. **L'avance de trésorerie des aides est faite**
+  > (PR #18, levier ② — prime versée ~60 j après la pose).
 
   Aujourd'hui un travaux est **instantané** : clic → équipement posé dans la
   seconde. Irréaliste et surtout ça **annule le levier délai** du §1 (le coût
@@ -283,7 +286,18 @@ hivernal (froid + ciel clair) ne peut pas être produit intentionnellement avant
 - **Taux d'endettement + crédit immo explicite (le vrai frein réaliste au « PTZ
   gratuit »)** (déclencheur : **juste après la phase délais**, 1ᵉʳ volet « poids
   financier » si les délais ne suffisent pas à tuer la sensation de rénover sans
-  douleur — réflexion joueur, juillet 2026). Constat mesuré : l'horizon 1 an ≪
+  douleur — réflexion joueur, juillet 2026).
+  > ✅ **Fait (PR #18, juillet 2026 — cf. `docs/specs/2026-07-26-contrainte-renovation-design.md`, levier ③).**
+  > Crédit immo sorti du forfait (`FinanceCalibration::mortgageMonthlyPayment`,
+  > 840 €), `SolvencyPolicy` (taux d'endettement = immo + éco-PTZ / revenu),
+  > **refus net à 35 %** (HCSF) dans `RenovationHandler`. UI : ligne crédit immo
+  > + taux d'endettement coloré, bouton prêt avant→après. Comme le levier ②
+  > fait emprunter le sticker, le mur mord ~33,6 k€ (avant les 50 k€).
+  > Raffinement : une prime sur travaux financé au PTZ **rembourse le prêt**
+  > (`Loan::prepay`), pas de cash. **Restent hors périmètre** : cap PTZ tiéré
+  > réel 15/25/30/50 k, marge de flexibilité HCSF (~15 %).
+
+  Constat mesuré : l'horizon 1 an ≪
   terme éco-PTZ 20 ans + 0 % rend le prêt quasi-gratuit *dans la fenêtre scorée*
   (on ne paie que ~12 mensualités sur 240). Le vrai frein réaliste n'est PAS le
   plafond 50 k€ : c'est la **solvabilité** (taux d'effort ≤ **35 %**, règle HCSF
