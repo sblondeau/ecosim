@@ -555,25 +555,8 @@ details.card[open]>summary {
     width: 100%;
     padding: var(--space-md) var(--space-lg);
     background: linear-gradient(0deg, rgba(8, 12, 16, .74), transparent);
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: var(--space-md);
 }
 .zone-hero-cap h2 { margin: 0; font-size: var(--text-xl); }
-/* Thermostat du salon, compact, dans le bandeau (§ décision — désencombre le corps). */
-.hero-thermo {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2xs);
-    padding: 3px 6px;
-    border-radius: var(--radius-pill);
-    background: color-mix(in srgb, var(--bg) 62%, transparent);
-    border: 1px solid var(--line);
-    font-variant-numeric: tabular-nums;
-}
-.hero-thermo-val { min-width: 3.4em; text-align: center; font-weight: 700; font-size: var(--text-md); }
-.hero-thermo .thermo-btn { padding: 2px 8px; }
 .zone-hero-close {
     position: absolute;
     top: 10px;
@@ -581,6 +564,23 @@ details.card[open]>summary {
     z-index: 1;
     background: color-mix(in srgb, var(--bg) 55%, transparent);
 }
+
+/* Bandeau d'état de la pièce (contexte + thermostat) en tête — fixe, il libère
+   la colonne de droite pour le seul descriptif du travaux. */
+.zone-context {
+    flex: none;
+    padding: var(--space-sm) var(--space-lg);
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
+    font-size: var(--text-sm);
+}
+.zone-context:empty { display: none; }
+.zone-context .row { padding: 2px 0; }
+.ctx-thermo { display: inline-flex; align-items: center; gap: var(--space-2xs); }
+.ctx-thermo-val { min-width: 3.6em; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ctx-thermo .thermo-btn { padding: 1px 9px; }
 
 /* Pédagogie du travaux (§ étape 2) : descriptif court, ROI, « Voir plus ». */
 .wdetail-what { margin: 0; font-size: var(--text-sm); color: var(--ink); }

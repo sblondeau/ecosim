@@ -1,8 +1,9 @@
 {# Panneau de zone (§ panneau de décision) : modale centrale à hauteur fixe.
-   Colonne : bandeau illustration (fixe, thermostat du salon inclus) puis un
-   corps en deux colonnes — RAIL de choix pleine hauteur à gauche, et à droite
-   le détail (défilant) surmontant la barre d'action CALÉE EN BAS (le footer ne
-   recouvre donc que la colonne de droite). #}
+   En-tête = illustration + BANDEAU D'ÉTAT de la pièce (contexte + thermostat) ;
+   puis le corps en deux colonnes — RAIL de choix pleine hauteur à gauche, et à
+   droite le DÉTAIL DU TRAVAUX (défilant, réservé à sa description) surmontant la
+   barre d'action calée en bas. L'état de la pièce vit dans l'en-tête pour
+   laisser toute la place au descriptif du travaux. #}
 {% set scene = game.scene %}
 {% set titles = {
     roof: '🔆 Toit',
@@ -22,25 +23,48 @@
 {% set current = this.selectedWork in zoneWorks ? this.selectedWork : (zoneWorks|first) %}
 {% set showWorks = not game.finished and zoneWorks is not empty %}
 
-{# Illustration d'en-tête : une vraie image de zone (façon onboarding) viendra
-   à la place du dégradé + emoji. Le thermostat du salon vit ici (compact) pour
-   ne pas alourdir le corps. #}
 <header class="zone-hero zone-hero--{{ selected }}">
     <span class="zone-hero-art" aria-hidden="true">{{ heroIcons[selected] }}</span>
     <button type="button" class="zone-hero-close btn-ghost btn-small" data-action="click->live#action" data-live-action-param="closePanel" aria-label="Fermer">✕</button>
-    <div class="zone-hero-cap">
-        <h2>{{ titles[selected] }}</h2>
-        {% if showThermostat %}
-            <div class="hero-thermo" title="Thermostat">
-                <button type="button" class="btn-ghost thermo-btn" {{ game.setpointCanDown ? '' : 'disabled' }} aria-label="Baisser"
-                        data-action="live#action" data-live-action-param="adjustSetpoint" data-live-delta-param="-1">−</button>
-                <span class="hero-thermo-val">{{ game.setpointC }} °C</span>
-                <button type="button" class="btn-ghost thermo-btn" {{ game.setpointCanUp ? '' : 'disabled' }} aria-label="Monter"
-                        data-action="live#action" data-live-action-param="adjustSetpoint" data-live-delta-param="1">+</button>
-            </div>
-        {% endif %}
-    </div>
+    <div class="zone-hero-cap"><h2>{{ titles[selected] }}</h2></div>
 </header>
+
+{# Bandeau d'état de la pièce (contexte) — dans l'en-tête, pas dans la colonne. #}
+<div class="zone-context">
+    {% if selected == 'roof' %}
+        <div class="row"><span class="key">Installation actuelle</span><span><strong>{{ scene.solarState == 'full' ? game.solarKindLabel : 'Aucune' }}</strong></span></div>
+        <div class="row"><span class="key">Exporté aujourd'hui<twig:Tip text="{{ game.help.surplus }}" /></span><span>{{ game.gridExportKwh|number_format(1, ',', ' ') }} kWh</span></div>
+    {% elseif selected == 'walls' %}
+        <div class="row"><span class="key">DPE actuel</span><span><strong>{{ game.dpeLetter }}</strong> · déperditions : toiture, murs</span></div>
+    {% elseif selected == 'heating' %}
+        {% if game.boilerBroken %}
+            <div class="row"><span class="key">État</span><span class="neg"><strong>🚨 En panne</strong> — chauffage électrique d'appoint forcé</span></div>
+            <div class="row"><span class="key">Élec. chauffage (jour)</span><span class="neg">{{ game.heatingElectricityKwh|number_format(1, ',', ' ') }} kWh</span></div>
+        {% else %}
+            <div class="row"><span class="key">Générateur actuel</span><span><strong>{{ game.heatingLabel }}</strong>{% if game.heatPumpScopLabel is not empty %} · SCOP {{ game.heatPumpScopLabel }}{% endif %}</span></div>
+        {% endif %}
+    {% elseif selected == 'garage' %}
+        <div class="row"><span class="key">Équipement actuel</span><span><strong>{{ game.batteryCapacityKwh > 0 ? game.batteryCapacityKwh|number_format(0, ',', ' ') ~ ' kWh batterie' : 'Pas de batterie' }}</strong>{% if scene.solarState == 'kit' %} · {{ game.solarKindLabel }}{% endif %}</span></div>
+        {% if game.batteryCapacityKwh > 0 %}
+            <div class="row"><span class="key">Batterie → maison ce soir</span><span>{{ game.batteryDischargedKwh|number_format(1, ',', ' ') }} kWh</span></div>
+        {% endif %}
+    {% elseif selected == 'living' %}
+        <div class="row"><span class="key">Confort<twig:Tip text="{{ game.help.comfort }}" /></span><span>{{ game.comfortScorePct }} % · ressenti {{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
+        {% if showThermostat %}
+            <div class="row">
+                <span class="key">Consigne</span>
+                <span class="ctx-thermo">
+                    <button type="button" class="btn-ghost thermo-btn" {{ game.setpointCanDown ? '' : 'disabled' }} aria-label="Baisser"
+                            data-action="live#action" data-live-action-param="adjustSetpoint" data-live-delta-param="-1">−</button>
+                    <span class="ctx-thermo-val">{{ game.setpointC }} °C</span>
+                    <button type="button" class="btn-ghost thermo-btn" {{ game.setpointCanUp ? '' : 'disabled' }} aria-label="Monter"
+                            data-action="live#action" data-live-action-param="adjustSetpoint" data-live-delta-param="1">+</button>
+                </span>
+            </div>
+            {% if game.setpointBelowHealthy %}<div class="precarity">🥶 Sous 18 °C : sous-chauffage (plancher santé OMS).</div>{% endif %}
+        {% endif %}
+    {% endif %}
+</div>
 
 <div class="zpanel-body{{ showWorks ? '' : ' zpanel-body--norail' }}">
     {% if showWorks %}
@@ -68,41 +92,10 @@
 
     <div class="zpanel-right">
         <div class="zpanel-right-scroll">
-            <div class="card">
-                {% if selected == 'roof' %}
-                    <div class="row"><span class="key">Installation actuelle</span><span><strong>{{ scene.solarState == 'full' ? game.solarKindLabel : 'Aucune' }}</strong></span></div>
-                    <div class="row"><span class="key">Exporté aujourd'hui<twig:Tip text="{{ game.help.surplus }}" /></span><span>{{ game.gridExportKwh|number_format(1, ',', ' ') }} kWh</span></div>
-                {% elseif selected == 'walls' %}
-                    <div class="row"><span class="key">DPE actuel</span><span><strong>{{ game.dpeLetter }}</strong> · déperditions dominantes : toiture, murs</span></div>
-                {% elseif selected == 'heating' %}
-                    {% if game.boilerBroken %}
-                        <div class="row"><span class="key">État</span><span class="neg"><strong>🚨 En panne</strong> — chauffage électrique d'appoint forcé</span></div>
-                        <div class="row"><span class="key">Élec. de chauffage (jour)</span><span class="neg">{{ game.heatingElectricityKwh|number_format(1, ',', ' ') }} kWh</span></div>
-                    {% else %}
-                        <div class="row">
-                            <span class="key">Générateur actuel</span>
-                            <span><strong>{{ game.heatingLabel }}</strong>{% if game.heatPumpScopLabel is not empty %} · SCOP effectif {{ game.heatPumpScopLabel }}{% endif %}</span>
-                        </div>
-                    {% endif %}
-                {% elseif selected == 'garage' %}
-                    <div class="row">
-                        <span class="key">Équipement actuel</span>
-                        <span><strong>{{ game.batteryCapacityKwh > 0 ? game.batteryCapacityKwh|number_format(0, ',', ' ') ~ ' kWh batterie' : 'Pas de batterie' }}</strong>{% if scene.solarState == 'kit' %} · {{ game.solarKindLabel }}{% endif %}</span>
-                    </div>
-                    {% if game.batteryCapacityKwh > 0 %}
-                        <div class="row"><span class="key">Batterie → maison ce soir</span><span>{{ game.batteryDischargedKwh|number_format(1, ',', ' ') }} kWh</span></div>
-                        <div class="gauge"><span style="width: {{ game.batteryCapacityKwh > 0 ? (100 * game.batteryDischargedKwh / game.batteryCapacityKwh)|round : 0 }}%; background: var(--warn);"></span></div>
-                    {% endif %}
-                {% elseif selected == 'living' %}
-                    <div class="row"><span class="key">Confort thermique<twig:Tip text="{{ game.help.comfort }}" /></span><span>{{ game.comfortScorePct }} %</span></div>
-                    <div class="gauge"><span style="width: {{ game.comfortScorePct }}%; background: var(--accent);"></span></div>
-                    <div class="row" style="margin-top:.5rem"><span class="key">Ressenti</span><span>{{ game.feltTemperatureC|number_format(1, ',', ' ') }} °C · air {{ game.indoorTemperatureC|number_format(1, ',', ' ') }} °C</span></div>
-                    {% if game.setpointBelowHealthy %}<div class="precarity">🥶 Sous 18 °C : sous-chauffage (plancher santé OMS).</div>{% endif %}
-                {% endif %}
-            </div>
-
             {% if showWorks %}
                 {{ include('game/panel/_work_detail.html.twig', {action: game.actions[current]}) }}
+            {% else %}
+                <p class="wdetail-none">Aucun travaux disponible dans cette zone pour l'instant.</p>
             {% endif %}
         </div>
 
