@@ -70,6 +70,31 @@ final class GameDashboardTest extends KernelTestCase
         self::assertNull($component->component()->selectedSlot);
     }
 
+    public function testAZonePanelListsWorksInARailAndDetailsTheSelectedOne(): void
+    {
+        $component = $this->createLiveComponent(GameDashboard::class);
+        $component->call('selectSlot', ['slot' => 'heating']);
+
+        // Pick the heat pump in the rail → its detail (with the CTA) shows.
+        $html = (string) $component->call('selectWork', ['work' => 'heat_pump'])->render();
+
+        self::assertSame('heat_pump', $component->component()->selectedWork);
+        self::assertStringContainsString('works-rail', $html, 'Works are laid out in a rail.');
+        self::assertStringContainsString('zwork sel', $html, 'The selected work is highlighted in the rail.');
+        self::assertStringContainsString('Endettement', $html, 'The detail carries the CTA (debt ratio before→after from lever ③).');
+    }
+
+    public function testChangingZoneResetsTheDetailedWork(): void
+    {
+        $component = $this->createLiveComponent(GameDashboard::class);
+        $component->call('selectSlot', ['slot' => 'heating']);
+        $component->call('selectWork', ['work' => 'heat_pump']);
+        self::assertSame('heat_pump', $component->component()->selectedWork);
+
+        $component->call('selectSlot', ['slot' => 'walls']);
+        self::assertNull($component->component()->selectedWork, 'A new zone clears the detailed work so it never leaks.');
+    }
+
     public function testModalComponentRendersItsSlotAndCloseAction(): void
     {
         $twig = self::getContainer()->get('twig');
@@ -296,14 +321,14 @@ final class GameDashboardTest extends KernelTestCase
 
         $garage = (string) $component->call('selectSlot', ['slot' => 'garage'])->render();
         self::assertStringContainsString(
-            'done-chip">✔ Kit solaire',
+            'zwork-name">Kit solaire',
             $garage,
             'SolarKitWork::slot() is Garage: the done chip now lives where the offer already did, not in roof (Task 4, approved change 2/3).',
         );
 
         $roof = (string) $component->call('selectSlot', ['slot' => 'roof'])->render();
         self::assertStringNotContainsString(
-            'done-chip">✔ Kit solaire',
+            'zwork-name">Kit solaire',
             $roof,
             'The roof drawer no longer shows the done chip: SolarKitWork::slot() is Garage.',
         );
@@ -375,14 +400,14 @@ final class GameDashboardTest extends KernelTestCase
 
         $heating = (string) $component->call('selectSlot', ['slot' => 'heating'])->render();
         self::assertStringContainsString(
-            'done-chip">✔ Chauffe-eau thermodynamique',
+            'zwork-name">Chauffe-eau thermodynamique',
             $heating,
             'WaterHeaterThermoWork::slot() is Heating: the done chip now lives where the offer already did, not in garage (Task 4, approved change 1/3).',
         );
 
         $garage = (string) $component->call('selectSlot', ['slot' => 'garage'])->render();
         self::assertStringNotContainsString(
-            'done-chip">✔ Chauffe-eau thermodynamique',
+            'zwork-name">Chauffe-eau thermodynamique',
             $garage,
             'The garage drawer no longer shows the done chip, nor names the water heater in its context row any more (Task 4 + follow-up fix).',
         );
