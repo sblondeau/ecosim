@@ -70,6 +70,9 @@ final readonly class GameViewFactory
         9 => 'septembre', 10 => 'octobre', 11 => 'novembre', 12 => 'décembre',
     ];
 
+    /** Debt ratio at which the Finances gauge turns amber — approaching the 35 % wall (§ contrainte ③). */
+    private const float DEBT_RATIO_TENSION = 0.33;
+
     public function __construct(
         private SimulationEngine $engine = new SimulationEngine(),
         private FinanceCalibration $finance = new FinanceCalibration(),
@@ -115,7 +118,7 @@ final readonly class GameViewFactory
 
         // Debt-to-income ratio (§ contrainte ③): mortgage + éco-PTZ over income.
         $debtRatio = $this->solvency->debtRatio($state->loan);
-        $debtRatioLevel = $debtRatio >= $this->solvency->ceiling() ? 'sature' : ($debtRatio >= 0.33 ? 'tendu' : 'ok');
+        $debtRatioLevel = $debtRatio >= $this->solvency->ceiling() ? 'sature' : ($debtRatio >= self::DEBT_RATIO_TENSION ? 'tendu' : 'ok');
 
         // Renovation primes owed but not yet paid (§ contrainte ② — MaPrimeRénov'
         // lands after the works): the money the household has fronted, coming
