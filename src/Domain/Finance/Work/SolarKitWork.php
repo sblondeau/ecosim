@@ -14,6 +14,7 @@ use App\Domain\Finance\RenovationAdvice;
 use App\Domain\Finance\RenovationDefinition;
 use App\Domain\Finance\RenovationOffer;
 use App\Domain\Finance\SceneSlot;
+use App\Domain\Finance\WorkPedagogy;
 
 use function sprintf;
 
@@ -112,5 +113,14 @@ final readonly class SolarKitWork implements RenovationDefinition
     public function requiresProfessional(): bool
     {
         return false;
+    }
+
+    public function pedagogy(): WorkPedagogy
+    {
+        return new WorkPedagogy(
+            'Un kit solaire plug-and-play (un ou deux panneaux + micro-onduleur) se branche soi-même sur une prise. Petite production immédiate, sans installateur ni travaux.',
+            'Idéal pour couvrir la consommation de fond (veilles, frigo) en journée. Puissance limitée : c\'est un premier pas, pas une installation de toiture.',
+            [],
+        );
     }
 }

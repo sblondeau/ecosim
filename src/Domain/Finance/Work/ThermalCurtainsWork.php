@@ -13,6 +13,7 @@ use App\Domain\Finance\RenovationAdvice;
 use App\Domain\Finance\RenovationDefinition;
 use App\Domain\Finance\RenovationOffer;
 use App\Domain\Finance\SceneSlot;
+use App\Domain\Finance\WorkPedagogy;
 
 /**
  * Thermal curtains (lined), a handful of windows. A cheap daily gesture with
@@ -86,5 +87,14 @@ final readonly class ThermalCurtainsWork implements RenovationDefinition
     public function requiresProfessional(): bool
     {
         return false;
+    }
+
+    public function pedagogy(): WorkPedagogy
+    {
+        return new WorkPedagogy(
+            'Des rideaux thermiques doublés limitent les pertes par les fenêtres, surtout la nuit. Très bon marché, posés soi-même.',
+            'Un appoint de confort, pas une vraie isolation : utile en attendant de changer les fenêtres, ou sur les grandes baies.',
+            [],
+        );
     }
 }

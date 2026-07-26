@@ -14,6 +14,7 @@ use App\Domain\Finance\RenovationAdvice;
 use App\Domain\Finance\RenovationDefinition;
 use App\Domain\Finance\RenovationOffer;
 use App\Domain\Finance\SceneSlot;
+use App\Domain\Finance\WorkPedagogy;
 
 /**
  * Low-temperature emitters (underfloor/oversized radiators): no effect on
@@ -87,5 +88,14 @@ final readonly class LowTempEmittersWork implements RenovationDefinition
     public function requiresProfessional(): bool
     {
         return true;
+    }
+
+    public function pedagogy(): WorkPedagogy
+    {
+        return new WorkPedagogy(
+            'Des émetteurs basse température (plancher chauffant ou grands radiateurs) permettent à une pompe à chaleur de tourner à eau moins chaude — son rendement saisonnier (SCOP) grimpe nettement.',
+            'N\'a d\'intérêt qu\'avec une PAC (ou pour la préparer) : plus l\'eau du circuit est tiède, plus la PAC est efficace. Sans PAC, l\'effet sur la facture est faible.',
+            ['ADEME — émetteurs de chauffage'],
+        );
     }
 }

@@ -14,6 +14,7 @@ use App\Domain\Finance\RenovationAdvice;
 use App\Domain\Finance\RenovationDefinition;
 use App\Domain\Finance\RenovationOffer;
 use App\Domain\Finance\SceneSlot;
+use App\Domain\Finance\WorkPedagogy;
 
 /**
  * Swap the electric-tank water heater for a thermodynamic one: hot water is
@@ -88,5 +89,14 @@ final readonly class WaterHeaterThermoWork implements RenovationDefinition
     public function requiresProfessional(): bool
     {
         return true;
+    }
+
+    public function pedagogy(): WorkPedagogy
+    {
+        return new WorkPedagogy(
+            'Un chauffe-eau thermodynamique est une petite pompe à chaleur dédiée à l\'eau chaude sanitaire : environ 3 fois moins d\'électricité qu\'un ballon électrique classique.',
+            'L\'eau chaude pèse lourd dans la facture d\'une maison bien isolée. Il a besoin d\'un volume d\'air à prélever (buanderie, garage) pour bien fonctionner.',
+            ['ADEME — eau chaude sanitaire'],
+        );
     }
 }

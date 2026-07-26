@@ -69,6 +69,16 @@ final class GameViewFactoryTest extends TestCase
         self::assertArrayNotHasKey('walls', $onSite->scene->chantierZones, 'The marker follows the visual roof, not the walls drawer slot.');
     }
 
+    public function testAWorkExposesItsPedagogyAndPayback(): void
+    {
+        $bare = new Household(0.0, 0.0, self::original(), HeatingSystem::FuelOilBoiler);
+        $view = new GameViewFactory()->build(self::config(), GameState::start($bare, Money::fromEuros(8000.0)));
+
+        $pac = $view->actions['heat_pump'];
+        self::assertStringContainsString('pompe à chaleur', $pac->shortWhat, 'The detail explains what the work is.');
+        self::assertStringContainsString('amortit', $pac->roiLabel, 'A heat pump saves fuel → it carries a payback (net cost ÷ annual saving).');
+    }
+
     public function testProfessionalWorksAreDisabledWhileAChantierRunsButGestesStay(): void
     {
         $bare = new Household(0.0, 0.0, self::original(), HeatingSystem::FuelOilBoiler);

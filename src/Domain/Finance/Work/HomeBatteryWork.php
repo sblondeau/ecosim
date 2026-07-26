@@ -14,6 +14,7 @@ use App\Domain\Finance\RenovationAdvice;
 use App\Domain\Finance\RenovationDefinition;
 use App\Domain\Finance\RenovationOffer;
 use App\Domain\Finance\SceneSlot;
+use App\Domain\Finance\WorkPedagogy;
 
 use function sprintf;
 
@@ -100,5 +101,14 @@ final readonly class HomeBatteryWork implements RenovationDefinition
     public function requiresProfessional(): bool
     {
         return true;
+    }
+
+    public function pedagogy(): WorkPedagogy
+    {
+        return new WorkPedagogy(
+            'Une batterie domestique stocke le surplus solaire de la journée pour le restituer le soir. Elle n\'a d\'intérêt que si des panneaux produisent un surplus à stocker.',
+            'Elle augmente l\'autoconsommation mais son coût s\'amortit lentement. Sans production solaire excédentaire, elle ne sert à rien.',
+            [],
+        );
     }
 }

@@ -15,6 +15,7 @@ use App\Domain\Finance\RenovationAdvice;
 use App\Domain\Finance\RenovationDefinition;
 use App\Domain\Finance\RenovationOffer;
 use App\Domain\Finance\SceneSlot;
+use App\Domain\Finance\WorkPedagogy;
 
 /**
  * Air-to-water heat pump: the way out of fuel oil, and the work whose payoff
@@ -94,5 +95,14 @@ final readonly class HeatPumpWork implements RenovationDefinition
     public function requiresProfessional(): bool
     {
         return true;
+    }
+
+    public function pedagogy(): WorkPedagogy
+    {
+        return new WorkPedagogy(
+            'Une pompe à chaleur air/eau puise la chaleur de l\'air extérieur pour chauffer l\'eau du circuit. Elle restitue environ 3 kWh de chaleur par kWh d\'électricité (COP ≈ 3).',
+            'Sur une maison au fioul, c\'est le plus gros levier de baisse des émissions (l\'électricité française est peu carbonée). Son rendement dépend de l\'isolation : sur une passoire, la PAC est bridée et la facture reste haute — d\'où l\'intérêt d\'isoler d\'abord.',
+            ['ADEME — pompes à chaleur'],
+        );
     }
 }

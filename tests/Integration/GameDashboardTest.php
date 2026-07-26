@@ -267,8 +267,8 @@ final class GameDashboardTest extends KernelTestCase
 
         $html = (string) $component->call('selectSlot', ['slot' => 'heating'])->render();
 
-        self::assertStringContainsString('En panne', $html, 'The heating slot flags the breakdown instead of the stale "Chaudière fioul" header.');
-        self::assertStringContainsString("chauffage électrique d'appoint forcé", $html);
+        self::assertStringContainsString('En panne', $html, 'The heating slot flags the breakdown instead of the stale generator label.');
+        self::assertStringContainsString('zbadge--danger', $html, 'The breakdown reads as a danger badge in the header.');
     }
 
     public function testGarageSlotOffersTheSolarKit(): void
@@ -346,10 +346,10 @@ final class GameDashboardTest extends KernelTestCase
         $this->seedInstalled('solar_kit');
 
         $roof = (string) $component->call('selectSlot', ['slot' => 'roof'])->render();
-        self::assertMatchesRegularExpression(
-            '/Installation actuelle<\/span><span><strong>Aucune<\/strong>/',
+        self::assertStringContainsString(
+            'zbadge">Aucune',
             $roof,
-            'A kit-only household has no rooftop install: the roof drawer\'s context row reads "Aucune", not the kit label.',
+            'A kit-only household has no rooftop install: the roof header badge reads "Aucune", not the kit label.',
         );
     }
 
@@ -367,26 +367,22 @@ final class GameDashboardTest extends KernelTestCase
 
         $garage = (string) $component->call('selectSlot', ['slot' => 'garage'])->render();
 
-        // Scoped to the "Équipement actuel" row's value span itself — the
-        // scene SVG always draws the installed water-heater asset (whose
-        // markup carries its own "Chauffe-eau thermodynamique" comment)
-        // regardless of which drawer is open, so a page-wide assertion would
-        // false-positive on that unrelated graphic.
-        $matched = preg_match(
-            '/Équipement actuel<\/span>\s*<span>(.*?)<\/span>\s*<\/div>/s',
-            $garage,
-            $row,
-        );
-        self::assertSame(1, $matched, 'The garage drawer renders its "Équipement actuel" context row.');
+        // Scoped to the garage header STATE BADGE itself — the scene SVG always
+        // draws the installed water-heater asset (whose markup carries its own
+        // "Chauffe-eau thermodynamique" comment) regardless of which panel is
+        // open, so a page-wide assertion would false-positive on that graphic.
+        $matched = preg_match('/zbadge">([^<]*)</', $garage, $row);
+
+        self::assertSame(1, $matched, 'The garage header renders its state badge.');
         self::assertStringContainsString(
             'Kit solaire',
             $row[1],
-            'The garage drawer\'s context row names the kit alongside the battery state.',
+            'The garage state badge names the kit alongside the battery state.',
         );
         self::assertStringNotContainsString(
             'Chauffe-eau',
             $row[1],
-            'The water heater is never named in the garage drawer\'s context row any more: it moved to the heating drawer.',
+            'The water heater is never named in the garage header: it moved to the heating drawer.',
         );
     }
 

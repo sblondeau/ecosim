@@ -14,6 +14,7 @@ use App\Domain\Finance\RenovationAdvice;
 use App\Domain\Finance\RenovationDefinition;
 use App\Domain\Finance\RenovationOffer;
 use App\Domain\Finance\SceneSlot;
+use App\Domain\Finance\WorkPedagogy;
 
 use function sprintf;
 
@@ -119,5 +120,14 @@ final readonly class SolarPanelsWork implements RenovationDefinition
     public function requiresProfessional(): bool
     {
         return true;
+    }
+
+    public function pedagogy(): WorkPedagogy
+    {
+        return new WorkPedagogy(
+            'Des panneaux photovoltaïques sur le toit produisent de l\'électricité à la lumière du jour. Autoconsommée en priorité, le surplus est revendu au réseau.',
+            'La rentabilité vient surtout de l\'autoconsommation (un kWh produit et consommé vaut bien plus qu\'un kWh revendu). Nécessite déclaration en mairie et raccordement Enedis.',
+            ['ADEME — photovoltaïque'],
+        );
     }
 }

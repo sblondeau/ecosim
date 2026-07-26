@@ -103,4 +103,11 @@ interface RenovationDefinition
      * from the rule (you must survive the panne even mid-chantier).
      */
     public function requiresProfessional(): bool;
+
+    /**
+     * The static pedagogical content of this work ({@see WorkPedagogy}): what it
+     * is / how it works + sources (§ panneau de décision, étape 2). The ROI and
+     * the contextual caution are NOT here (computed / {@see self::adviceFor()}).
+     */
+    public function pedagogy(): WorkPedagogy;
 }

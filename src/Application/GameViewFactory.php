@@ -669,6 +669,7 @@ final readonly class GameViewFactory
             // loan are checked against the cost, not the (later-refunded) net.
             $cost = $quote->cost;
             $advice = $work->adviceFor($state->household);
+            $peda = $work->pedagogy();
 
             $actions[$work->slug()] = new ActionView(
                 work: $work->slug(),
@@ -692,6 +693,10 @@ final readonly class GameViewFactory
                 inProgress: $inProgress,
                 progressLabel: $inProgress ? $this->progressLabel($completionBySlug[$work->slug()] - $state->currentDay) : '',
                 crewBusy: $crewBusy,
+                shortWhat: $peda->shortWhat,
+                pedaDetails: $peda->details,
+                pedaSources: $peda->sources,
+                roiLabel: $this->roiLabel($quote->netCost(), $before, $after),
             );
         }
 
@@ -730,6 +735,23 @@ final readonly class GameViewFactory
         return 0 === $daysLeft
             ? 'Chantier en cours · posé aujourd\'hui'
             : sprintf('Chantier en cours · posé dans %d j', $daysLeft);
+    }
+
+    /**
+     * A work's payback (§ panneau de décision, étape 2): net cost ÷ the annual
+     * energy saving it brings. Empty when it saves nothing measurable (a battery
+     * or kit with no surplus, an emergency repair) — no simple payback to state.
+     */
+    private function roiLabel(Money $netCost, AnnualOutcome $before, AnnualOutcome $after): string
+    {
+        $annualSaving = $before->netEnergyCost->minus($after->netEnergyCost);
+        if ($annualSaving->cents <= 0) {
+            return '';
+        }
+
+        $years = (int) round($netCost->cents / $annualSaving->cents);
+
+        return sprintf('S\'amortit en ~%d an%s · %s/an d\'économie', $years, $years > 1 ? 's' : '', $annualSaving->format());
     }
 
     /**

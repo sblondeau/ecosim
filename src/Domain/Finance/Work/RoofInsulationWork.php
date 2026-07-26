@@ -13,6 +13,7 @@ use App\Domain\Finance\RenovationAdvice;
 use App\Domain\Finance\RenovationDefinition;
 use App\Domain\Finance\RenovationOffer;
 use App\Domain\Finance\SceneSlot;
+use App\Domain\Finance\WorkPedagogy;
 
 /**
  * Insulate the attic/roof: priority #1 of the envelope drawer, ~24 % of a
@@ -88,5 +89,14 @@ final readonly class RoofInsulationWork implements RenovationDefinition
     public function requiresProfessional(): bool
     {
         return true;
+    }
+
+    public function pedagogy(): WorkPedagogy
+    {
+        return new WorkPedagogy(
+            'Isoler les combles pose une couche isolante sous la toiture. C\'est souvent le premier geste : environ un quart à un tiers des déperditions d\'une maison s\'échappent par le toit.',
+            'Laine soufflée ou déroulée sur le plancher des combles perdus, ou sous rampants pour des combles aménagés. Rapport efficacité/prix parmi les meilleurs de la rénovation, et chantier court.',
+            ['ADEME — isolation des combles'],
+        );
     }
 }

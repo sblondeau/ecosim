@@ -1,0 +1,27 @@
+{# Barre d'action d'un travaux, calée en bas de la modale (§ panneau de
+   décision) : prix à avancer, prime, endettement avant→après, délai, et les
+   financements — ou un statut si le chantier est en cours / bloqué. #}
+{% if action.inProgress %}
+    <p class="wdetail-status">⏳ {{ action.progressLabel }}</p>
+{% elseif action.crewBusy %}
+    <p class="wdetail-status wdetail-status--blocked">🚧 Un autre chantier d'artisan est en cours — disponible dès sa pose.</p>
+{% else %}
+    <div class="wdetail-cta">
+        <div class="wdetail-price">
+            <div class="wdetail-big">{{ action.costLabel }}<small>à avancer</small></div>
+            {% if action.subsidyLabel is not empty %}
+                <div class="wdetail-note"><span class="pos">Prime +{{ action.subsidyLabel }}</span> après travaux · reste à charge <strong>{{ action.netCostLabel }}</strong></div>
+            {% endif %}
+            <div class="wdetail-meta">
+                {% if action.loanDebtRatioAfterLabel is not empty %}<span class="metachip">Endettement {{ debtRatioNow }} → {{ action.loanDebtRatioAfterLabel }}</span>{% endif %}
+                {% if action.delayLabel is not empty %}<span class="metachip">🗓️ {{ action.delayLabel }}</span>{% endif %}
+            </div>
+        </div>
+        <div class="wdetail-actions">
+            <twig:Button label="Payer comptant" action="order" :params="{work: action.work, financing: 'cash'}" class="btn-primary btn-small" :disabled="not action.cashAllowed" />
+            {% if action.loanAllowed %}
+                <twig:Button label="Éco-PTZ · {{ action.loanMonthlyLabel }}/mois" action="order" :params="{work: action.work, financing: 'loan'}" />
+            {% endif %}
+        </div>
+    </div>
+{% endif %}

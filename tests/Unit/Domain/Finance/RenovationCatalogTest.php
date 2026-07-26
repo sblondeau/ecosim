@@ -31,6 +31,16 @@ final class RenovationCatalogTest extends TestCase
         self::assertSame('alpha', $catalog->get('alpha')->slug());
     }
 
+    public function testEveryWorkCarriesAShortPedagogy(): void
+    {
+        foreach (new RenovationCatalog()->all() as $work) {
+            self::assertNotSame('', $work->pedagogy()->shortWhat, sprintf('%s must explain what it is.', $work->slug()));
+        }
+
+        // The heat pump names its mechanism (the COP) — a factual spot-check.
+        self::assertStringContainsString('COP', new RenovationCatalog()->get('heat_pump')->pedagogy()->shortWhat);
+    }
+
     public function testTryGetReturnsNullForAnUnknownSlug(): void
     {
         $catalog = new RenovationCatalog([new FakeWork('alpha', SceneSlot::Roof)]);
@@ -247,5 +257,10 @@ final readonly class FakeWork implements RenovationDefinition
     public function requiresProfessional(): bool
     {
         return true;
+    }
+
+    public function pedagogy(): \App\Domain\Finance\WorkPedagogy
+    {
+        return new \App\Domain\Finance\WorkPedagogy('test');
     }
 }

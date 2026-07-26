@@ -15,6 +15,7 @@ use App\Domain\Finance\RenovationAdvice;
 use App\Domain\Finance\RenovationDefinition;
 use App\Domain\Finance\RenovationOffer;
 use App\Domain\Finance\SceneSlot;
+use App\Domain\Finance\WorkPedagogy;
 
 use function sprintf;
 
@@ -102,5 +103,14 @@ final readonly class GlazingWork implements RenovationDefinition
     public function requiresProfessional(): bool
     {
         return true;
+    }
+
+    public function pedagogy(): WorkPedagogy
+    {
+        return new WorkPedagogy(
+            'Remplacer les menuiseries par du double ou triple vitrage réduit les pertes par les fenêtres et supprime la sensation de paroi froide à côté des vitres.',
+            'Gain énergétique modéré (les fenêtres sont une petite surface), mais fort sur le confort et l\'acoustique. Le triple vitrage n\'a de sens qu\'une fois les murs et le toit bien isolés.',
+            ['ADEME — fenêtres et menuiseries'],
+        );
     }
 }

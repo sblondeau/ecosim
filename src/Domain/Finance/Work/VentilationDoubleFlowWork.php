@@ -15,6 +15,7 @@ use App\Domain\Finance\RenovationAdvice;
 use App\Domain\Finance\RenovationDefinition;
 use App\Domain\Finance\RenovationOffer;
 use App\Domain\Finance\SceneSlot;
+use App\Domain\Finance\WorkPedagogy;
 
 /**
  * Double-flow mechanical ventilation (VMC double flux): recovers heat from
@@ -91,5 +92,14 @@ final readonly class VentilationDoubleFlowWork implements RenovationDefinition
     public function requiresProfessional(): bool
     {
         return true;
+    }
+
+    public function pedagogy(): WorkPedagogy
+    {
+        return new WorkPedagogy(
+            'Une VMC double flux renouvelle l\'air en récupérant la chaleur de l\'air extrait (70 à 90 %) pour préchauffer l\'air entrant. On assainit sans jeter la chaleur par la fenêtre.',
+            'Surtout utile dans une maison déjà bien étanche à l\'air (sinon l\'air fuit ailleurs). Améliore la qualité de l\'air et évite l\'humidité/condensation.',
+            ['ADEME — ventilation'],
+        );
     }
 }
