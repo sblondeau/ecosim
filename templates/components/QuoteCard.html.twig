@@ -11,11 +11,11 @@
         <div class="quote-icon">{{ include(action.iconAsset) }}</div>
         <h2>{{ action.title }}</h2>
     </div>
-    <div class="row"><span class="key">Coût</span><span>{{ action.costLabel }}</span></div>
+    <div class="row"><span class="key">Coût à avancer</span><span><strong>{{ action.costLabel }}</strong></span></div>
     {% if action.subsidyLabel is not empty %}
-        <div class="row"><span class="key">Prime</span><span class="pos">−{{ action.subsidyLabel }}</span></div>
+        <div class="row"><span class="key">Prime <span class="muted">(remboursée après travaux)</span></span><span class="pos">+{{ action.subsidyLabel }}</span></div>
+        <div class="row"><span class="key">Reste à charge final</span><span>{{ action.netCostLabel }}</span></div>
     {% endif %}
-    <div class="row"><span class="key">Reste à charge</span><span><strong>{{ action.netCostLabel }}</strong></span></div>
     {% if action.effectLabels is not empty %}
         <div class="effects">
             {% for effect in action.effectLabels %}

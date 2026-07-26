@@ -110,6 +110,13 @@ final readonly class GameViewFactory
         $monthlyEnergy = Money::fromCents(intdiv($currentAnnual->netEnergyCost->cents, 12));
         $monthlyLeftover = $monthlyIncome->minus($monthlyLiving)->minus($monthlyEnergy)->minus($state->loan->monthlyPayment);
 
+        // Renovation primes owed but not yet paid (§ contrainte ② — MaPrimeRénov'
+        // lands after the works): the money the household has fronted, coming back.
+        $pendingSubsidies = Money::zero();
+        foreach ($state->pendingSubsidies as $subsidy) {
+            $pendingSubsidies = $pendingSubsidies->plus($subsidy->amount);
+        }
+
         // The drawer's done chips and quote order, both driven by the
         // catalogue instead of the template's old hardcoded worksOfSlot and
         // its five copied done-chip blocks (arbre travaux, palier 5).
@@ -157,6 +164,7 @@ final readonly class GameViewFactory
             monthlyExpensesLabel: $monthlyLiving->format(),
             monthlyEnergyCostLabel: $monthlyEnergy->format(),
             monthlyLeftoverLabel: $monthlyLeftover->format(),
+            pendingSubsidiesLabel: $pendingSubsidies->cents > 0 ? $pendingSubsidies->format() : '',
             monthlyLeftoverNegative: $monthlyLeftover->isNegative(),
             energyEffortPct: (int) round($effortRate * 100),
             inFuelPoverty: $effortRate > $this->finance->fuelPovertyEffortThreshold()->value,
@@ -639,19 +647,21 @@ final readonly class GameViewFactory
             // The current house's reference year is shared; each work gets its own.
             $after = $this->estimator->estimate($quote->resultingHousehold);
 
-            $net = $quote->netCost();
+            // The household fronts the full sticker (§ contrainte ②) — cash and
+            // loan are checked against the cost, not the (later-refunded) net.
+            $cost = $quote->cost;
             $advice = $work->adviceFor($state->household);
 
             $actions[$work->slug()] = new ActionView(
                 work: $work->slug(),
                 title: $quote->title,
-                costLabel: $quote->cost->format(),
+                costLabel: $cost->format(),
                 subsidyLabel: $quote->subsidy->cents > 0 ? $quote->subsidy->format() : '',
-                netCostLabel: $net->format(),
-                cashAllowed: !$crewBusy && $state->savings->cents >= $net->cents,
+                netCostLabel: $quote->netCost()->format(),
+                cashAllowed: !$crewBusy && $state->savings->cents >= $cost->cents,
                 loanAllowed: $loanEligible = (!$crewBusy && $work->qualifiesForEnergyAid()
-                    && $state->loan->borrowedTotal->plus($net)->cents <= $loanCap->cents),
-                loanMonthlyLabel: $loanEligible ? Loan::none()->borrow($net)->monthlyPayment->format() : '',
+                    && $state->loan->borrowedTotal->plus($cost)->cents <= $loanCap->cents),
+                loanMonthlyLabel: $loanEligible ? Loan::none()->borrow($cost)->monthlyPayment->format() : '',
                 effectLabels: $this->effectLabels($before, $after),
                 adviceLevel: $advice->level->value,
                 adviceMessage: $advice->message,

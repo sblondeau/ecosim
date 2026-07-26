@@ -51,6 +51,8 @@ final readonly class GameView
         /** True disposable income: income − living − energy − loan. */
         public string $monthlyLeftoverLabel,
         public bool $monthlyLeftoverNegative,
+        /** Renovation primes owed but not yet paid (MaPrimeRénov' after works, § contrainte ②); '' when none. */
+        public string $pendingSubsidiesLabel,
         // Fuel poverty (ONPE taux d'effort énergétique)
         /** Share of annual income spent on housing energy, in whole percent. */
         public int $energyEffortPct,

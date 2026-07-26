@@ -423,6 +423,24 @@ final class FinanceCalibration
         );
     }
 
+    /**
+     * Delay before a renovation subsidy (MaPrimeRénov'-like) is actually paid,
+     * in game-days after the pose (§ contrainte ②). The scheme pays AFTER the
+     * works and file processing, so the household must front the full sticker
+     * meanwhile. Honestly an assumed order of magnitude (§13).
+     */
+    public function subsidyDisbursementDays(): Coefficient
+    {
+        return new Coefficient(
+            value: 60.0,
+            unit: 'jours',
+            min: 30.0,
+            max: 120.0,
+            source: 'Ordre de grandeur assumé (§13) : MaPrimeRénov\' versée après travaux + instruction (~2-4 mois)',
+            reviewedOn: '2026-07-26',
+        );
+    }
+
     /** Annual income ceiling of the "très modeste" prime bracket (couple, hors IdF). */
     public function veryModestIncomeCeiling(): Coefficient
     {

@@ -13,6 +13,7 @@ use App\Domain\Building\WallInsulation;
 use App\Domain\Building\WaterHeater;
 use App\Domain\Finance\Loan;
 use App\Domain\Finance\Money;
+use App\Domain\Finance\PendingSubsidy;
 use App\Domain\Scenario\PrimoAccedantScenario;
 use App\Domain\Scenario\Scenario;
 use App\Domain\Simulation\GameConfig;
@@ -46,7 +47,7 @@ final readonly class SessionGameStore implements GameStore
      * format is thrown away and the game restarts, instead of being silently
      * rebuilt into a valid-looking but absurd state by the hydrate fallbacks.
      */
-    private const int FORMAT_VERSION = 16;
+    private const int FORMAT_VERSION = 17;
 
     public function __construct(
         private RequestStack $requestStack,
@@ -152,6 +153,7 @@ final readonly class SessionGameStore implements GameStore
                 pelletCost: Money::fromCents((int) ($data['pelletCostCents'] ?? 0)),
             ),
             $this->hydrateScheduledWorks($data['scheduledWorks'] ?? []),
+            $this->hydratePendingSubsidies($data['pendingSubsidies'] ?? []),
         );
 
         $lastTickAt = new DateTimeImmutable('@'.(int) ($data['lastTickAt'] ?? 0));
@@ -180,6 +182,30 @@ final readonly class SessionGameStore implements GameStore
         }
 
         return $ids;
+    }
+
+    /**
+     * @return list<PendingSubsidy>
+     */
+    private function hydratePendingSubsidies(mixed $raw): array
+    {
+        if (!is_array($raw)) {
+            return [];
+        }
+
+        $subsidies = [];
+        foreach ($raw as $entry) {
+            if (!is_array($entry) || !isset($entry['amount'])) {
+                continue;
+            }
+
+            $subsidies[] = new PendingSubsidy(
+                Money::fromCents((int) $entry['amount']),
+                max(0, (int) ($entry['day'] ?? 0)),
+            );
+        }
+
+        return $subsidies;
     }
 
     /**
@@ -257,6 +283,13 @@ final readonly class SessionGameStore implements GameStore
                     'done' => $chantier->completionDay,
                 ],
                 $game->state->scheduledWorks,
+            ),
+            'pendingSubsidies' => array_map(
+                static fn (PendingSubsidy $subsidy): array => [
+                    'amount' => $subsidy->amount->cents,
+                    'day' => $subsidy->disbursementDay,
+                ],
+                $game->state->pendingSubsidies,
             ),
             'acknowledgedEvents' => $game->acknowledgedEvents,
         ];

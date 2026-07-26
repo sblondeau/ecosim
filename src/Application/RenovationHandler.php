@@ -6,9 +6,11 @@ namespace App\Application;
 
 use App\Domain\Finance\FinanceCalibration;
 use App\Domain\Finance\Money;
+use App\Domain\Finance\PendingSubsidy;
 use App\Domain\Finance\RenovationCatalog;
 use App\Domain\Finance\RenovationConcurrency;
 use App\Domain\Finance\RenovationDefinition;
+use App\Domain\Finance\RenovationQuote;
 use App\Domain\Finance\RenovationQuoter;
 use App\Domain\Simulation\GameState;
 use App\Domain\Simulation\ScheduledWork;
@@ -64,8 +66,11 @@ final readonly class RenovationHandler
             return 'Un chantier est déjà en cours — attendez sa pose avant d\'en commander un autre.';
         }
 
-        $net = $quote->netCost();
+        // The household fronts the FULL sticker (§ contrainte ②); the prime is
+        // paid back later, ~60 days after the pose (MaPrimeRénov' après travaux).
+        $cost = $quote->cost;
         $chantier = $this->schedule($state, $work, $financing);
+        $refund = $this->deferredSubsidy($quote, $chantier);
 
         if (self::FINANCING_LOAN === $financing) {
             if (!$work->qualifiesForEnergyAid()) {
@@ -73,18 +78,34 @@ final readonly class RenovationHandler
             }
 
             $cap = Money::fromEuros($this->finance->loanCap()->value);
-            if ($state->loan->borrowedTotal->plus($net)->cents > $cap->cents) {
+            if ($state->loan->borrowedTotal->plus($cost)->cents > $cap->cents) {
                 return sprintf('Plafond de l\'éco-PTZ dépassé (%s au total).', $cap->format());
             }
 
-            return $state->scheduling($state->savings, $state->loan->borrow($net), $chantier);
+            return $state->scheduling($state->savings, $state->loan->borrow($cost), $chantier, $refund);
         }
 
-        if ($state->savings->cents < $net->cents) {
-            return sprintf('Épargne insuffisante pour payer comptant (%s nécessaires).', $net->format());
+        if ($state->savings->cents < $cost->cents) {
+            return sprintf('Épargne insuffisante pour avancer les travaux (%s à régler, prime remboursée après).', $cost->format());
         }
 
-        return $state->scheduling($state->savings->minus($net), $state->loan, $chantier);
+        return $state->scheduling($state->savings->minus($cost), $state->loan, $chantier, $refund);
+    }
+
+    /**
+     * The prime owed on this work, scheduled to land ~60 days after the pose
+     * (§ contrainte ②). Null when the work carries no subsidy (solar, battery,
+     * repair) — nothing to defer.
+     */
+    private function deferredSubsidy(RenovationQuote $quote, ScheduledWork $chantier): ?PendingSubsidy
+    {
+        if ($quote->subsidy->cents <= 0) {
+            return null;
+        }
+
+        $disbursementDay = $chantier->completionDay + (int) $this->finance->subsidyDisbursementDays()->value;
+
+        return new PendingSubsidy($quote->subsidy, max(0, $disbursementDay));
     }
 
     /**

@@ -137,7 +137,29 @@ final readonly class SimulationEngine
 
         $settled = $state->advanced($this->snapshot($config, $state));
 
-        return $this->withScriptedEvents($config, $this->withCompletedChantiers($settled));
+        return $this->withScriptedEvents($config, $this->withDisbursedSubsidies($this->withCompletedChantiers($settled)));
+    }
+
+    /**
+     * Banks the primes whose disbursement day has come (§ contrainte ②):
+     * MaPrimeRénov' is paid AFTER the works, so the deferred refund lands as
+     * cash here and leaves the pending list.
+     */
+    private function withDisbursedSubsidies(GameState $state): GameState
+    {
+        $savings = $state->savings;
+        $pending = [];
+        foreach ($state->pendingSubsidies as $subsidy) {
+            if ($subsidy->disbursementDay > $state->currentDay) {
+                $pending[] = $subsidy;
+
+                continue;
+            }
+
+            $savings = $savings->plus($subsidy->amount);
+        }
+
+        return $state->withSavings($savings)->withPendingSubsidies($pending);
     }
 
     /**
